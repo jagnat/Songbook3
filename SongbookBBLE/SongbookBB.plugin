@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<Plugin>
+	<Information>
+		<Name>SongbookBBLE</Name>
+		<Author>Chiran/Nimelia/Almiyan</Author>
+		<Version>2</Version>
+		<Image>ChiranBBLE/songbookicon.jpg</Image>
+	</Information>
+	<Package>ChiranBBLE.SongbookBBLE.Main</Package>
+</Plugin>

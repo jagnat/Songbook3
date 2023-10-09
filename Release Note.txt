@@ -1,0 +1,88 @@
+This is an update to Sogbook version 0.92 Chiran + 0.01a The Brandy Badgers.
+
+SongBook 2: Legendary Edition
+Release Note V1.05
+
+---------------------------------------------------------------------------------
+
+New Mechanism: 
+1- After clicking on sync you need to click on send sync info button, the Songbook on other alts or players, needs this info for the new 	  features like showing the highlights and equipped instruments and other things.
+2- SongBook now uses Fellowship chat or Raid or a User chat channel that you can specify, to send sync info data.
+4- Click on the jumping link on top when someone syncs a song to jump to that song without changing directorie manually.
+5- To make a user chat channel go to settings and type the name you want in the new text box, and then click on join channel button in SongBook window. And next time if it doesn't find the user chat channle click on Recover User Channel button.
+
+---------------------------------------------------------------------------------
+
+Install:
+You can have both this version and normal version of SongBook. And you dont have to uninstall the older versions.
+Just copy and paste ChiranBBLE folder in your Plugins folder. Open plugin manager in game then click on refresh and load SongBookBBLE 2.
+
+---------------------------------------------------------------------------------
+
+1.00 (07-14-2020)
+
+New Features:
+
+1- Songbook checks the equipped instruments and when syncing with wrong instrument the part goes red for you and others.
+2- Highlighted parts now do not get cleared when changing directory and when you come to folder after others you can see what others have synced!
+3- A new text (link) that shows the path to the song that someone has synced and the name of that player. This happens when someone syncs a song that is not the one that you are selected. You can click on this link to jump to the song. This can be helpful for guiding band members and syncing faster!
+4- A new window that shows the list of instruments in tracks and who is synced it with what instrument equipped. You can open this with a new button at bottom right corner of SongBook2.
+5- Now you can add more instruments slots rows in settings!
+6- When starting song before all tracks are ready or have correct status, you get a message window to confirm starting the song to avoid starting by mistake.
+7- Highlighting the synced song in song list, so others can find the song easier.
+8- A new text at top of the window that shows the name of player and the instrument that is equipped. This can be helpful for having several alts.
+9- Sync button goes red when you are equipped a wrong instrument compared to the selected track. But you can still sync.
+10- New highlight colors for syncing with wrong instrument, and other conditions.
+11- New effects when you click on buttons.
+12- A new text that shows what chat channel songbook is using for sending sync info.
+
+---------------------------------------------------------------------------------
+
+Bug and Problem Fixes:
+1- Clearing tracks highlight colors after changing directory, and when you come to folder after others and don't see colors.
+	- now: This doesn't happen and SongBook2 keeps the highlights.
+2- Highlighting several tracks at once after syncing only one track.
+	- now: This doesn't happen and SongBook2 checks the part numbers.
+3- Songbook window goes outside of game display by moving or resizing it or changing game resolution.
+	- now: after changing game resolution and clicking on songbook it will resize to a smaller size than game. and you can't drag the resize corner out of game window.
+4- Some bugs like resizing songs list very small and timer location goes inside of track list got fixed.
+5- Better default settings, like bigger SongBook window size, Opacity 1 for SongBook icon, SongBook icon appears above the player portrait, Part list visible, Show timer etc.
+6- Songbook highlights tracks in all songs with the same track name.
+	- now: This doesn't happen and SongBook2 checks the abc file name.
+
+---------------------------------------------------------------------------------
+
+1.01 (07-25-2020)
+1- Songbook now also uses the normal sync message in standard channel too and does a background color change for song parts.
+	This can be helpful for when a band member is using old Songbook or chat channels are not available because of game problems.
+	- Note: Without sending sync info, most of features do not work.
+	- Yellow background for sync and purple for doubling
+2- Sync Info window now shows the name of synced (without sent sync info) players in front of part names in yellow color.
+3- Background highlight for the blue sync link.
+4- lower opacity for background of part list in Sync Info window.
+
+---------------------------------------------------------------------------------
+
+1.05 (    -2020)
+1- Updates to jumping link:
+	- If you have several copies of a song, the Songbook now finds all of them and shows them in a new window when you click on the link, thrn you can sellect one of them to jump to it.
+	- This also happens when only a part is synced and no sync info is recieved. This time links are shown in yellow. There might be not the same songs (copies) but different versions of the song with different number of parts if you have. (If the names in sync message are the same)
+2- New timer window: a little new window that looks like a scroll and shows the timer of the song that is playing and its name.
+3- New settings: Settings window has changed in shape and it has the option to manually choose the chat channle for sending sync info.
+	- You can select either Raid or Fellowship channel and if none of them is selected, Songbook works like normal and automatically. (If you have set a User channel it will select it)
+4- Fixed a bug that songs in song list were not getting highlighted after syncs.
+5- Search field background color has changed to have more contrast.
+6- Fixed the position of empty song library error.
+7- Help Window and its button in settings.
+
+---------------------------------------------------------------------------------
+
+
+You can donate to Almiyan :) in Crickhollow and Landroval
+Discord: AminBlade#1431
+
+
+Have great fun with music in Lotro!
+Thanks! :)
+
+
