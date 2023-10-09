@@ -49,7 +49,7 @@ SongbookLoad = Turbine.PluginData.Load;
 SongbookSave = Turbine.PluginData.Save;
 
 Settings = { WindowPosition = { Left = "300", Top = "20", Width = "700", Height = "700" + ShiftTop }, WindowVisible = "no", WindowOpacity="0.9", DirHeight = "100", TracksHeight = "150", TracksVisible = "yes", ToggleVisible = "yes", ToggleLeft = "10", ToggleTop = "10", ToggleOpacity = "1", SearchVisible = "yes", DescriptionVisible = "no", DescriptionFirst = "no", UserChatName = "" , PlayersSyncInfoWindowPosition = { Left = "350", Top = "100", Width = "400", Height = "300" } , 
-Timer_WindowPosition = { Left = "50", Top = "1" } , TimerWindowVisible = "true" , UseRaidChat = "false", UseFellowshipChat = "false", 
+Timer_WindowPosition = { Left = "50", Top = "1" } , TimerWindowVisible = "true" , UseRaidChat = "false", UseFellowshipChat = "false", AutoPickOnSongChange = "true", AutoPickOnInsChange = "true",
 HelpWindowDisable = "false" }; -- default values
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,7 +76,8 @@ Help_Window_CB:SetPosition(50, 460 );
 Help_Window_CB:SetSize(200,20);
 Help_Window_CB:SetText(" Don't Show this again.");
 Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
-Help_Window_CB.CheckedChanged = function(sender, args) songbookWindow:ToggleHelpWindow( sender:IsChecked( ) ); end;
+-- todo: is this even necessary anymore?
+--Help_Window_CB.CheckedChanged = function(sender, args) songbookWindow:ToggleHelpWindow( sender:IsChecked( ) ); end;
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -603,7 +604,29 @@ function SongbookWindow:Constructor()
 	self.bInstrumentOk = true
 	self.aInstruments = { "bagpipe", "clarinet", "cowbell", "drum", "flute", "harp", "horn", "lute", "pibgorn", "theorbo"  }
 	
-	self.Instruments_List = { "Basic Harp", "Misty Mountain Harp", "Basic Lute", "Lute of Ages", "Basic Theorbo", "Traveller's Trusty Fiddle", "Bardic Fiddle", "Basic Fiddle", "Lonely Mountain Fiddle", "Sprightly Fiddle", "Student's Fiddle", "Basic Bagpipe", "Basic Bassoon", "Brusque Bassoon", "Lonely Mountain Bassoon", "Basic Clarinet", "Basic Flute", "Basic Horn", "Basic Pibgorn", "Basic Cowbell", "Moor Cowbell", "Basic Drum" }
+	self.Instruments_List = {
+	{"Basic Harp"},
+	{"Misty Mountain Harp", "Summer Celebration Mountain Harp"},
+	{"Basic Lute", "Summer Celebration Lute"},
+	{"Lute of Ages"},
+	{"Basic Theorbo"},
+	{"Traveller's Trusty Fiddle"},
+	{"Bardic Fiddle"},
+	{"Basic Fiddle"},
+	{"Lonely Mountain Fiddle", "Summer Celebration Fiddle"},
+	{"Sprightly Fiddle"},
+	{"Student's Fiddle"},
+	{"Basic Bagpipe"},
+	{"Basic Bassoon"},
+	{"Brusque Bassoon"},
+	{"Lonely Mountain Bassoon"},
+	{"Basic Clarinet"},
+	{"Basic Flute"},
+	{"Basic Horn"},
+	{"Basic Pibgorn"},
+	{"Basic Cowbell", "Summer Celebration Cowbell"},
+	{"Moor Cowbell"},
+	{"Basic Drum"} }
 	
 	self.Instruments_Names_inTrack = {
 	{"Basic Harp"}, -- 1
@@ -700,6 +723,9 @@ function SongbookWindow:Constructor()
 	if not Settings.UseFellowshipChat then Settings.UseFellowshipChat = "false"; end
 	self:ToggleUseRaidChat	    ( Settings.UseRaidChat 	     == "true" )
 	self:ToggleUseFellowshipChat( Settings.UseFellowshipChat == "true" )
+
+	if not Settings.AutoPickOnSongChange then Settings.AutoPickOnSongChange = "true"; end
+	if not Settings.AutoPickOnInsChange then Settings.AutoPickOnInsChange = "true"; end
 	
 	if not SongDB.Songs then
 		SongDB = {
@@ -1375,7 +1401,20 @@ function SongbookWindow:Constructor()
 	self:UpdatePlayerTitle();
 	
 	self.playerEquipment.ItemEquipped = function(sender, args)
-		self:PlayerSyncInfo();
+		local insIndex = self:PlayerSyncInfo();
+		if insIndex == 0 then return; end
+		local trackListEmpty = self.tracklistBox == nil or self.tracklistBox:GetItemCount( ) < 1
+		if Settings.AutoPickOnInsChange == "true" and not trackListEmpty then
+			-- Check if current track is already the right instrument
+			if self:IsAvailableTrackWithMatchingInstrument(selectedSongIndex, selectedTrack, insIndex) then
+				return;
+			end
+
+			local iTrack = self:GetTrackToSelect(selectedSongIndex);
+			if iTrack == 0 then return; end
+			if self.bShowReadyChars then iTrack = iTrack * 2; end
+			self:SelectTrack(iTrack);
+		end
 	end
 	
 	
@@ -1695,6 +1734,7 @@ function SongbookWindow:Constructor()
 		end
 		-- action for selecting a track
 		self.tracklistBox.SelectedIndexChanged = function( sender, args )
+			-- Turbine.Shell.WriteLine( "<rgb=#00FF00>SIC</rgb>");
 			self:SelectTrack(sender:GetSelectedIndex());
 		end
 		
@@ -2035,7 +2075,13 @@ function SongbookWindow:SelectDir( iDir , Directory )
 		end
 	else
 		selectedDir = Directory;
-		dirPath[#dirPath+1] = Directory;
+		-- Fix a bug where clicking a song link multiple times breaks path
+		-- dirPath[#dirPath+1] = Directory;
+		dirPath = {}
+		dirPath[1] = "/"
+		for token in string.gmatch(Directory, "([^/]+)") do
+			dirPath[#dirPath+1] = token .. "/"
+		end
 	end
 		
 	if (string.len(selectedDir)<31) then 
@@ -2124,12 +2170,36 @@ function SongbookWindow:SelectedTrackIndex( iList )
 	return iList;
 end
 
+function SongbookWindow:IsAvailableTrackWithMatchingInstrument(songIdx, trackIdx, equippedInstrumentIdx)
+	local readyState = self:GetTrackReadyState(songIdx, trackIdx);
+	local Track_Name = SongDB.Songs[songIdx].Tracks[trackIdx].Name
+	local Track_Instrument = self:FindInstrumentInTrack( Track_Name );
+	local Track_Instrument_Index = Track_Instrument[0];
+	local isRightIns = self:CompareInstrument(equippedInstrumentIdx, Track_Instrument_Index, true --[[skip updating icon]]);
+	return (readyState[0] == nil and isRightIns == 1);
+end
+
+function SongbookWindow:GetTrackToSelect(selectedSongIndex)
+	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
+
+	-- Get instrument of current player
+	local equippedInstrument_Index = self:UpdatePlayerTitle();
+
+	for iTrack = 1,trackcount do
+		if self:IsAvailableTrackWithMatchingInstrument(selectedSongIndex, iTrack, equippedInstrument_Index) then
+			return iTrack;
+		end
+	end
+
+	return 0;
+end
+
 -- action for selecting a song
 function SongbookWindow:SelectSong( iSong )
 	if( iSong < 1 or iSong > self.songlistBox:GetItemCount( ) ) then
 		return;
 	end
-	selectedTrack = 1;
+	local track = 1;
 	self.aSetupTracksIndices = { };
 	self.aSetupListIndices = { };
 	self.iCurrentSetup = nil
@@ -2140,6 +2210,12 @@ function SongbookWindow:SelectSong( iSong )
 	selectedSongIndexListBox = iSong;
 	selectedSongIndex = self.aFilteredIndices[ iSong ];
 	selectedSong = SongDB.Songs[selectedSongIndex].Filename;
+
+	if Settings.AutoPickOnSongChange == "true" then
+			track = self:GetTrackToSelect(selectedSongIndex);
+			if track == 0 then track = 1; end
+			if self.bShowReadyChars then track = track * 2; end
+	end
 			
 	if ( SongDB.Songs[selectedSongIndex].Tracks[1].Name ~= "") then
 		self.songTitle:SetText( SongDB.Songs[selectedSongIndex].Tracks[1].Name );	
@@ -2158,7 +2234,7 @@ function SongbookWindow:SelectSong( iSong )
 	self:ListTracks(selectedSongIndex);	
 	
 	self:ClearPlayerReadyStates( );
-	self:SelectTrack( selectedTrack );
+	self:SelectTrack( track );
 	self:SetPlayerColours( );
 	self:ListSetups( selectedSongIndex )
 	self.iCurrentSetup = self:SetupIndexForCount( selectedSongIndex, self.selectedSetupCount )
@@ -3957,7 +4033,6 @@ function SongbookWindow:SelectTrack( trackid )
 	self:SetTrackColours( selectedTrack );
 end
 
-
 -- action for setting focus on the track list
 function SongbookWindow:SetTrackColours( iSelectedTrack )
 	if not self.tracklistBox or self.tracklistBox:GetItemCount( ) < 1 then return; end
@@ -3994,7 +4069,7 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			for i = 0, readyState[4]-1 do
 				if tonumber( readyState[3][i] ) > 0 then
 					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>" .. 
-						self.Instruments_List[tonumber( readyState[3][i] )] .. "</rgb>]" );
+						self.Instruments_List[tonumber( readyState[3][i] )][1] .. "</rgb>]" );
 				else
 					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>No Instrument</rgb>]" );
 				end
@@ -4003,7 +4078,7 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			for i = 0, readyState[7]-1 do
 				if tonumber( readyState[6][i] ) > 0 then
 					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>" .. 
-						self.Instruments_List[tonumber( readyState[6][i] )] .. "</rgb>]" );
+						self.Instruments_List[tonumber( readyState[6][i] )][1] .. "</rgb>]" );
 				else
 					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>No Instrument</rgb>]" );
 				end
@@ -4039,7 +4114,7 @@ end
 
 -- action for setting focus on the track list
 function SongbookWindow:PlayerSyncInfo()
-	if not self.sendSyncInfoSlot then return; end
+	if not self.sendSyncInfoSlot then return 0; end
 	
 	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
 	local Track_Name = SongDB.Songs[selectedSongIndex].Tracks[selectedTrack].Name; 
@@ -4103,6 +4178,8 @@ function SongbookWindow:PlayerSyncInfo()
 		self.sendSyncInfoSlot:SetShortcut( self.sendSyncInfoSlotShortcut );
 		self.sendSyncInfoSlot:SetVisible( true );
 	end
+
+	return equippedInstrument_Index;
 end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4700,7 +4777,7 @@ end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:Activated(sender, args)
-	
+
 	self:UpdatePlayerTitle();
 	
 	local width, height = self:GetSize();
@@ -4844,12 +4921,12 @@ function SongbookWindow:FindInstrumentInTrack( Track_Name )
 				startIndex = found_Instruments_startIndex[i];
 				
 				Track_Instrument_Index = found_Instruments[i];
-				Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index];
+				Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index][1];
 			end
 		end
 	elseif found_Instruments_count == 1 then
 		Track_Instrument_Index = found_Instruments[1];
-		Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index];
+		Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index][1];
 	end
 	
 	if Track_Instrument_Index == 0 then
@@ -4882,7 +4959,6 @@ end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:UpdatePlayerTitle ( )
-
 	self.playerInstance = Turbine.Gameplay.LocalPlayer:GetInstance( );
 	self.playerEquipment = self.playerInstance:GetEquipment( );
 	self.playerInstrument = self.playerEquipment:GetItem( Turbine.Gameplay.Equipment.Instrument );
@@ -4897,9 +4973,11 @@ function SongbookWindow:UpdatePlayerTitle ( )
 	-------------------------------------------------------
 	local equippedInstrument_Index = 0;
 	for k,v in pairs( self.Instruments_List ) do
-		if v == self.playerInstrumentName then
-			equippedInstrument_Index = k;
-			break;
+		for k2,v2 in pairs(v) do
+			if v2 == self.playerInstrumentName then
+				equippedInstrument_Index = k;
+				break;
+			end
 		end
 	end
 	
@@ -4944,7 +5022,7 @@ end
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function SongbookWindow:CompareInstrument (equippedInstrument_Index, Track_Instrument_Index)
+function SongbookWindow:CompareInstrument (equippedInstrument_Index, Track_Instrument_Index, skipUpdateIcon)
 	
 	local CorrectInstrument = 0;
 	
@@ -4966,6 +5044,10 @@ function SongbookWindow:CompareInstrument (equippedInstrument_Index, Track_Instr
 		end
 	else
 		CorrectInstrument = 0;
+	end
+
+	if skipUpdateIcon == true then
+		return CorrectInstrument;
 	end
 	
 	if CorrectInstrument == 0 then

@@ -51,7 +51,7 @@ function SettingsWindow:Constructor()
 	self.genLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.genLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.genLabel:SetText(Strings["ui_general"]);
-	
+
 	--Track display checkbox
 	self.trackCheck = self:CreateCheckBox( "cb_parts", self:NextPos(20), Settings.TracksVisible,
 		function(sender, args) songbookWindow:ToggleTracks(); end )
@@ -150,7 +150,7 @@ function SettingsWindow:Constructor()
 
 	self.ManualChetSelectionLabel = Turbine.UI.Label();
 	self.ManualChetSelectionLabel:SetParent(self);
-	self.ManualChetSelectionLabel:SetPosition(300,100);
+	self.ManualChetSelectionLabel:SetPosition(300,80);
 	self.ManualChetSelectionLabel:SetWidth(200);
 	self.ManualChetSelectionLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.ManualChetSelectionLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -159,7 +159,7 @@ function SettingsWindow:Constructor()
 	--Raid Chat checkbox
 	self.RaidChat_CB = Turbine.UI.Lotro.CheckBox();
 	self.RaidChat_CB:SetParent( self );
-	self.RaidChat_CB:SetPosition(300, 120 );
+	self.RaidChat_CB:SetPosition(300, 100 );
 	self.RaidChat_CB:SetSize(200,20);
 	self.RaidChat_CB:SetText(" Raid Chat");
 	self.RaidChat_CB:SetChecked(Settings.UseRaidChat == "true" );
@@ -176,7 +176,7 @@ function SettingsWindow:Constructor()
 	--Fellowship chat checkbox
 	self.FellowshipChat_CB = Turbine.UI.Lotro.CheckBox();
 	self.FellowshipChat_CB:SetParent( self );
-	self.FellowshipChat_CB:SetPosition(300, 140 );
+	self.FellowshipChat_CB:SetPosition(300, 120 );
 	self.FellowshipChat_CB:SetSize(200,20);
 	self.FellowshipChat_CB:SetText(" Fellowship Chat");
 	self.FellowshipChat_CB:SetChecked(Settings.UseFellowshipChat == "true" );
@@ -188,11 +188,41 @@ function SettingsWindow:Constructor()
 			songbookWindow:ToggleUseRaidChat( false );
 		end
 	end
+
+	self.AutoTrackPickerLabel = Turbine.UI.Label();
+	self.AutoTrackPickerLabel:SetParent(self);
+	self.AutoTrackPickerLabel:SetPosition(300,140);
+	self.AutoTrackPickerLabel:SetWidth(200);
+	self.AutoTrackPickerLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
+	self.AutoTrackPickerLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
+	self.AutoTrackPickerLabel:SetText("Automatic Part Picking");
+
+	--Automatic track picking based on instrument
+	self.AutoPickSongChange_CB = Turbine.UI.Lotro.CheckBox();
+	self.AutoPickSongChange_CB:SetParent( self );
+	self.AutoPickSongChange_CB:SetPosition(300, 160 );
+	self.AutoPickSongChange_CB:SetSize(220,20);
+	self.AutoPickSongChange_CB:SetText(" Auto-pick on song change");
+	self.AutoPickSongChange_CB:SetChecked(Settings.AutoPickOnSongChange == "true" );
+	self.AutoPickSongChange_CB.CheckedChanged = function(sender, args)
+		Settings.AutoPickOnSongChange = sender:IsChecked() and "true" or "false";
+	end
+
+	--Automatic track picking based on instrument
+	self.AutoPickInsChange_CB = Turbine.UI.Lotro.CheckBox();
+	self.AutoPickInsChange_CB:SetParent( self );
+	self.AutoPickInsChange_CB:SetPosition(300, 180 );
+	self.AutoPickInsChange_CB:SetSize(240,20);
+	self.AutoPickInsChange_CB:SetText(" Auto-pick on instrument change");
+	self.AutoPickInsChange_CB:SetChecked(Settings.AutoPickOnInsChange == "true");
+	self.AutoPickInsChange_CB.CheckedChanged = function(sender, args)
+		Settings.AutoPickOnInsChange = sender:IsChecked() and "true" or "false";
+	end
 	
 	
 	self.TimerWindowLabel = Turbine.UI.Label();
 	self.TimerWindowLabel:SetParent(self);
-	self.TimerWindowLabel:SetPosition(300,180);
+	self.TimerWindowLabel:SetPosition(300,200);
 	self.TimerWindowLabel:SetWidth(200);
 	self.TimerWindowLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.TimerWindowLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -201,7 +231,7 @@ function SettingsWindow:Constructor()
 	--Timer Window display checkbox
 	local Timer_Window_CB = Turbine.UI.Lotro.CheckBox();
 	Timer_Window_CB:SetParent( self );
-	Timer_Window_CB:SetPosition(300, 200 );
+	Timer_Window_CB:SetPosition(300, 220 );
 	Timer_Window_CB:SetSize(200,20);
 	Timer_Window_CB:SetText(" Timer Window Visible");
 	Timer_Window_CB:SetChecked(Settings.TimerWindowVisible == "true" );
