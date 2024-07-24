@@ -27,7 +27,8 @@ function SettingsWindow:Constructor()
 	
 	-- Nim: Fix location of settings window
 	local xPos, yPos;
-	local wndHeight = 500
+	local wndWidth = 550
+	local wndHeight = 530
 	local displayWidth, displayHeight = Turbine.UI.Display.GetSize();
 	if( Settings.WindowPosition.Left < 300 ) then xPos = 0; else xPos = Settings.WindowPosition.Left - 300; end
 	if( Settings.WindowPosition.Top + 100 + wndHeight > displayHeight ) then
@@ -38,7 +39,7 @@ function SettingsWindow:Constructor()
 	self:SetPosition( xPos, yPos );
 	--Original line: self:SetPosition( Settings.WindowPosition.Left - 300, Settings.WindowPosition.Top + 100 );
 	-- /Nim
-	self:SetSize(550,wndHeight);
+	self:SetSize(wndWidth,wndHeight);
 	--self:SetZOrder(20);
 	self:SetText(Strings["ui_settings"]);
 
@@ -46,7 +47,7 @@ function SettingsWindow:Constructor()
 	-- general settings label
 	self.genLabel = Turbine.UI.Label();
 	self.genLabel:SetParent(self);
-	self.genLabel:SetPosition(20,self:NextPos(20));
+	self.genLabel:SetPosition(self.ypos, self:NextPos(20));
 	self.genLabel:SetWidth(300);
 	self.genLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.genLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -72,10 +73,10 @@ function SettingsWindow:Constructor()
 	self.visibleCheck = self:CreateCheckBox( "cb_windowvis", self:NextPos(), Settings.WindowVisible,
 		function(sender, args) self:ChangeVisibility(); end )
 
--- Badger settings --------------------------
+    -- Badger settings --------------------------
 	self.badgerLabel = Turbine.UI.Label();
 	self.badgerLabel:SetParent(self);
-	self.badgerLabel:SetPosition(20,self:NextPos(20));
+	self.badgerLabel:SetPosition(self.ypos, self:NextPos(20));
 	self.badgerLabel:SetWidth(300);
 	self.badgerLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.badgerLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -104,9 +105,9 @@ function SettingsWindow:Constructor()
 	self.readyColumnCheck = self:CreateCheckBox( "cb_rdyCol", self.yPos, Settings.ReadyColState,
 		function(sender, args) self:ToggleReadyCol( sender:IsChecked( ) ); end, 145 )
 	if Settings.ReadyColState ~= "true" then self.readyHighlightCheck:SetVisible( false ); end
--- /Badger settings -------------------------
+    -- /Badger settings -------------------------
 
--- Legendary Edition settings --------------------------
+    -- Legendary Edition settings --------------------------
 
 	self.UserChatLabel = Turbine.UI.Label();
 	self.UserChatLabel:SetParent(self);
@@ -249,7 +250,7 @@ function SettingsWindow:Constructor()
 		songbookWindow:ShowHelpWindow();
 	end
 	
--- /Legendary Edition settings ----------------------------------------------	
+    -- /Legendary Edition settings ----------------------------------------------	
 
 	self.sbbtnLabel = Turbine.UI.Label();
 	self.sbbtnLabel:SetParent(self);
@@ -489,6 +490,17 @@ function SettingsWindow:Constructor()
 	self.cmdlistBox.SelectedIndexChanged = function(sender,args)
 		self:ChangeCmd(sender:GetSelectedIndex());
 	end
+
+	-- Checkbox for whether popup window shows up
+	self.songPopupCheck = Turbine.UI.Lotro.CheckBox();
+	self.songPopupCheck:SetParent( self );
+	self.songPopupCheck:SetPosition(20, 470 );
+	self.songPopupCheck:SetSize(200,20);
+	self.songPopupCheck:SetText("Hide matched songs popup");
+	self.songPopupCheck:SetChecked(Settings.hideMatchedSongsPopup == "true" );
+	self.songPopupCheck.CheckedChanged = function(sender, args)
+		Settings.hideMatchedSongsPopup = sender:IsChecked() and "true" or "false";
+	end
 	
 	
 	function self:ChangeVisibility()
@@ -664,9 +676,7 @@ function SettingsWindow:Constructor()
 		self.addWindow.help:SetSize(300, 200);
 		self.addWindow.help:SetFont(Turbine.UI.Lotro.Font.Verdana14);
 		self.addWindow.help:SetText(Strings["ui_cus_help"]);
-		
 	end
-	
 end
 
 function SettingsWindow:RefreshCmds()

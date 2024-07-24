@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<Plugin>
+	<Information>
+		<Name>Songbook3</Name>
+		<Author>Elamond</Author>
+		<Version>2.9.0</Version>
+		<Image>Songbook3/resources/toggle.tga</Image>
+	</Information>
+	<Package>Songbook3.src.Main</Package>
+</Plugin>

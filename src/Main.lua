@@ -1,31 +1,36 @@
+
+-- Fanuilos, le linnathon
+
+-- Songbook 3
+
+--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 import "Turbine.UI";
 import "Turbine.UI.Lotro";
 import "Turbine.Gameplay" -- needed for access to party object
 
 -- Some global variables to differentiate between the patch version and the alternate (BBLE) version
-gPlugin = "SongbookBBLE"
-gDir = "ChiranBBLE/SongbookBBLE/"
-gSettings = "SongbookSettingsBBLE"
+gPlugin = "Songbook3"
+gDir = "Songbook3/resources/"
+gSettings = "Songbook3Settings"
 
-import "ChiranBBLE.SongbookBBLE.Class"; -- Turbine library included so that there's no outside dependencies
-import "ChiranBBLE.SongbookBBLE.ToggleWindow";
-import "ChiranBBLE.SongbookBBLE.SettingsWindow";
-import "ChiranBBLE.SongbookBBLE.SongbookLang";
-import "ChiranBBLE.SongbookBBLE";
-
---import "ChiranBBLE.SongbookBBLE.std.io";
+import "Songbook3.src.Class"; -- Turbine library included so that there's no outside dependencies
+import "Songbook3.src.ToggleWindow";
+import "Songbook3.src.SettingsWindow";
+import "Songbook3.src.SongbookLang";
+import "Songbook3.src";
 
 
-songbookWindow = ChiranBBLE.SongbookBBLE.SongbookWindow();
+songbookWindow = Songbook3.src.SongbookWindow();
 if (Settings.WindowVisible == "yes") then
 	songbookWindow:SetVisible( true );
 else
 	songbookWindow:SetVisible( false );
 end
-settingsWindow = ChiranBBLE.SongbookBBLE.SettingsWindow();
+settingsWindow = Songbook3.src.SettingsWindow();
 settingsWindow:SetVisible( false );
 
-toggleWindow = ChiranBBLE.SongbookBBLE.ToggleWindow();
+toggleWindow = Songbook3.src.ToggleWindow();
 if (Settings.ToggleVisible == "yes") then
 	toggleWindow:SetVisible( true );
 else 
@@ -52,5 +57,5 @@ function songbookCommand:GetHelp()
 	Turbine.Shell.WriteLine( Strings["sh_help3"] );
 end
 
-Turbine.Shell.AddCommand( "songbookbble", songbookCommand );
-Turbine.Shell.WriteLine("SongbookBBLE v"..Plugins["SongbookBBLE"]:GetVersion().." (0.92 Chiran + 0.01a The Brandy Badgers + Legendary Edition 1.05 (by Almiyan) )");
+Turbine.Shell.AddCommand( "songbook3", songbookCommand );
+Turbine.Shell.WriteLine("Songbook 3 v".. Plugins["Songbook3"]:GetVersion() .." (Chiran + Brandy Badgers + Almiyan + Elamond)");

@@ -1,5 +1,7 @@
--- In The Name Of Allah --
--- Legendary Edition by Amin (Almiyan) - Crickhollow --
+
+-- Fanuilos, le linnathon
+
+-- Songbook 3
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -49,7 +51,7 @@ SongbookLoad = Turbine.PluginData.Load;
 SongbookSave = Turbine.PluginData.Save;
 
 Settings = { WindowPosition = { Left = "300", Top = "20", Width = "700", Height = "700" + ShiftTop }, WindowVisible = "no", WindowOpacity="0.9", DirHeight = "100", TracksHeight = "150", TracksVisible = "yes", ToggleVisible = "yes", ToggleLeft = "10", ToggleTop = "10", ToggleOpacity = "1", SearchVisible = "yes", DescriptionVisible = "no", DescriptionFirst = "no", UserChatName = "" , PlayersSyncInfoWindowPosition = { Left = "350", Top = "100", Width = "400", Height = "300" } , 
-Timer_WindowPosition = { Left = "50", Top = "1" } , TimerWindowVisible = "true" , UseRaidChat = "false", UseFellowshipChat = "false", AutoPickOnSongChange = "true", AutoPickOnInsChange = "true",
+Timer_WindowPosition = { Left = "50", Top = "1" } , TimerWindowVisible = "true" , UseRaidChat = "false", UseFellowshipChat = "false", AutoPickOnSongChange = "true", AutoPickOnInsChange = "true", hideMatchedSongsPopup = "false",
 HelpWindowDisable = "false" }; -- default values
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -726,6 +728,8 @@ function SongbookWindow:Constructor()
 
 	if not Settings.AutoPickOnSongChange then Settings.AutoPickOnSongChange = "true"; end
 	if not Settings.AutoPickOnInsChange then Settings.AutoPickOnInsChange = "true"; end
+
+	if not Settings.hideMatchedSongsPopup then Settings.hideMatchedSongsPopup = "false"; end
 	
 	if not SongDB.Songs then
 		SongDB = {
@@ -958,7 +962,7 @@ function SongbookWindow:Constructor()
 	
 	self:SetOpacity( Settings.WindowOpacity );
 	--self:SetText("Songbook " .. Plugins[gPlugin]:GetVersion() .. Strings["title"] );
-	self:SetText("Songbook " .. "2" .. Strings["title"] );
+	self:SetText("Songbook " .. "3" );
 	
 	self.Version = Turbine.UI.Label();
 	self.Version:SetParent( self );
@@ -3698,6 +3702,14 @@ function ListBoxCharColumn:AddItem( item )
 	ListBoxScrolled.AddItem( self, item )
 end
 
+function ListBoxCharColumn:SetSelectedIndex( item )
+	-- if self.bShowReadyChars then
+	-- 	ListBoxScrolled.SetSelectedIndex(i * 2 + 1);
+	-- else
+		-- ListBoxScrolled.SetSelectedIndex(i);
+	-- end
+end
+
 function ListBoxCharColumn:RemoveItemAt( i )
 	if self.bShowReadyChars then
 		ListBoxScrolled.RemoveItemAt( self, i * 2 )
@@ -3977,6 +3989,7 @@ end
 
 -- action for changing track selection (trackid is listbox index)
 function SongbookWindow:SelectTrack( trackid )
+	self.tracklistBox.SetSelectedIndex(trackid);
 	if self.bShowReadyChars then trackid = math.floor( (trackid+1) / 2 ); end
 	selectedTrack = trackid;
 	local iTrack = self:SelectedTrackIndex( trackid );
@@ -5162,7 +5175,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 	Multiple_songs_match_Synced = 0;
 	MatchedSongsWindow:SetVisible(false);
 	
-	if SongIndex[0] > 1 then
+	if SongIndex[0] > 1 and Settings.hideMatchedSongsPopup ~= "true" then
 		YouDontHaveTheSameSong_Flag = 0;
 		if PlayerName == songbookWindow.sPlayerName then
 			-- OtherPlayer_SyncedSong_Index = selectedSongIndex;
@@ -5248,6 +5261,37 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 						if selectedItem then selectedItem:SetForeColor( songbookWindow.colourDefaultHighlighted ); end
 					end
 				end
+			end
+		end
+	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup == "true" then
+		YouDontHaveTheSameSong_Flag = 0;
+		local indexToSelect = SongIndex[1]
+
+		for i = 1, SongIndex[0] do
+			if SongDB.Songs[SongIndex[i]].Filepath == selectedDir then
+				indexToSelect = i;
+				break;
+			end
+		end
+
+		OtherPlayer_SyncedSong_Index = SongIndex[1];
+		OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
+		OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
+		
+		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. " " .. OtherPlayer_SyncedSong_Filename);
+		
+		
+		if OtherPlayer_Synced == 0 then
+			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+		else
+			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+		end
+		
+		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[selectedSongIndex].Filepath .. selectedSong then
+			self.syncMessageTitle:SetVisible(false);
+		else
+			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
+				self.syncMessageTitle:SetVisible(true);
 			end
 		end
 	elseif SongIndex[0] == 0 then
