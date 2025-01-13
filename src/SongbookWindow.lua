@@ -833,7 +833,7 @@ function SongbookWindow:Constructor()
 		Settings.ToggleTop = 0;
 	end
 	
---------------------------------------------------------------------------
+  --------------------------------------------------------------------------
 	if Settings.PlayersSyncInfoWindowPosition.Width + 0 > displayWidth then
 		Settings.PlayersSyncInfoWindowPosition.Width = displayWidth - 0;
 	end
@@ -852,9 +852,9 @@ function SongbookWindow:Constructor()
 	if Settings.PlayersSyncInfoWindowPosition.Top < 0 then
 		Settings.PlayersSyncInfoWindowPosition.Top = 0;
 	end
---------------------------------------------------------------------------
+  --------------------------------------------------------------------------
 	
---------------------------------------------------------------------------
+  --------------------------------------------------------------------------
 	if Settings.Timer_WindowPosition.Left + Timer_Window_Width > displayWidth then
 		Settings.Timer_WindowPosition.Left = displayWidth - Timer_Window_Width;
 	end
@@ -867,7 +867,7 @@ function SongbookWindow:Constructor()
 	if Settings.Timer_WindowPosition.Top < 0 then
 		Settings.Timer_WindowPosition.Top = 0;
 	end
---------------------------------------------------------------------------
+  --------------------------------------------------------------------------
 
 	-- Hide UI when F12 is pressed
 	local hideUI = false;
@@ -1064,7 +1064,7 @@ function SongbookWindow:Constructor()
 		end
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	-- send sync info button
 	self.sendSyncInfoSlot = self:CreateMainShortcut(202);
 	self.sendSyncInfoSlot.DragDrop =
@@ -1074,7 +1074,7 @@ function SongbookWindow:Constructor()
 		end
 	end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- Start sync play button
 	self.syncStartSlot = self:CreateMainShortcut(287);
@@ -1094,7 +1094,7 @@ function SongbookWindow:Constructor()
 		self.shareSlot:SetShortcut( Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, self:ExpandCmd(Settings.DefaultCommand)));
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- List Channels button
 	self.listchannelsSlot = self:CreateMainShortcut(369);
@@ -1108,7 +1108,7 @@ function SongbookWindow:Constructor()
 	self.listchannelsSlot:SetShortcut( self.listchannelsSlotShortcut );
 	self.listchannelsSlot:SetVisible( true );
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	-- Join User Chat button
 	self.joinUserChatSlot = self:CreateMainShortcut(410);
 	self.joinUserChatSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, "/joinchannel " .. UserChatName );
@@ -1121,7 +1121,7 @@ function SongbookWindow:Constructor()
 	self.joinUserChatSlot:SetShortcut( self.joinUserChatSlotShortcut );
 	self.joinUserChatSlot:SetVisible( true );
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	-- Track label
 	self.trackLabel = Turbine.UI.Label();
@@ -1182,7 +1182,7 @@ function SongbookWindow:Constructor()
 	self.musicSlot.MouseUp = function(sender,args)
 		self.musicIcon:SetBackground(gDir .. "icn_m_hover.tga");
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.playSlot.MouseEnter = function(sender,args)
 		self.playIcon:SetBackground(gDir .. "icn_p_hover.tga");
 		self.tipLabel:SetText(Strings["tt_play"]);
@@ -1197,7 +1197,7 @@ function SongbookWindow:Constructor()
 	self.playSlot.MouseUp = function(sender,args)
 		self.playIcon:SetBackground(gDir .. "icn_p_hover.tga");
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.readySlot.MouseEnter = function(sender,args)
 		self.readyIcon:SetBackground(gDir .. "icn_r_hover.tga");
 		self.tipLabel:SetText(Strings["tt_ready"]);
@@ -1212,7 +1212,7 @@ function SongbookWindow:Constructor()
 	self.readySlot.MouseUp = function(sender,args)
 		self.readyIcon:SetBackground(gDir .. "icn_r_hover.tga");
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	self.syncSlot.MouseEnter = function(sender,args)
 		self.syncIcon:SetBackground(gDir .. "icn_s_hover.tga");
@@ -1233,8 +1233,8 @@ function SongbookWindow:Constructor()
 		self.syncIcon:SetBackground(gDir .. "icn_s_hover.tga");
 	end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.syncSlot.MouseClick = function(sender,args)
 		
 		PlayerCantUseUserChat_Message = 0;
@@ -1244,7 +1244,7 @@ function SongbookWindow:Constructor()
 		self:PlayerSyncInfo();
 	end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.sendSyncInfoSlot.MouseEnter = function(sender,args)
 		self.sendSyncInfoIcon:SetBackground(gDir .. "icn_send_hover.tga");
 		self.tipLabel:SetText("Send Sync Info");
@@ -1265,7 +1265,7 @@ function SongbookWindow:Constructor()
 		PlayerCantUseUserChat_Message = 0;
 		self:PlayerSyncInfo();
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	self.listchannelsSlot.MouseEnter = function(sender,args)
 		self.listchannelsIcon:SetBackground(gDir .. "icn_listchannel_hover.tga");
@@ -1284,7 +1284,7 @@ function SongbookWindow:Constructor()
 		self.listchannelsIcon:SetBackground(gDir .. "icn_listchannel_hover.tga");
 	end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	self.joinUserChatSlot.MouseEnter = function(sender,args)
 		self.joinUserChatIcon:SetBackground(gDir .. "icn_joinchannel_hover.tga");
@@ -1301,8 +1301,8 @@ function SongbookWindow:Constructor()
 		self.joinUserChatIcon:SetBackground(gDir .. "icn_joinchannel_hover.tga");
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	self.syncStartSlot.MouseEnter = function(sender,args)
 		self.syncStartIcon:SetBackground(gDir .. "icn_ss_hover.tga");
@@ -1319,7 +1319,7 @@ function SongbookWindow:Constructor()
 		self.syncStartIcon:SetBackground(gDir .. "icn_ss_hover.tga");
 	end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.syncStartSlot.MouseClick = function(sender,args)
 		
 		if SyncStartWindow_ShowFlag == 1 then
@@ -1327,7 +1327,7 @@ function SongbookWindow:Constructor()
 			SyncStartWindow:Activate();
 		end
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	self.shareSlot.MouseEnter = function(sender,args)
 		self.shareIcon:SetBackground(gDir .. "icn_sh_hover.tga");
@@ -1345,7 +1345,7 @@ function SongbookWindow:Constructor()
 	self.shareSlot.MouseUp = function(sender,args)
 		self.shareIcon:SetBackground(gDir .. "icn_sh_hover.tga");
 	end
-------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------
 
 	self.shareSlot.MouseWheel = function(sender,args)
 		local nextCmd = tonumber(Settings.DefaultCommand) - args.Direction;
@@ -1387,8 +1387,8 @@ function SongbookWindow:Constructor()
 	self.songTitle:SetPosition( 23, 90 + ShiftTop);
 	self.songTitle:SetSize( self:GetWidth() - 52, 16);
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	-- Player Name and Instrument display
 	self.PlayerTitle = Turbine.UI.Label();
@@ -1400,7 +1400,7 @@ function SongbookWindow:Constructor()
 	self.PlayerTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
 	self.PlayerTitle:SetText("");
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	self:UpdatePlayerTitle();
 	
@@ -1422,7 +1422,7 @@ function SongbookWindow:Constructor()
 	end
 	
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	-- Songbook Messages display
 	self.MessageTitle = Turbine.UI.Label();
@@ -1441,7 +1441,7 @@ function SongbookWindow:Constructor()
 	else
 		self.MessageTitle:SetText("SongBook is using Fellowship channel");
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	-- Synced song Messages display
 	self.syncMessageTitle = Turbine.UI.Label();
@@ -1499,8 +1499,8 @@ function SongbookWindow:Constructor()
 			end
 		end
 	end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- search field
 	self.searchInput = Turbine.UI.Lotro.TextBox();
@@ -1600,8 +1600,8 @@ function SongbookWindow:Constructor()
 		self.instrContainer[j]:SetZOrder(90);
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	-- self.instrContainer.MouseClick = function(sender,args)
 		
 		-- local player = Turbine.Gameplay.LocalPlayer:GetInstance( );
@@ -1618,8 +1618,8 @@ function SongbookWindow:Constructor()
 
 		-- self.PlayerTitle:SetText(Player_Name .. " - " .. equippedInstrument);
 	-- end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	
 	-- instrument slots
@@ -1892,7 +1892,7 @@ function SongbookWindow:Constructor()
 		end
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- Sync Info button	
 	self.SyncInfoBtn = Turbine.UI.Lotro.Button();
@@ -1908,7 +1908,7 @@ function SongbookWindow:Constructor()
 			PlayersSyncInfoWindow:Activate();
 		end
 	end	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- action for closing window and saving position
 	self.Closed = function( sender, args )
@@ -3488,7 +3488,7 @@ function SongbookWindow:ListSetups( songID )
 	local playerCount;
 	if not self.maxPartCount then playerCount = 1000;
 	else playerCount = self.maxPartCount; end
---playerCount = 6;	
+  --playerCount = 6;	
 	local countInSetup;
 	for i = 1, #SongDB.Songs[songID].Setups do
 		countInSetup = #SongDB.Songs[songID].Setups[ i ];
@@ -3925,7 +3925,7 @@ function SongbookWindow:AdjustTracklistItemsPosition( width )
 end
 
 function SongbookWindow:SetTracklistHeight( height )
-	self.tracklistBox:SetHeight( height )			
+	self.tracklistBox:SetHeight( height )
 	self.listboxSetups:SetHeight( height );
 end
 
@@ -4026,7 +4026,7 @@ function SongbookWindow:SelectTrack( trackid )
 	
 	self.shareSlot:SetShortcut( Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, self:ExpandCmd(Settings.DefaultCommand)));		
 	self.shareSlot:SetVisible( true );
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	self:PlayerSyncInfo();
 	
@@ -4391,13 +4391,13 @@ function ChatHandler( sender, args )
 		return;
 	end
 	
------------------------------------------------------------------------------------
+  -----------------------------------------------------------------------------------
 
 	if( args.ChatType ~= Turbine.ChatType.Standard ) then
 		return; -- Player ready messages appear in the standard chat
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	if string.find( sMessage, "You have joined a Fellowship." ) ~= nil then
 		songbookWindow.playerInstance = Turbine.Gameplay.LocalPlayer:GetInstance( );
 		local Party = songbookWindow.playerInstance:GetParty();
@@ -4518,7 +4518,7 @@ function ChatHandler( sender, args )
 		return;
 	end
 	
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	if string.find( sMessage, Strings["chat_playBegin"] ) ~= nil or string.find( sMessage, Strings["chat_playBeginSelf"] ) ~= nil then
 		
