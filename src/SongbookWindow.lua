@@ -513,6 +513,7 @@ function SongbookWindow:Constructor()
 	Turbine.UI.Lotro.Window.Constructor( self );
 	
 	SongDB = SongbookLoad( Turbine.DataScope.Account , "SongbookData") or SongDB;
+	table.sort(SongDB, sortby_Name);
 	SettingsTemp = SongbookLoad( Turbine.DataScope.Account , gSettings) or Settings;
 	if SettingsTemp.Timer_WindowPosition then
 		Settings = SettingsTemp;
@@ -1940,6 +1941,14 @@ function SongbookWindow:Constructor()
 	
 	self:ResizeAll( ); -- Adjust variable sizes and positions to current main window size
 end -- SongbookWindow:Constructor()
+
+function sortby_Name (song1, song2)
+	if song1.Filepath == song2.Filepath then
+		return string.lower(song1.Filename) < string.lower(song2.Filename)
+	else
+		return string.lower(song1.Filepath) < string.lower(song2.Filepath)
+	end
+end
 
 -- TODO: add complete set of checks
 function SongbookWindow:ValidateWindowPosition( winPos )
@@ -5084,16 +5093,16 @@ function SongbookWindow:Find_OtherPlayer_SyncedSong_Index (Filename, TrackName, 
 	SongIndex[0] = Number_Of_Found_Songs;
 	
 	Filename = string.lower( Filename );
-	Filename = string.gsub( Filename , "%s+", "" );
+	-- Filename = string.gsub( Filename , "%s+", "" );
 	
 	TrackName = string.lower( TrackName );
-	TrackName = string.gsub( TrackName , "%s+", "" );
+	-- TrackName = string.gsub( TrackName , "%s+", "" );
 	
 	NumberOfParts = tonumber(NumberOfParts);
 	
 	for i = 1, librarySize do
 		local SongDB_Filename = string.lower( SongDB.Songs[i].Filename );
-		SongDB_Filename = string.gsub( SongDB_Filename , "%s+", "" );
+		-- SongDB_Filename = string.gsub( SongDB_Filename , "%s+", "" );
 		
 		if SongDB_Filename == Filename then
 			local trackcount = #SongDB.Songs[i].Tracks;
@@ -5101,7 +5110,7 @@ function SongbookWindow:Find_OtherPlayer_SyncedSong_Index (Filename, TrackName, 
 			if trackcount == NumberOfParts then
 				for j = 1, trackcount do
 					local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-					SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
+					-- SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
 					
 					if SongDB_TrackName == TrackName then
 						
@@ -5121,7 +5130,7 @@ function SongbookWindow:Find_OtherPlayer_SyncedSong_Index (Filename, TrackName, 
 			if trackcount == NumberOfParts then
 				for j = 1, trackcount do
 					local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-					SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
+					-- SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
 					
 					if SongDB_TrackName == TrackName then
 					
@@ -5146,7 +5155,7 @@ function SongbookWindow:Find_OtherPlayer_SyncedSong_Index_WithOnlySync (TrackNam
 	SongIndex[0] = Number_Of_Found_Songs;
 	
 	local Synced_TrackName = string.lower( TrackName );
-	Synced_TrackName = string.gsub( string.sub( Synced_TrackName, 1, 63 ) , "%s+", "" );
+	-- Synced_TrackName = string.gsub( string.sub( Synced_TrackName, 1, 63 ) , "%s+", "" );
 	
 	for i = 1, librarySize do
 		
@@ -5154,9 +5163,10 @@ function SongbookWindow:Find_OtherPlayer_SyncedSong_Index_WithOnlySync (TrackNam
 		
 		for j = 1, trackcount do
 			local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-			SongDB_TrackName = string.gsub( string.sub( SongDB_TrackName, 1, 63 ) , "%s+", "" );
+			-- SongDB_TrackName = string.gsub( string.sub( SongDB_TrackName, 1, 63 ) , "%s+", "" );
 			
-			if SongDB_TrackName == Synced_TrackName then
+			-- Check if track name starts with 63-len-max track name sent by lotro
+			if Synced_TrackName == string.sub(SongDB_TrackName, 1, #Synced_TrackName) then
 				
 				Number_Of_Found_Songs = Number_Of_Found_Songs + 1;
 				SongIndex[Number_Of_Found_Songs] = i;
@@ -5265,8 +5275,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 		end
 	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup == "true" then
 		YouDontHaveTheSameSong_Flag = 0;
-		local indexToSelect = SongIndex[1]
+		local indexToSelect = 0;
 
+		-- Check if any paths are exactly the current dir
 		for i = 1, SongIndex[0] do
 			if SongDB.Songs[SongIndex[i]].Filepath == selectedDir then
 				indexToSelect = i;
@@ -5274,11 +5285,27 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			end
 		end
 
+		-- Else check if any paths are a sub-path of the current dir
+		if indexToSelect == 0 then
+			for i = 1, SongIndex[0] do
+				if selectedDir == string.sub(SongDB.Songs[SongIndex[i]].Filepath, 1, #selectedDir) then
+					indexToSelect = i;
+					break;
+				end
+			end
+		end
+		-- Else pick first path
+		if indexToSelect == 0 then
+			indexToSelect = 1;
+		end
+
+		OtherPlayer_SyncedSong_Index = SongIndex[indexToSelect];
+
 		OtherPlayer_SyncedSong_Index = SongIndex[1];
 		OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
 		OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
 		
-		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. " " .. OtherPlayer_SyncedSong_Filename);
+		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename);
 		
 		
 		if OtherPlayer_Synced == 0 then
@@ -5310,7 +5337,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 		OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
 		OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
 		
-		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. " " .. OtherPlayer_SyncedSong_Filename);
+		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename);
 		
 		
 		if OtherPlayer_Synced == 0 then
