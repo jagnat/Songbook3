@@ -18,8 +18,9 @@ import "Songbook3.src.Class"; -- Turbine library included so that there's no out
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
 import "Songbook3.src.SongbookLang";
-import "Songbook3.src";
-
+import "Songbook3.src.TimerWindow";
+import "Songbook3.src.InstrumentSlots";
+import "Songbook3.src.SongbookWindow";
 
 songbookWindow = Songbook3.src.SongbookWindow();
 if (Settings.WindowVisible == "yes") then

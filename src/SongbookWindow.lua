@@ -83,121 +83,7 @@ Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Timer_Window = Turbine.UI.Window();
---Timer_Window:SetBackColor(Turbine.UI.Color(0,0,0,0));
---Timer_Window:SetBlendMode(Turbine.UI.BlendMode.AlphaBlend);
---Timer_Window:SetBackColorBlendMode(Turbine.UI.BlendMode.AlphaBlend);
-Timer_Window:SetPosition(50,1);
---Timer_Window:SetBackground(gDir .. "BarBase2.tga");
-Timer_Window_Width = 150;
-Timer_Window_Height = 94;
-Timer_Window:SetSize(Timer_Window_Width,Timer_Window_Height);
-Timer_Window:SetOpacity(1);
-Timer_Window:SetZOrder(100);
-Timer_Window:SetVisible( true );
-
-Timer_Frame = Turbine.UI.Control();
-Timer_Frame:SetParent(Timer_Window);
-Timer_Frame:SetPosition(0,0);
-Timer_Frame:SetSize(150,94);
-Timer_Frame:SetBlendMode( Turbine.UI.BlendMode.AlphaBlend );
-Timer_Frame:SetBackground(gDir .. "SongbookTimer.tga");
-
-Timer_Label = Turbine.UI.Label( );
-Timer_Label:SetParent(Timer_Window);
-Timer_Label:SetMultiline( false );
-Timer_Label:SetSize(150,40);
-Timer_Label:SetPosition( 0, 9 );
-Timer_Label:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold24 );
-Timer_Label:SetForeColor( Turbine.UI.Color( 1, 0, 0, 0 ) );
-Timer_Label:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleCenter );
-Timer_Label:SetZOrder( 100 );
-Timer_Label:SetVisible( true );
-Timer_Label:SetText( "0:00" );
-
-Song_Label = Turbine.UI.Label( );
-Song_Label:SetParent(Timer_Window);
---Song_Label:SetMultiline( false );
-Song_Label:SetSize(119,40);
-Song_Label:SetPosition( 17, 37 );
-Song_Label:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold18 );
-Song_Label:SetForeColor( Turbine.UI.Color( 1, 0, 0, 0 ) );
-Song_Label:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-Song_Label:SetZOrder( 100 );
-Song_Label:SetVisible( true );
---Song_Label:SetText( "Song" );
-
-Click_Label = Turbine.UI.Label( );
-Click_Label:SetParent(Timer_Window);
-Click_Label:SetSize(150,94);
-Click_Label:SetPosition( 0, 0 );
-Click_Label:SetZOrder( 100 );
-Click_Label:SetVisible( true );
-
-Click_Label.MouseEnter = function(sender,args)
-	--Timer_Frame:SetBackground("ChiranBBLE/SongbookBBLE/toggle_hover.tga");
-	Timer_Window:SetOpacity(0.9);
-end
-Click_Label.MouseLeave = function(sender,args)
-	--Timer_Frame:SetBackground("ChiranBBLE/SongbookBBLE/toggle.tga");
-	Timer_Window:SetOpacity(1);
-end		
-Click_Label.MouseDown = function( sender, args )
-	if(args.Button == Turbine.UI.MouseButton.Left) then
-		sender.dragStartX = args.X;
-		sender.dragStartY = args.Y;
-		sender.dragging = true;
-		sender.dragged = false;
-		Timer_Window:SetBackColor( Turbine.UI.Color(0,0,1,0) );
-	end
-end
-Click_Label.MouseUp = function( sender, args ) 
-	if (args.Button == Turbine.UI.MouseButton.Left) then			
-		if (sender.dragging) then
-			sender.dragging = false;
-		end
-		if not sender.dragged then
-			songbookWindow:SetVisible( not songbookWindow:IsVisible() );
-		end
-		Timer_Window:SetBackColor( Turbine.UI.Color(0,0,0,0) );
-		Settings.ToggleLeft = Timer_Window:GetLeft();
-		Settings.ToggleTop = Timer_Window:GetTop();			
-	end
-end
-Click_Label.MouseMove = function(sender,args)
-	if ( sender.dragging ) then
-		local left, top = Timer_Window:GetPosition();
-		Timer_Window:SetPosition( left + ( args.X - sender.dragStartX ), top + args.Y - sender.dragStartY );
-		sender:SetPosition( 0, 0 );
-		sender.dragged = true;
-		-- checks to restrict moving outside the screen space
-		if (Timer_Window:GetLeft() > Turbine.UI.Display.GetWidth() - 150) then
-			Timer_Window:SetLeft(Turbine.UI.Display.GetWidth() - 150);				
-		end
-		if (Timer_Window:GetLeft() < 0) then
-			Timer_Window:SetLeft(0);				
-		end			
-		if (Timer_Window:GetTop() > Turbine.UI.Display.GetHeight() - 94) then
-			Timer_Window:SetTop(Turbine.UI.Display.GetHeight() - 94);				
-		end
-		if (Timer_Window:GetTop() < 0) then
-			Timer_Window:SetTop(0);				
-		end	
-		
-		Settings.Timer_WindowPosition.Left = Timer_Window:GetLeft();
-		Settings.Timer_WindowPosition.Top  = Timer_Window:GetTop();
-	end
-end
-
--- Timer_Window = Turbine.UI.Lotro.Window();
--- Timer_Window:SetZOrder(100);
--- Timer_Window:SetSize( 100, 25 );
--- Timer_Window:SetPosition( 10, 10 );
--- Timer_Window:SetText( "Matched Songs" );
--- Timer_Window:SetVisible( true );
--- Timer_Window:SetOpacity(0.9);
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TimerWindow = Songbook3.src.TimerWindow();
 
 MatchedSongsWindow = Turbine.UI.Lotro.Window();
 MatchedSongsWindow:SetZOrder(100);
@@ -854,21 +740,8 @@ function SongbookWindow:Constructor()
 		Settings.PlayersSyncInfoWindowPosition.Top = 0;
 	end
   --------------------------------------------------------------------------
-	
-  --------------------------------------------------------------------------
-	if Settings.Timer_WindowPosition.Left + Timer_Window_Width > displayWidth then
-		Settings.Timer_WindowPosition.Left = displayWidth - Timer_Window_Width;
-	end
-	if Settings.Timer_WindowPosition.Top + Timer_Window_Height > displayHeight then
-		Settings.Timer_WindowPosition.Top = displayHeight - Timer_Window_Height;
-	end
-	if Settings.Timer_WindowPosition.Left < 0 then
-		Settings.Timer_WindowPosition.Left = 0;
-	end
-	if Settings.Timer_WindowPosition.Top < 0 then
-		Settings.Timer_WindowPosition.Top = 0;
-	end
-  --------------------------------------------------------------------------
+
+	TimerWindow:AdjustTimerPosition(displayWidth, displayHeight)
 
 	-- Hide UI when F12 is pressed
 	local hideUI = false;
@@ -907,9 +780,9 @@ function SongbookWindow:Constructor()
 					PlayersSyncInfoWindowWasVisible = false;
 				end
 				
-				if Timer_Window:IsVisible() then
+				if TimerWindow:IsVisible() then
 					Timer_WindowWasVisible = true;
-					Timer_Window:SetVisible(false);					
+					TimerWindow:SetVisible(false);					
 				else
 					Timer_WindowWasVisible = false;
 				end
@@ -932,8 +805,8 @@ function SongbookWindow:Constructor()
 					PlayersSyncInfoWindow:Activate();
 				end
 				if Timer_WindowWasVisible then
-					Timer_Window:SetVisible(true);	
-					Timer_Window:Activate();
+					TimerWindow:SetVisible(true);	
+					TimerWindow:Activate();
 				end
 			end
 		
@@ -959,7 +832,7 @@ function SongbookWindow:Constructor()
 	scrollBarH:SetSize(SyncInfolistbox:GetWidth(), 10);
 	PlayersSyncInfoWindow.resizeCtrl:SetPosition(PlayersSyncInfoWindow:GetWidth() - 20,PlayersSyncInfoWindow:GetHeight() - 20);
 	
-	Timer_Window:SetPosition( Settings.Timer_WindowPosition.Left, Settings.Timer_WindowPosition.Top );
+	TimerWindow:SetPosition( Settings.Timer_WindowPosition.Left, Settings.Timer_WindowPosition.Top );
 	
 	self:SetOpacity( Settings.WindowOpacity );
 	--self:SetText("Songbook " .. Plugins[gPlugin]:GetVersion() .. Strings["title"] );
@@ -975,28 +848,28 @@ function SongbookWindow:Constructor()
 	
 	self.minWidth = 461;
 	self.minHeight = 308;
-	self.lFXmod = 23; -- listFrame x coord modifier
-	self.lCXmod = 28; -- listContainer x coord modifier (original value was 42)
+	-- self.lFXmod = 23; -- listFrame x coord modifier
+	-- self.lCXmod = 28; -- listContainer x coord modifier (original value was 42)
 
-	if (CharSettings.InstrSlots[1]["visible"] == "yes") then
-		self.lFYmod = 214 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listFrame     y coord modifier = difference between bottom pixels and window bottom
-		self.lCYmod = 233 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listContainer y coord modifier = difference between bottom pixels and window bottom
-	else
-		self.lFYmod = 169 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listFrame     y coord modifier = difference between bottom pixels and window bottom
-		self.lCYmod = 188 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listContainer y coord modifier = difference between bottom pixels and window bottom
-	end
+	-- if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+	-- 	self.lFYmod = 214 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listFrame     y coord modifier = difference between bottom pixels and window bottom
+	-- 	self.lCYmod = 233 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listContainer y coord modifier = difference between bottom pixels and window bottom
+	-- else
+	-- 	self.lFYmod = 169 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listFrame     y coord modifier = difference between bottom pixels and window bottom
+	-- 	self.lCYmod = 188 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listContainer y coord modifier = difference between bottom pixels and window bottom
+	-- end
 	
 	-- Frame for the song list
 	self.listFrame = Turbine.UI.Control();
 	self.listFrame:SetParent( self );
 	self.listFrame:SetBackColor( Turbine.UI.Color(1, 0.15, 0.15, 0.15) );
 	self.listFrame:SetPosition(12, 134 + ShiftTop);
-	--self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
+	-- self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
 	self.listContainer = Turbine.UI.Control();
 	self.listContainer:SetParent( self );
 	self.listContainer:SetBackColor( Turbine.UI.Color(1,0,0,0) );
 	self.listContainer:SetPosition(18, 147 + ShiftTop);
-	--self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
+	-- self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
 
 	-- outer frame title
 	self.listFrame.heading = Turbine.UI.Label();
@@ -1782,36 +1655,39 @@ function SongbookWindow:Constructor()
 	end
 	
 	self.resizeCtrl.MouseMove = function(sender,args)
-	  	local width, height = self:GetSize();
+		if not sender.dragging then return end
+
+		local width, height = self:GetSize();
 		local gameDisplayWidth, gameDisplayHeight = Turbine.UI.Display.GetSize();
 		
-		if sender.dragging then
-			
-			width = width + args.X - sender.dragStartX;
-			height = height + args.Y - sender.dragStartY;
-			local WindowLeft = self:GetLeft();
-			local WindowTop  = self:GetTop ();
-			
-			if width < self.minWidth then width = self.minWidth; end
-			if height < 45 then height = 45; end
-		------------------------------------
-			if WindowLeft + width  > gameDisplayWidth  then
-			width  = gameDisplayWidth  - WindowLeft; end
-			if WindowTop  + height > gameDisplayHeight then
-			height = gameDisplayHeight - WindowTop ; end
-		------------------------------------
-			local listContainerHeight = height - self.lCYmod;
-			local tracksHeight = 0;
-			if Settings.TracksVisible == "yes" then tracksHeight = Settings.TracksHeight; end
-			if listContainerHeight < Settings.DirHeight + 13 + tracksHeight + 13 + 40 then
-				listContainerHeight = Settings.DirHeight + 13 + tracksHeight + 13 + 40;
-				height = listContainerHeight + self.lCYmod;
-			end
-			
-			self:SetSize( width, height );
+		-- Apply drag deltas
+		width = width + args.X - sender.dragStartX;
+		height = height + args.Y - sender.dragStartY;
 
-			self:ResizeAll( );
+		local WindowLeft = self:GetLeft();
+		local WindowTop  = self:GetTop ();
+		
+		-- Enforce minimum size
+		if width < self.minWidth then width = self.minWidth; end
+		if height < 200 then height = 200; end
+
+		-- Clamp to lotro screen size
+		if WindowLeft + width  > gameDisplayWidth  then
+		width = gameDisplayWidth  - WindowLeft; end
+		if WindowTop  + height > gameDisplayHeight then
+		height = gameDisplayHeight - WindowTop ; end
+
+		-- Optional: enforce enough vertical room for dirlist + tracks + songlist
+		local tracksHeight = (Settings.TracksVisible == "yes") and Settings.TracksHeight or 0
+		local minContentHeight = Settings.DirHeight + tracksHeight + 80  -- fudge room for list and padding
+		if height < minContentHeight then
+			height = minContentHeight
 		end
+		
+		self:SetSize( width, height );
+
+		-- self:ResizeAll( );
+		self:ReflowLayout()
     	
 		sender:SetPosition( self:GetWidth() - sender:GetWidth(), self:GetHeight() - sender:GetHeight() );
 	end -- resizeCtrl.MouseMove
@@ -1939,7 +1815,8 @@ function SongbookWindow:Constructor()
 		self:ToggleSearch("off");
 	end
 	
-	self:ResizeAll( ); -- Adjust variable sizes and positions to current main window size
+	-- self:ResizeAll( ); -- Adjust variable sizes and positions to current main window size
+	self:ReflowLayout()
 end -- SongbookWindow:Constructor()
 
 function sortby_Name (song1, song2)
@@ -1998,7 +1875,7 @@ end
 function SongbookWindow:SetTimer( value )
 	local mins = math.floor( value / 60 )
 	self.tracksMsg:SetText( string.format("%u:%02u", mins, value - mins * 60 ) )
-	Timer_Label:SetText( string.format("%u:%02u", mins, value - mins * 60 ) )
+	TimerWindow:SetTimerText( string.format("%u:%02u", mins, value - mins * 60 ) )
 end
 	
 function SongbookWindow:StartTimer( )
@@ -2029,44 +1906,176 @@ end
 function SongbookWindow:StopTimer( )
 	self:SetWantsUpdates( false )
 	self.tracksMsg:SetVisible( false )
-	Timer_Label:SetText("0:00");
-	Song_Label:SetText( "" );
+	TimerWindow:SetTimerText("0:00");
+	TimerWindow:SetSongText( "" );
 end
 
-function SongbookWindow:ResizeAll( )
-	self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
-	self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
-	self.listFrame.heading:SetSize(self.listFrame:GetWidth(),13);
+-- function SongbookWindow:ResizeAll( )
+-- 	self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
+-- 	self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
+-- 	self.listFrame.heading:SetSize(self.listFrame:GetWidth(),13);
 	
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
-		self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
-	end
+-- 	for j = 1, CharSettings.InstrumentSlots_Rows do
+-- 		local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
+-- 		self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
+-- 	end
 	
-	self.dirlistBox:SetHeight( Settings.DirHeight );
-	self:AdjustDirlistPosition( );
+-- 	self.dirlistBox:SetHeight( Settings.DirHeight );
+-- 	self:AdjustDirlistPosition( );
 
-	if Settings.TracksVisible == "yes" then
-		self:AdjustTracklistSize( Settings.TracksHeight )
-		self:UpdateTracklistTop( )
-	else
-		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-160, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
-	end
+-- 	if Settings.TracksVisible == "yes" then
+-- 		self:AdjustTracklistSize( Settings.TracksHeight )
+-- 		self:UpdateTracklistTop( )
+-- 	else
+-- 		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-160, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
+-- 	end
 
-	self:AdjustSonglistHeight( );
-	self:AdjustSonglistPosition( );
+-- 	self:AdjustSonglistHeight( );
+-- 	self:AdjustSonglistPosition( );
 		
-	self.songTitle:SetWidth(self:GetWidth() - 52);
-	self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
-	self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );
-	--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
-	self.tipLabel:SetLeft(self:GetWidth() - 270);
-	self:AdjustFilterUI( );
+-- 	self.songTitle:SetWidth(self:GetWidth() - 52);
+-- 	self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
+-- 	self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );
+-- 	--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
+-- 	self.tipLabel:SetLeft(self:GetWidth() - 270);
+-- 	self:AdjustFilterUI( );
 	
-	self.PlayerTitle:SetWidth(self:GetWidth() - 30);
-	self.MessageTitle:SetWidth(self:GetWidth() - 30);
-	self.syncMessageTitle:SetWidth(self:GetWidth() - 30);
-end -- SongbookWindow:ResizeAll( )
+-- 	self.PlayerTitle:SetWidth(self:GetWidth() - 30);
+-- 	self.MessageTitle:SetWidth(self:GetWidth() - 30);
+-- 	self.syncMessageTitle:SetWidth(self:GetWidth() - 30);
+-- end -- SongbookWindow:ResizeAll( )
+
+function SongbookWindow:ReflowLayout()
+	local width, height = self:GetSize()
+	-- local y = 134 + ShiftTop
+
+	local HEADER_HEIGHT = 134 + ShiftTop
+	local LIST_FRAME_MARGIN_LEFT = 12
+	local LIST_FRAME_MARGIN_RIGHT = 11
+	local LIST_CONTAINER_MARGIN_LEFT = 18
+	local LIST_CONTAINER_MARGIN_RIGHT = 10
+	local BOTTOM_BUTTON_HEIGHT = 30
+	local SEPARATOR_HEIGHT = 13
+
+	-- self.listFrame:SetPosition(12, y)
+	-- self.listContainer:SetPosition(18, y + 13)
+
+	local currentY = HEADER_HEIGHT
+
+	-- Search
+	local searchHeight = 0
+	if Settings.SearchVisible == "yes" then
+		searchHeight = 20
+		self.searchInput:SetVisible(true)
+		self.searchBtn:SetVisible(true)
+		self.clearBtn:SetVisible(true)
+	else
+		self.searchInput:SetVisible(false)
+		self.searchBtn:SetVisible(false)
+		self.clearBtn:SetVisible(false)
+	end
+
+	currentY = currentY + searchHeight
+	-- Position the main list containers
+	self.listFrame:SetPosition(LIST_FRAME_MARGIN_LEFT, currentY)
+	self.listContainer:SetPosition(LIST_CONTAINER_MARGIN_LEFT, currentY + SEPARATOR_HEIGHT)
+
+	-- Calculate instrument slot height
+	local instrHeight = 0
+	if CharSettings.InstrSlots[1]["visible"] == "yes" then
+		instrHeight = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows
+	end
+
+	-- Calculate track height
+	local tracksHeight = 0
+	if Settings.TracksVisible == "yes" then
+		tracksHeight = Settings.TracksHeight
+	end
+
+	-- Calculate available space for lists
+	local INSTR_PADDING = 12
+	local availableListHeight = height - currentY - instrHeight - BOTTOM_BUTTON_HEIGHT - INSTR_PADDING
+	
+	-- Size the main containers
+	local listFrameWidth = width - LIST_FRAME_MARGIN_LEFT - LIST_FRAME_MARGIN_RIGHT
+	local listContainerWidth = width - LIST_CONTAINER_MARGIN_LEFT - LIST_CONTAINER_MARGIN_RIGHT
+	
+	self.listFrame:SetSize(listFrameWidth, availableListHeight)
+	self.listContainer:SetSize(listContainerWidth, availableListHeight)
+	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
+
+	-- Set up directory list
+	self.dirlistBox:SetHeight(Settings.DirHeight)
+	self:AdjustDirlistPosition()
+
+	-- Position separator after directory list
+	local dirSeparatorTop = Settings.DirHeight
+	self.separator1:SetTop(dirSeparatorTop)
+	if self.separator1.heading then
+		self.separator1.heading:SetTop(dirSeparatorTop - SEPARATOR_HEIGHT)
+	end
+
+	-- Calculate song list height and position track separator
+	local reservedHeight = Settings.DirHeight + SEPARATOR_HEIGHT + tracksHeight
+	if tracksHeight > 0 then
+		reservedHeight = reservedHeight + SEPARATOR_HEIGHT  -- separator between songs and tracks
+	end
+	local songListHeight = availableListHeight - reservedHeight
+	local trackSeparatorTop = dirSeparatorTop + SEPARATOR_HEIGHT + songListHeight
+	
+	self.sepSongsTracks:SetTop(trackSeparatorTop)
+	if self.sepSongsTracks.heading then
+		self.sepSongsTracks.heading:SetTop(trackSeparatorTop - SEPARATOR_HEIGHT)
+	end
+
+	-- Set song list height
+	self:SetSonglistHeight(songListHeight)
+	self:AdjustSonglistPosition()
+
+	-- Position and size track list if visible
+	if Settings.TracksVisible == "yes" then
+		local trackTop = trackSeparatorTop + SEPARATOR_HEIGHT
+		self:SetTracklistTop(trackTop)
+		self:AdjustTracklistSize(Settings.TracksHeight)
+		self:UpdateTracklistTop()
+		self:ShowTrackListbox(true)
+		self.listboxSetups:SetVisible(self.bShowSetups)
+	else
+		self:ShowTrackListbox(false)
+		self.listboxSetups:SetVisible(false)
+		self.tracksMsg:SetPosition(self.dirlistBox:GetLeft() + self.dirlistBox:GetWidth() - 160, 
+									self.dirlistBox:GetTop() + self.dirlistBox:GetHeight())
+	end
+
+	-- Reposition instrument containers
+	for j = 1, CharSettings.InstrumentSlots_Rows do
+		local TopShift = 75 + InstrumentSlots_Shift * (j - 1)
+		if self.instrContainer and self.instrContainer[j] then
+			self.instrContainer[j]:SetTop(height - TopShift)
+			self.instrContainer[j]:SetVisible(CharSettings.InstrSlots[1]["visible"] == "yes")
+		end
+	end
+
+	-- Reposition bottom buttons
+	self.settingsBtn:SetPosition(width / 2 - 55, height - BOTTOM_BUTTON_HEIGHT)
+	self.SyncInfoBtn:SetPosition(width - 150, height - BOTTOM_BUTTON_HEIGHT)
+
+	-- Update other width-dependent elements
+	self.songTitle:SetWidth(width - 52)
+	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
+	self.PlayerTitle:SetWidth(width - 30)
+	self.MessageTitle:SetWidth(width - 30)
+	self.syncMessageTitle:SetWidth(width - 30)
+	
+	-- Update filter UI positioning
+	self:AdjustFilterUI()
+
+	-- Tooltip and resizer
+	self.tipLabel:SetLeft(width - 270)
+	if self.resizeCtrl then
+		self.resizeCtrl:SetPosition(width - self.resizeCtrl:GetWidth(), height - self.resizeCtrl:GetHeight())
+	end
+end -- ReflowLayout
 
 
 -- action for selecting a directory
@@ -2399,21 +2408,21 @@ function SongbookWindow:ToggleSearch(mode)
 	end
 end
 
-function SongbookWindow:SetSearch( delta, bShow )
-	self.searchInput:SetVisible(bShow);
-	self.searchBtn:SetVisible(bShow);
-	self.clearBtn:SetVisible(bShow);		
-	self.lFYmod = self.lFYmod + delta;		
-	self.lCYmod = self.lCYmod + delta;
-	self.listFrame:SetTop( self.listFrame:GetTop( ) + delta);
-	self.listContainer:SetTop( self.listContainer:GetTop( ) + delta );
-	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);		
-	self:MoveTracklistTop( -delta );
+-- function SongbookWindow:SetSearch( delta, bShow )
+-- 	self.searchInput:SetVisible(bShow);
+-- 	self.searchBtn:SetVisible(bShow);
+-- 	self.clearBtn:SetVisible(bShow);		
+-- 	self.lFYmod = self.lFYmod + delta;		
+-- 	self.lCYmod = self.lCYmod + delta;
+-- 	self.listFrame:SetTop( self.listFrame:GetTop( ) + delta);
+-- 	self.listContainer:SetTop( self.listContainer:GetTop( ) + delta );
+-- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);		
+-- 	self:MoveTracklistTop( -delta );
 	
-	if Settings.TracksVisible == "no" then
-		self.tracksMsg:SetTop( self.dirlistBox:GetTop()+self.dirlistBox:GetHeight() );
-	end
-end
+-- 	if Settings.TracksVisible == "no" then
+-- 		self.tracksMsg:SetTop( self.dirlistBox:GetTop()+self.dirlistBox:GetHeight() );
+-- 	end
+-- end
 
 -- action for toggling description on and off
 function SongbookWindow:ToggleDescription()
@@ -2457,43 +2466,43 @@ function SongbookWindow:ToggleDescriptionFirst()
 	end
 end
 
--- action for toggling tracks display on and off
-function SongbookWindow:ToggleTracks()
-	if (Settings.TracksVisible == "yes") then
-		Settings.TracksVisible = "no";
-		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13);
-		self:ShowTrackListbox( false )
-		self.listboxSetups:SetVisible(false);
-		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-150, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
-	else
-		Settings.TracksVisible = "yes";
-		self:ShowTrackListbox( true )
-		self.listboxSetups:SetVisible(self.bShowSetups)
+-- -- action for toggling tracks display on and off
+-- function SongbookWindow:ToggleTracks()
+-- 	if (Settings.TracksVisible == "yes") then
+-- 		Settings.TracksVisible = "no";
+-- 		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13);
+-- 		self:ShowTrackListbox( false )
+-- 		self.listboxSetups:SetVisible(false);
+-- 		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-150, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
+-- 	else
+-- 		Settings.TracksVisible = "yes";
+-- 		self:ShowTrackListbox( true )
+-- 		self.listboxSetups:SetVisible(self.bShowSetups)
 		
-		-- check if there's room for the track list and adjust
-		local h = self.dirlistBox:GetHeight() + Settings.TracksHeight + 26;
-		if (self.listContainer:GetHeight() - h < 40) then
-			self.listContainer:SetHeight(h + self.songlistBox:GetHeight())
-			self:SetHeight(self.listContainer:GetHeight() + self.lCYmod);
-			self.listFrame:SetHeight(self:GetHeight() - self.lFYmod);
-			self.resizeCtrl:SetTop(self:GetHeight() - 20); 
-		end
+-- 		-- check if there's room for the track list and adjust
+-- 		local h = self.dirlistBox:GetHeight() + Settings.TracksHeight + 26;
+-- 		if (self.listContainer:GetHeight() - h < 40) then
+-- 			self.listContainer:SetHeight(h + self.songlistBox:GetHeight())
+-- 			self:SetHeight(self.listContainer:GetHeight() + self.lCYmod);
+-- 			self.listFrame:SetHeight(self:GetHeight() - self.lFYmod);
+-- 			self.resizeCtrl:SetTop(self:GetHeight() - 20); 
+-- 		end
 					
-		self:SetTracklistTop( self.listContainer:GetHeight() - Settings.TracksHeight )
-		self:AdjustTracklistSize( Settings.TracksHeight )			
-		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - self.tracklistBox:GetHeight() - 26);
-		self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
-		self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );	
-		--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
+-- 		self:SetTracklistTop( self.listContainer:GetHeight() - Settings.TracksHeight )
+-- 		self:AdjustTracklistSize( Settings.TracksHeight )			
+-- 		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - self.tracklistBox:GetHeight() - 26);
+-- 		self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
+-- 		self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );	
+-- 		--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
 		
-		if (CharSettings.InstrSlots[1]["visible"] == "yes") then
-			for j = 1, CharSettings.InstrumentSlots_Rows do
-				local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
-				self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
-			end
-		end
-	end
-end
+-- 		if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+-- 			for j = 1, CharSettings.InstrumentSlots_Rows do
+-- 				local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
+-- 				self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
+-- 			end
+-- 		end
+-- 	end
+-- end
 
 -- action for toggling instrument slots on and off
 function SongbookWindow:ToggleInstrSlots()
@@ -2515,33 +2524,33 @@ function SongbookWindow:ToggleInstrSlots()
 	end
 end
 
-function SongbookWindow:SetInstrSlots( delta )
-	self.lFYmod = self.lFYmod + delta;
-	self.lCYmod = self.lCYmod + delta;
-	self.listFrame:SetHeight(self.listFrame:GetHeight() - delta);
-	self.listContainer:SetHeight(self.listContainer:GetHeight() - delta);
-	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);
-	if (Settings.TracksVisible == "yes") then
-		self:MoveTracklistTop( -delta )
-		--self.tracklistBox:SetTop(self.tracklistBox:GetTop() - hMod);
-		--self.sepSongsTracks:SetTop(self.sepSongsTracks:GetTop() - hMod);		
-	end
+-- function SongbookWindow:SetInstrSlots( delta )
+-- 	self.lFYmod = self.lFYmod + delta;
+-- 	self.lCYmod = self.lCYmod + delta;
+-- 	self.listFrame:SetHeight(self.listFrame:GetHeight() - delta);
+-- 	self.listContainer:SetHeight(self.listContainer:GetHeight() - delta);
+-- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);
+-- 	if (Settings.TracksVisible == "yes") then
+-- 		self:MoveTracklistTop( -delta )
+-- 		--self.tracklistBox:SetTop(self.tracklistBox:GetTop() - hMod);
+-- 		--self.sepSongsTracks:SetTop(self.sepSongsTracks:GetTop() - hMod);		
+-- 	end
 	
-	local height = self:GetHeight();
-	if height < 45 then height = 45; end
+-- 	local height = self:GetHeight();
+-- 	if height < 45 then height = 45; end
 	
-	local listContainerHeight = height - self.lCYmod;
-	local tracksHeight = 0;
-	if Settings.TracksVisible == "yes" then tracksHeight = Settings.TracksHeight; end
-	if listContainerHeight < Settings.DirHeight + 13 + tracksHeight + 13 + 40 then
-		listContainerHeight = Settings.DirHeight + 13 + tracksHeight + 13 + 40;
-		height = listContainerHeight + self.lCYmod;
-	end
+-- 	local listContainerHeight = height - self.lCYmod;
+-- 	local tracksHeight = 0;
+-- 	if Settings.TracksVisible == "yes" then tracksHeight = Settings.TracksHeight; end
+-- 	if listContainerHeight < Settings.DirHeight + 13 + tracksHeight + 13 + 40 then
+-- 		listContainerHeight = Settings.DirHeight + 13 + tracksHeight + 13 + 40;
+-- 		height = listContainerHeight + self.lCYmod;
+-- 	end
 	
-	self:SetHeight( height );
-	self:ResizeAll( );
-	self.resizeCtrl:SetPosition( self:GetWidth() - self.resizeCtrl:GetWidth(), self:GetHeight() - self.resizeCtrl:GetHeight() );
-end
+-- 	self:SetHeight( height );
+-- 	self:ResizeAll( );
+-- 	self.resizeCtrl:SetPosition( self:GetWidth() - self.resizeCtrl:GetWidth(), self:GetHeight() - self.resizeCtrl:GetHeight() );
+-- end
 
 function SongbookWindow:ClearSlots()
 	for j = 1, CharSettings.InstrumentSlots_Rows do
@@ -2945,8 +2954,7 @@ end
 function SongbookWindow:SongStarted( )
 	self:ClearSongState(  )
 	
-	--Song_Label:SetText( string.sub( selectedSong, 1, 15 ) );
-	Song_Label:SetText( Synced_Song_TrackName );
+	TimerWindow:SetSongText( Synced_Song_TrackName );
 	
 	songbookWindow.syncMessageTitle:SetText("");
 	songbookWindow.syncMessageTitle:SetVisible(false);
@@ -3062,7 +3070,8 @@ function SongbookWindow:ShowFilterUI( bFilter )
 	self.btnParty:SetVisible( bFilter );
 	self.listboxPlayers:SetVisible( bFilter );
 	
-	self:ResizeAll( );
+	-- self:ResizeAll( );
+	self:ReflowLayout();
 end
 
 
@@ -3906,9 +3915,9 @@ function SongbookWindow:SetTracklistTop( top )
 	self.tracksMsg:SetTop( top - 15 - 3 );
 end
 
-function SongbookWindow:MoveTracklistTop( delta )
-	self:SetTracklistTop( self.tracklistBox:GetTop( ) + delta )
-end
+-- function SongbookWindow:MoveTracklistTop( delta )
+-- 	self:SetTracklistTop( self.tracklistBox:GetTop( ) + delta )
+-- end
 
 function SongbookWindow:AdjustTracklistLeft( )
 	if self.bShowSetups then self.tracklistBox:SetLeft( self.setupsWidth )
@@ -4842,7 +4851,8 @@ function SongbookWindow:Activated(sender, args)
 		self:SetPosition( left, top );
 		self:SetSize( width, height );
 		self.resizeCtrl:SetPosition(self:GetWidth() - self.resizeCtrl:GetWidth(),self:GetHeight() - self.resizeCtrl:GetHeight()); 
-		self:ResizeAll( );
+		-- self:ResizeAll( );
+		self:ReflowLayout();
 	end
 end
 
@@ -5358,7 +5368,7 @@ end
 
 function SongbookWindow:ToggleTimerWindow( State )
 	self.TimerWindowVisible = State
-	Timer_Window:SetVisible( self.TimerWindowVisible )
+	TimerWindow:SetVisible( self.TimerWindowVisible )
 end
 
 function SongbookWindow:ToggleUseRaidChat( State )
