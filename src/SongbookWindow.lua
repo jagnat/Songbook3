@@ -78,8 +78,12 @@ Help_Window_CB:SetPosition(50, 460 );
 Help_Window_CB:SetSize(200,20);
 Help_Window_CB:SetText(" Don't Show this again.");
 Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
--- todo: is this even necessary anymore?
---Help_Window_CB.CheckedChanged = function(sender, args) songbookWindow:ToggleHelpWindow( sender:IsChecked( ) ); end;
+Help_Window_CB.CheckedChanged = function(sender, args)
+	if songbookWindow then
+		songbookWindow:SetHelpWindowDisabled( sender:IsChecked( ) );
+		songbookWindow:SaveSettings();
+	end
+end;
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -515,7 +519,8 @@ function SongbookWindow:Constructor()
 	{"Basic Pibgorn"},
 	{"Basic Cowbell", "Summer Celebration Cowbell"},
 	{"Moor Cowbell"},
-	{"Basic Drum"} }
+	{"Basic Drum"},
+	{"Jaunty Hand-knells"} }
 	
 	self.Instruments_Names_inTrack = {
 	{"Basic Harp"}, -- 1
@@ -539,7 +544,8 @@ function SongbookWindow:Constructor()
 	{"Basic Pibgorn", "Pibgorn"}, -- 19
 	{"Basic Cowbell"}, -- 20
 	{"Moor Cowbell", "More Cowbell"}, -- 21
-	{"Basic Drum", "Drum"}  } -- 22
+	{"Basic Drum", "Drum"}, -- 22
+	{"Jaunty Hand-knells", "Hand-knells", "Jaunty", "Glockenspiel"} } -- 23
 	
 	self.aSpecialInstruments = { }
 	self.aSpecialInstruments[ "satakieli" ] = 6 -- index in the insturments array
@@ -605,7 +611,7 @@ function SongbookWindow:Constructor()
 	self:ToggleTimerWindow( Settings.TimerWindowVisible == "true" )
 	
 	if not Settings.HelpWindowDisable then Settings.HelpWindowDisable = "false"; end
-	self:ToggleHelpWindow( Settings.HelpWindowDisable == "true" )
+	self:SetHelpWindowDisabled( Settings.HelpWindowDisable == "true" )
 	Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
 	
 	if not Settings.UseRaidChat       then Settings.UseRaidChat 	  = "false"; end
@@ -1815,7 +1821,6 @@ function SongbookWindow:Constructor()
 		self:ToggleSearch("off");
 	end
 	
-	-- self:ResizeAll( ); -- Adjust variable sizes and positions to current main window size
 	self:ReflowLayout()
 end -- SongbookWindow:Constructor()
 
@@ -1910,44 +1915,8 @@ function SongbookWindow:StopTimer( )
 	TimerWindow:SetSongText( "" );
 end
 
--- function SongbookWindow:ResizeAll( )
--- 	self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
--- 	self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
--- 	self.listFrame.heading:SetSize(self.listFrame:GetWidth(),13);
-	
--- 	for j = 1, CharSettings.InstrumentSlots_Rows do
--- 		local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
--- 		self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
--- 	end
-	
--- 	self.dirlistBox:SetHeight( Settings.DirHeight );
--- 	self:AdjustDirlistPosition( );
-
--- 	if Settings.TracksVisible == "yes" then
--- 		self:AdjustTracklistSize( Settings.TracksHeight )
--- 		self:UpdateTracklistTop( )
--- 	else
--- 		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-160, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
--- 	end
-
--- 	self:AdjustSonglistHeight( );
--- 	self:AdjustSonglistPosition( );
-		
--- 	self.songTitle:SetWidth(self:GetWidth() - 52);
--- 	self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
--- 	self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );
--- 	--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
--- 	self.tipLabel:SetLeft(self:GetWidth() - 270);
--- 	self:AdjustFilterUI( );
-	
--- 	self.PlayerTitle:SetWidth(self:GetWidth() - 30);
--- 	self.MessageTitle:SetWidth(self:GetWidth() - 30);
--- 	self.syncMessageTitle:SetWidth(self:GetWidth() - 30);
--- end -- SongbookWindow:ResizeAll( )
-
 function SongbookWindow:ReflowLayout()
 	local width, height = self:GetSize()
-	-- local y = 134 + ShiftTop
 
 	local HEADER_HEIGHT = 134 + ShiftTop
 	local LIST_FRAME_MARGIN_LEFT = 12
@@ -1956,9 +1925,6 @@ function SongbookWindow:ReflowLayout()
 	local LIST_CONTAINER_MARGIN_RIGHT = 10
 	local BOTTOM_BUTTON_HEIGHT = 30
 	local SEPARATOR_HEIGHT = 13
-
-	-- self.listFrame:SetPosition(12, y)
-	-- self.listContainer:SetPosition(18, y + 13)
 
 	local currentY = HEADER_HEIGHT
 
@@ -5389,7 +5355,7 @@ function SongbookWindow:ToggleUseFellowshipChat( State )
 	self:PlayerSyncInfo();
 end
 
-function SongbookWindow:ToggleHelpWindow( State )
+function SongbookWindow:SetHelpWindowDisabled( State )
 	self.HelpWindowDisable = State;
 end
 
@@ -5400,8 +5366,8 @@ end
 function SongbookWindow:HelpWindow( )
 	if Settings.HelpWindowDisable == "false" and HelpWindow_Load_Flag == 1 then
 		Help_Window:SetVisible(true);
-		HelpWindow_Load_Flag = 0;
 	end
+	HelpWindow_Load_Flag = 0;
 end
 
 
