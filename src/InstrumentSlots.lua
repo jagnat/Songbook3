@@ -16,7 +16,7 @@ function InstrumentSlots:Constructor()
 
 	self:BuildSlots()
 	self:UpdateLayout()
-	self:SetVisible(CharSettings.InstrSlots[1].visible == "yes")
+	self:SetVisible(CharSettings.InstrSlots[1].visible)
 
 end
 
@@ -97,12 +97,8 @@ end
 
 function InstrumentSlots:Toggle()
 	local hMod = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows;
-	self:SetVisible(CharSettings.InstrSlots[1]["visible"] == "no");
-	if (CharSettings.InstrSlots[1]["visible"] == "yes") then		
-		CharSettings.InstrSlots[1]["visible"] = "no";
-	else
-		CharSettings.InstrSlots[1]["visible"] = "yes";
-	end
+	CharSettings.InstrSlots[1]["visible"] = not CharSettings.InstrSlots[1]["visible"];
+	self:SetVisible(CharSettings.InstrSlots[1]["visible"]);
 end
 
 function InstrumentSlots:Clear()

@@ -1,12 +1,6 @@
 SettingsWindow = class( Turbine.UI.Lotro.Window );
 
 
-function SettingsWindow:NextPos( delta )
-	delta = delta or 20
-	self.yPos = self.yPos + delta
-	return self.yPos
-end
-
 function SettingsWindow:CreateCheckBox( stringCode, yPos, state, func, width, xPos )
 	width = width or 300
 	xPos = xPos or 25
@@ -15,7 +9,7 @@ function SettingsWindow:CreateCheckBox( stringCode, yPos, state, func, width, xP
 	cb:SetPosition(xPos, yPos );
 	cb:SetSize(width,20);
 	cb:SetText(" " .. Strings[stringCode]);
-	cb:SetChecked(state == "yes" or state == "true" );
+	cb:SetChecked(state);
 	cb.CheckedChanged = func
 	return cb
 end
@@ -37,90 +31,85 @@ function SettingsWindow:Constructor()
 		yPos = Settings.WindowPosition.Top + 100;
 	end
 	self:SetPosition( xPos, yPos );
-	--Original line: self:SetPosition( Settings.WindowPosition.Left - 300, Settings.WindowPosition.Top + 100 );
-	-- /Nim
 	self:SetSize(wndWidth,wndHeight);
 	--self:SetZOrder(20);
 	self:SetText(Strings["ui_settings"]);
 
-	self.yPos = 20
-	-- general settings label
+	-- Left column — general settings section
 	self.genLabel = Turbine.UI.Label();
 	self.genLabel:SetParent(self);
-	self.genLabel:SetPosition(self.ypos, self:NextPos(20));
 	self.genLabel:SetWidth(300);
 	self.genLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.genLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.genLabel:SetText(Strings["ui_general"]);
 
-	--Track display checkbox
-	self.trackCheck = self:CreateCheckBox( "cb_parts", self:NextPos(20), Settings.TracksVisible,
+	self.trackCheck = self:CreateCheckBox( "cb_parts", 0, Settings.TracksVisible,
 		function(sender, args) songbookWindow:ToggleTracks(); end )
-	
-	--Search function enabled checkbox
-	self.searchCheck = self:CreateCheckBox( "cb_search", self:NextPos(), Settings.SearchVisible,
-		function(sender, args) songbookWindow:ToggleSearch(); end )
-	
-	--Show description in song list checkbox
-	self.descCheck = self:CreateCheckBox( "cb_desc", self:NextPos(), Settings.DescriptionVisible,
-		function(sender, args) songbookWindow:ToggleDescription(); end )
-	
-	--Show description first in song list checkbox
-	self.descFirstCheck = self:CreateCheckBox( "cb_descfirst", self:NextPos(), Settings.DescriptionFirst,
-		function(sender, args) songbookWindow:ToggleDescriptionFirst(); end )
-	
-	--Window visibility on load checkbox
-	self.visibleCheck = self:CreateCheckBox( "cb_windowvis", self:NextPos(), Settings.WindowVisible,
-		function(sender, args) self:ChangeVisibility(); end )
 
-    -- Badger settings --------------------------
+	self.searchCheck = self:CreateCheckBox( "cb_search", 0, Settings.SearchVisible,
+		function(sender, args) songbookWindow:ToggleSearch(); end )
+
+	self.descCheck = self:CreateCheckBox( "cb_desc", 0, Settings.DescriptionVisible,
+		function(sender, args) songbookWindow:ToggleDescription(); end )
+
+	self.descFirstCheck = self:CreateCheckBox( "cb_descfirst", 0, Settings.DescriptionFirst,
+		function(sender, args) songbookWindow:ToggleDescriptionFirst(); end )
+
+	self.visibleCheck = self:CreateCheckBox( "cb_windowvis", 0, Settings.WindowVisible,
+		function(sender, args) self:ChangeVisibility(sender:IsChecked()); end )
+
+	-- Left column — badger settings section
 	self.badgerLabel = Turbine.UI.Label();
 	self.badgerLabel:SetParent(self);
-	self.badgerLabel:SetPosition(self.ypos, self:NextPos(20));
 	self.badgerLabel:SetWidth(300);
 	self.badgerLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.badgerLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.badgerLabel:SetText(Strings["ui_badger"]);
 
-	-- Filters on/off
-	self.filterCheck = self:CreateCheckBox( "filters", self:NextPos(), Settings.FiltersState,
+	self.filterCheck = self:CreateCheckBox( "filters", 0, Settings.FiltersState,
 		function(sender, args) songbookWindow:ShowFilterUI( sender:IsChecked( ) ); end, 120 )
 
-	-- Chief mode (uses party object, enables sync start quickslot)
-	self.chiefCheck = self:CreateCheckBox( "cb_chief", self.yPos, Settings.ChiefMode,
+	self.chiefCheck = self:CreateCheckBox( "cb_chief", 0, Settings.ChiefMode,
 		function(sender, args) songbookWindow:SetChiefMode( sender:IsChecked( ) ); end, 150, 170 )
 
-	-- Countdown timer (if song duration available)
-	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", self:NextPos(), Settings.TimerCountdown,
+	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", 0, Settings.TimerCountdown,
 		function(sender, args) songbookWindow.bTimerCountdown = sender:IsChecked( ); end, 150, 170 )
-	-- Timer display on/off
-	self.timerCheck = self:CreateCheckBox( "cb_timer", self.yPos, Settings.TimerState,
+
+	self.timerCheck = self:CreateCheckBox( "cb_timer", 0, Settings.TimerState,
 		function(sender, args) self:ToggleTimer( sender:IsChecked( ) ); end, 120 )
-	if Settings.TimerState ~= "true" then self.countdownCheck:SetVisible( false ); end
+	if not Settings.TimerState then self.countdownCheck:SetVisible( false ); end
 
-	-- Hightlight issues in ready column (white background)
-	self.readyHighlightCheck = self:CreateCheckBox( "cb_rdyColHL", self:NextPos(), Settings.ReadyColHighlight,
+	self.readyHighlightCheck = self:CreateCheckBox( "cb_rdyColHL", 0, Settings.ReadyColHighlight,
 		function(sender, args) songbookWindow:HightlightReadyColumns( sender:IsChecked( ) ); end, 150, 170 )
-	-- Additional ready state indicators
-	self.readyColumnCheck = self:CreateCheckBox( "cb_rdyCol", self.yPos, Settings.ReadyColState,
+
+	self.readyColumnCheck = self:CreateCheckBox( "cb_rdyCol", 0, Settings.ReadyColState,
 		function(sender, args) self:ToggleReadyCol( sender:IsChecked( ) ); end, 145 )
-	if Settings.ReadyColState ~= "true" then self.readyHighlightCheck:SetVisible( false ); end
-    -- /Badger settings -------------------------
+	if not Settings.ReadyColState then self.readyHighlightCheck:SetVisible( false ); end
 
-    -- Legendary Edition settings --------------------------
+	-- Left column positioning
+	local y = 40
+	self.genLabel:SetPosition(20, y);     y = y + 20
+	self.trackCheck:SetPosition(25, y);   y = y + 20
+	self.searchCheck:SetPosition(25, y);  y = y + 20
+	self.descCheck:SetPosition(25, y);    y = y + 20
+	self.descFirstCheck:SetPosition(25, y); y = y + 20
+	self.visibleCheck:SetPosition(25, y); y = y + 20
 
+	self.badgerLabel:SetPosition(20, y);  y = y + 20
+	self.filterCheck:SetPosition(25, y);  self.chiefCheck:SetPosition(170, y);   y = y + 20
+	self.timerCheck:SetPosition(25, y);   self.countdownCheck:SetPosition(170, y); y = y + 20
+	self.readyColumnCheck:SetPosition(25, y); self.readyHighlightCheck:SetPosition(170, y); y = y + 20
+
+	-- Right column — create controls without positions (Layout will place them)
 	self.UserChatLabel = Turbine.UI.Label();
 	self.UserChatLabel:SetParent(self);
-	self.UserChatLabel:SetPosition(300,40);
 	self.UserChatLabel:SetWidth(200);
 	self.UserChatLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.UserChatLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.UserChatLabel:SetText("User Chat Name");
 	
-	-- User Chat Name field
 	self.UCNameInput = Turbine.UI.Lotro.TextBox();
 	self.UCNameInput:SetParent(self);
-	self.UCNameInput:SetPosition(300, 60);
 	self.UCNameInput:SetSize(230, 20);
 	self.UCNameInput:SetFont(Turbine.UI.Lotro.Font.Verdana14);
 	self.UCNameInput:SetMultiline(false);
@@ -151,7 +140,6 @@ function SettingsWindow:Constructor()
 
 	self.ManualChetSelectionLabel = Turbine.UI.Label();
 	self.ManualChetSelectionLabel:SetParent(self);
-	self.ManualChetSelectionLabel:SetPosition(300,80);
 	self.ManualChetSelectionLabel:SetWidth(200);
 	self.ManualChetSelectionLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.ManualChetSelectionLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -160,10 +148,9 @@ function SettingsWindow:Constructor()
 	--Raid Chat checkbox
 	self.RaidChat_CB = Turbine.UI.Lotro.CheckBox();
 	self.RaidChat_CB:SetParent( self );
-	self.RaidChat_CB:SetPosition(300, 100 );
 	self.RaidChat_CB:SetSize(200,20);
 	self.RaidChat_CB:SetText(" Raid Chat");
-	self.RaidChat_CB:SetChecked(Settings.UseRaidChat == "true" );
+	self.RaidChat_CB:SetChecked(Settings.UseRaidChat);
 	self.RaidChat_CB.CheckedChanged = function(sender, args)
 		songbookWindow:ToggleUseRaidChat( sender:IsChecked( ) );
 		self.RaidChat_CB:SetChecked( sender:IsChecked( ) );
@@ -177,10 +164,9 @@ function SettingsWindow:Constructor()
 	--Fellowship chat checkbox
 	self.FellowshipChat_CB = Turbine.UI.Lotro.CheckBox();
 	self.FellowshipChat_CB:SetParent( self );
-	self.FellowshipChat_CB:SetPosition(300, 120 );
 	self.FellowshipChat_CB:SetSize(200,20);
 	self.FellowshipChat_CB:SetText(" Fellowship Chat");
-	self.FellowshipChat_CB:SetChecked(Settings.UseFellowshipChat == "true" );
+	self.FellowshipChat_CB:SetChecked(Settings.UseFellowshipChat);
 	self.FellowshipChat_CB.CheckedChanged = function(sender, args)
 		songbookWindow:ToggleUseFellowshipChat( sender:IsChecked( ) );
 		
@@ -192,7 +178,6 @@ function SettingsWindow:Constructor()
 
 	self.AutoTrackPickerLabel = Turbine.UI.Label();
 	self.AutoTrackPickerLabel:SetParent(self);
-	self.AutoTrackPickerLabel:SetPosition(300,140);
 	self.AutoTrackPickerLabel:SetWidth(200);
 	self.AutoTrackPickerLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.AutoTrackPickerLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -201,29 +186,26 @@ function SettingsWindow:Constructor()
 	--Automatic track picking based on instrument
 	self.AutoPickSongChange_CB = Turbine.UI.Lotro.CheckBox();
 	self.AutoPickSongChange_CB:SetParent( self );
-	self.AutoPickSongChange_CB:SetPosition(300, 160 );
 	self.AutoPickSongChange_CB:SetSize(220,20);
 	self.AutoPickSongChange_CB:SetText(" Auto-pick on song change");
-	self.AutoPickSongChange_CB:SetChecked(Settings.AutoPickOnSongChange == "true" );
+	self.AutoPickSongChange_CB:SetChecked(Settings.AutoPickOnSongChange);
 	self.AutoPickSongChange_CB.CheckedChanged = function(sender, args)
-		Settings.AutoPickOnSongChange = sender:IsChecked() and "true" or "false";
+		Settings.AutoPickOnSongChange = sender:IsChecked();
 	end
 
 	--Automatic track picking based on instrument
 	self.AutoPickInsChange_CB = Turbine.UI.Lotro.CheckBox();
 	self.AutoPickInsChange_CB:SetParent( self );
-	self.AutoPickInsChange_CB:SetPosition(300, 180 );
 	self.AutoPickInsChange_CB:SetSize(240,20);
 	self.AutoPickInsChange_CB:SetText(" Auto-pick on instrument change");
-	self.AutoPickInsChange_CB:SetChecked(Settings.AutoPickOnInsChange == "true");
+	self.AutoPickInsChange_CB:SetChecked(Settings.AutoPickOnInsChange);
 	self.AutoPickInsChange_CB.CheckedChanged = function(sender, args)
-		Settings.AutoPickOnInsChange = sender:IsChecked() and "true" or "false";
+		Settings.AutoPickOnInsChange = sender:IsChecked();
 	end
 	
 	
 	self.TimerWindowLabel = Turbine.UI.Label();
 	self.TimerWindowLabel:SetParent(self);
-	self.TimerWindowLabel:SetPosition(300,200);
 	self.TimerWindowLabel:SetWidth(200);
 	self.TimerWindowLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.TimerWindowLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -232,10 +214,9 @@ function SettingsWindow:Constructor()
 	--Timer Window display checkbox
 	local Timer_Window_CB = Turbine.UI.Lotro.CheckBox();
 	Timer_Window_CB:SetParent( self );
-	Timer_Window_CB:SetPosition(300, 220 );
 	Timer_Window_CB:SetSize(200,20);
 	Timer_Window_CB:SetText(" Timer Window Visible");
-	Timer_Window_CB:SetChecked(Settings.TimerWindowVisible == "true" );
+	Timer_Window_CB:SetChecked(Settings.TimerWindowVisible);
 	Timer_Window_CB.CheckedChanged = function(sender, args) songbookWindow:ToggleTimerWindow( sender:IsChecked( ) ); end;
 	
 	
@@ -250,31 +231,38 @@ function SettingsWindow:Constructor()
 		songbookWindow:ShowHelpWindow();
 	end
 	
-    -- /Legendary Edition settings ----------------------------------------------	
+	-- Right column section 1 — 20px steps, no extra gap, controls keep their own widths
+	Layout.stackVertical({
+		{ control = self.UserChatLabel,             height = 20 },
+		{ control = self.UCNameInput,               height = 20 },
+		{ control = self.ManualChetSelectionLabel,  height = 20 },
+		{ control = self.RaidChat_CB,               height = 20 },
+		{ control = self.FellowshipChat_CB,         height = 20 },
+		{ control = self.AutoTrackPickerLabel,      height = 20 },
+		{ control = self.AutoPickSongChange_CB,     height = 20 },
+		{ control = self.AutoPickInsChange_CB,      height = 20 },
+		{ control = self.TimerWindowLabel,          height = 20 },
+		{ control = Timer_Window_CB,                height = 20 },
+	}, { x = 300, y = 40 })
 
 	self.sbbtnLabel = Turbine.UI.Label();
 	self.sbbtnLabel:SetParent(self);
-	self.sbbtnLabel:SetPosition(20,self:NextPos(25));
 	self.sbbtnLabel:SetWidth(300);
 	self.sbbtnLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.sbbtnLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.sbbtnLabel:SetText(Strings["ui_icon"]);
-	
-	--Songbook button visibility checkbox	
-	self.toggleCheck = self:CreateCheckBox( "cb_iconvis", self:NextPos(20), Settings.ToggleVisible,
-		function(sender, args) self:ChangeToggleVisibility(); end )
 
-	-- Toggle button opacity controls
+	self.toggleCheck = self:CreateCheckBox( "cb_iconvis", 0, Settings.ToggleVisible,
+		function(sender, args) self:ChangeToggleVisibility(sender:IsChecked()); end )
+
 	self.toggleOpacityLabel = Turbine.UI.Label();
 	self.toggleOpacityLabel:SetParent(self);
-	self.toggleOpacityLabel:SetPosition(20,self:NextPos(30));
 	self.toggleOpacityLabel:SetWidth(300);
 	self.toggleOpacityLabel:SetText(Strings["ui_btn_opacity"]);
-	
+
 	self.toggleOpacityScroll = Turbine.UI.Lotro.ScrollBar();
 	self.toggleOpacityScroll:SetParent(self);
 	self.toggleOpacityScroll:SetOrientation( Turbine.UI.Orientation.Horizontal );
-	self.toggleOpacityScroll:SetPosition(20,self:NextPos(15));
 	self.toggleOpacityScroll:SetSize(220,10);
 	self.toggleOpacityScroll:SetValue( 100*Settings.ToggleOpacity );
 	self.toggleOpacityScroll:SetMaximum( 100 );
@@ -292,15 +280,12 @@ function SettingsWindow:Constructor()
 	
 	self.toggleOpacityInd = Turbine.UI.Label();
 	self.toggleOpacityInd:SetParent(self);
-	self.toggleOpacityInd:SetPosition(250,self.yPos);
 	self.toggleOpacityInd:SetWidth(30);
 	self.toggleOpacityInd:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.toggleOpacityInd:SetText(Settings.ToggleOpacity);
 
-	----------------------------------------------------------------------
 	self.instrLabel = Turbine.UI.Label();
 	self.instrLabel:SetParent(self);
-	self.instrLabel:SetPosition(300,240);
 	self.instrLabel:SetWidth(250);
 	self.instrLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.instrLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -309,19 +294,13 @@ function SettingsWindow:Constructor()
 	--Instrument bar visibility checkbox
 	self.instrCheck = Turbine.UI.Lotro.CheckBox();
 	self.instrCheck:SetParent( self );
-	self.instrCheck:SetPosition(300, 260 );
 	self.instrCheck:SetSize(200,20);
 	self.instrCheck:SetText(" " .. Strings["cb_instrvis"]);
-	self.instrCheck:SetChecked(CharSettings.InstrSlots[1]["visible"] == "true" or CharSettings.InstrSlots[1]["visible"] == "yes");
+	self.instrCheck:SetChecked(CharSettings.InstrSlots[1]["visible"]);
 	self.instrCheck.CheckedChanged = function(sender, args) songbookWindow:ToggleInstrSlots(); end;
 	
-	--self.instrCheck = self:CreateCheckBox( "cb_instrvis", self:NextPos(20), CharSettings.InstrSlots[1]["visible"],
-		--function(sender, args) songbookWindow:ToggleInstrSlots(); end )
-	
-	-- clear slots button
 	self.clrSlotsBtn = Turbine.UI.Lotro.Button();
 	self.clrSlotsBtn:SetParent(self);
-	self.clrSlotsBtn:SetPosition(300, 285);
 	self.clrSlotsBtn:SetSize(110,20);
 	self.clrSlotsBtn:SetText(Strings["ui_clr_slots"]);
 	
@@ -332,7 +311,6 @@ function SettingsWindow:Constructor()
 	
 	self.slotsLabel = Turbine.UI.Label();
 	self.slotsLabel:SetParent(self);
-	self.slotsLabel:SetPosition(300, 315);
 	self.slotsLabel:SetWidth(50);
 	self.slotsLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.slotsLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro14 );
@@ -341,7 +319,6 @@ function SettingsWindow:Constructor()
 	-- add / remove slots
 	self.addSlotBtn = Turbine.UI.Lotro.Button();
 	self.addSlotBtn:SetParent(self);
-	self.addSlotBtn:SetPosition(350, 315);
 	self.addSlotBtn:SetSize(50,20);
 	self.addSlotBtn:SetText(Strings["ui_add_slot"]);
 	
@@ -351,7 +328,6 @@ function SettingsWindow:Constructor()
 	
 	self.delSlotBtn = Turbine.UI.Lotro.Button();
 	self.delSlotBtn:SetParent(self);
-	self.delSlotBtn:SetPosition(410	, 315);
 	self.delSlotBtn:SetSize(70,20);
 	self.delSlotBtn:SetText(Strings["ui_del_slot"]);
 	
@@ -362,7 +338,6 @@ function SettingsWindow:Constructor()
 	
 	self.rowsLabel = Turbine.UI.Label();
 	self.rowsLabel:SetParent(self);
-	self.rowsLabel:SetPosition(300, 340);
 	self.rowsLabel:SetWidth(50);
 	self.rowsLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.rowsLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro14 );
@@ -371,7 +346,6 @@ function SettingsWindow:Constructor()
 	-- add / remove slots rows
 	self.addSlotBtn_rows = Turbine.UI.Lotro.Button();
 	self.addSlotBtn_rows:SetParent(self);
-	self.addSlotBtn_rows:SetPosition(350, 340);
 	self.addSlotBtn_rows:SetSize(50,20);
 	self.addSlotBtn_rows:SetText(Strings["ui_add_slot"]);
 	
@@ -380,7 +354,6 @@ function SettingsWindow:Constructor()
 	end
 	self.delSlotBtn_rows = Turbine.UI.Lotro.Button();
 	self.delSlotBtn_rows:SetParent(self);
-	self.delSlotBtn_rows:SetPosition(410, 340);
 	self.delSlotBtn_rows:SetSize(70,20);
 	self.delSlotBtn_rows:SetText(Strings["ui_del_slot"]);
 	
@@ -388,13 +361,8 @@ function SettingsWindow:Constructor()
 		songbookWindow:DelSlot_row();
 	end	
 	
-	----------------------------------------------------------------------
-	
-	
-	-- commands label
 	self.cmdLabel = Turbine.UI.Label();
 	self.cmdLabel:SetParent(self);
-	self.cmdLabel:SetPosition(20,self:NextPos(25));
 	self.cmdLabel:SetWidth(300);
 	self.cmdLabel:SetForeColor(Turbine.UI.Color(1,0.77,0.64,0.22));
 	self.cmdLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
@@ -402,7 +370,6 @@ function SettingsWindow:Constructor()
 	
 	self.addBtn = Turbine.UI.Lotro.Button();
 	self.addBtn:SetParent(self);
-	self.addBtn:SetPosition(20,self:NextPos(20));
 	self.addBtn:SetSize(85,20);
 	self.addBtn:SetText(Strings["ui_cus_add"]);
 	
@@ -414,7 +381,6 @@ function SettingsWindow:Constructor()
 	
 	self.editBtn = Turbine.UI.Lotro.Button();
 	self.editBtn:SetParent(self);
-	self.editBtn:SetPosition(115,self.yPos);
 	self.editBtn:SetSize(70,20);
 	self.editBtn:SetText(Strings["ui_cus_edit"]);
 	self.editBtn:SetEnabled(false);
@@ -427,7 +393,6 @@ function SettingsWindow:Constructor()
 	
 	self.delBtn = Turbine.UI.Lotro.Button();
 	self.delBtn:SetParent(self);
-	self.delBtn:SetPosition(195,self.yPos);
 	self.delBtn:SetSize(75,20);
 	self.delBtn:SetText(Strings["ui_cus_del"]);
 	self.delBtn:SetEnabled(false);
@@ -454,7 +419,6 @@ function SettingsWindow:Constructor()
 	
 	self.listFrame = Turbine.UI.Control();
 	self.listFrame:SetParent(self);
-	self.listFrame:SetPosition(20, self:NextPos(25));
 	self.listFrame:SetSize(self:GetWidth() - 40, 80);
 	self.listFrame:SetBackColor(Turbine.UI.Color(1, 0.15, 0.15, 0.15));
 	
@@ -477,48 +441,62 @@ function SettingsWindow:Constructor()
 	self.cmdlistBox:SetSize(self.listFrame:GetWidth() - 23,self.listFrame:GetHeight() - 19);
 	
 	self:RefreshCmds();
-	
+
+	self.songPopupCheck = Turbine.UI.Lotro.CheckBox();
+	self.songPopupCheck:SetParent( self );
+	self.songPopupCheck:SetSize(200,20);
+	self.songPopupCheck:SetText("Hide matched songs popup");
+	self.songPopupCheck:SetChecked(Settings.hideMatchedSongsPopup);
+	self.songPopupCheck.CheckedChanged = function(sender, args)
+		Settings.hideMatchedSongsPopup = sender:IsChecked();
+	end
+
+	-- Left column continued (y carries over)
+	y = y + 5
+	self.sbbtnLabel:SetPosition(20, y);   y = y + 20
+	self.toggleCheck:SetPosition(25, y);  y = y + 30
+	self.toggleOpacityLabel:SetPosition(20, y); y = y + 15
+	self.toggleOpacityScroll:SetPosition(20, y)
+	self.toggleOpacityInd:SetPosition(250, y);  y = y + 25
+
+	self.cmdLabel:SetPosition(20, y);     y = y + 20
+	self.addBtn:SetPosition(20, y)
+	self.editBtn:SetPosition(115, y)
+	self.delBtn:SetPosition(195, y);      y = y + 25
+	self.listFrame:SetPosition(20, y)
+	self.songPopupCheck:SetPosition(20, 470)
+
+	-- Right column section 2: instrument settings (matches original y-values)
+	self.instrLabel:SetPosition(300, 240)
+	self.instrCheck:SetPosition(300, 260)
+	self.clrSlotsBtn:SetPosition(300, 285)
+	self.slotsLabel:SetPosition(300, 315)
+	self.addSlotBtn:SetPosition(350, 315)
+	self.delSlotBtn:SetPosition(410, 315)
+	self.rowsLabel:SetPosition(300, 340)
+	self.addSlotBtn_rows:SetPosition(350, 340)
+	self.delSlotBtn_rows:SetPosition(410, 340)
+
 	self.cmdScroll = Turbine.UI.Lotro.ScrollBar();
 	self.cmdScroll:SetParent(self);
-	self.cmdScroll:SetOrientation( Turbine.UI.Orientation.Vertical );	
-	self.cmdScroll:SetPosition(self.listFrame:GetLeft() + self.listFrame:GetWidth() -12, self.listFrame:GetTop() + 13);
+	self.cmdScroll:SetOrientation( Turbine.UI.Orientation.Vertical );
+	self.cmdScroll:SetPosition(self.listFrame:GetLeft() + self.listFrame:GetWidth() - 12, self.listFrame:GetTop() + 13);
 	self.cmdScroll:SetSize(10,self.cmdlistBox:GetHeight());
 	self.cmdScroll:SetValue(0);
-	self.cmdlistBox:SetVerticalScrollBar( self.cmdScroll );	
+	self.cmdlistBox:SetVerticalScrollBar( self.cmdScroll );
 	self.cmdScroll:SetVisible( false );
 	
 	self.cmdlistBox.SelectedIndexChanged = function(sender,args)
 		self:ChangeCmd(sender:GetSelectedIndex());
 	end
 
-	-- Checkbox for whether popup window shows up
-	self.songPopupCheck = Turbine.UI.Lotro.CheckBox();
-	self.songPopupCheck:SetParent( self );
-	self.songPopupCheck:SetPosition(20, 470 );
-	self.songPopupCheck:SetSize(200,20);
-	self.songPopupCheck:SetText("Hide matched songs popup");
-	self.songPopupCheck:SetChecked(Settings.hideMatchedSongsPopup == "true" );
-	self.songPopupCheck.CheckedChanged = function(sender, args)
-		Settings.hideMatchedSongsPopup = sender:IsChecked() and "true" or "false";
+	function self:ChangeVisibility(bChecked)
+		Settings.WindowVisible = bChecked;
 	end
-	
-	
-	function self:ChangeVisibility()
-		if (Settings.WindowVisible == "yes") then
-			Settings.WindowVisible = "no";			
-		else
-			Settings.WindowVisible = "yes";
-		end
-	end
-	
-	function self:ChangeToggleVisibility()
-		if (Settings.ToggleVisible == "yes") then
-			Settings.ToggleVisible = "no";
-			toggleWindow:SetVisible(false);
-		else
-			Settings.ToggleVisible = "yes";
-			toggleWindow:SetVisible(true);
-		end
+
+	function self:ChangeToggleVisibility(bChecked)
+		Settings.ToggleVisible = bChecked;
+		toggleWindow:SetVisible(bChecked);
 	end
 	
 	function self:ToggleTimer( bChecked )

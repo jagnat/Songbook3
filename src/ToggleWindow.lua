@@ -3,13 +3,6 @@ ToggleWindow = class( Turbine.UI.Window );
 function ToggleWindow:Constructor()
 	Turbine.UI.Window.Constructor( self );
 	
-	-- legacy fix
-	if not (Settings.ToggleVisible) then
-		Settings.ToggleVisible = "yes";		
-		Settings.ToggleLeft = tostring(Turbine.UI.Display.GetWidth()-55);
-		Settings.ToggleTop = "310";
-	end	
-	
 	self:SetPosition( Settings.ToggleLeft, Settings.ToggleTop );
 	self:SetSize(35,35);
 	self:SetZOrder(70);	

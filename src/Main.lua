@@ -12,31 +12,26 @@ import "Turbine.Gameplay" -- needed for access to party object
 -- Some global variables to differentiate between the patch version and the alternate (BBLE) version
 gPlugin = "Songbook3"
 gDir = "Songbook3/resources/"
-gSettings = "Songbook3Settings"
 
 import "Songbook3.src.Class"; -- Turbine library included so that there's no outside dependencies
+import "Songbook3.src.Layout";
+import "Songbook3.src.SongbookLang";
+import "Songbook3.src.SettingsManager";
+SettingsManager.Load(); -- must run before imports that reference Settings at module level
+
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
-import "Songbook3.src.SongbookLang";
 import "Songbook3.src.TimerWindow";
 import "Songbook3.src.InstrumentSlots";
 import "Songbook3.src.SongbookWindow";
 
 songbookWindow = Songbook3.src.SongbookWindow();
-if (Settings.WindowVisible == "yes") then
-	songbookWindow:SetVisible( true );
-else
-	songbookWindow:SetVisible( false );
-end
+songbookWindow:SetVisible( Settings.WindowVisible );
 settingsWindow = Songbook3.src.SettingsWindow();
 settingsWindow:SetVisible( false );
 
 toggleWindow = Songbook3.src.ToggleWindow();
-if (Settings.ToggleVisible == "yes") then
-	toggleWindow:SetVisible( true );
-else 
-	toggleWindow:SetVisible( false );
-end
+toggleWindow:SetVisible( Settings.ToggleVisible );
 
 songbookCommand = Turbine.ShellCommand();
 

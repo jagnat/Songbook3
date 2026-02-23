@@ -46,14 +46,6 @@ syncedTrack = -1;
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- fix to prevent Vindar patch from messing up anything since it's not needed
-SongbookLoad = Turbine.PluginData.Load;
-SongbookSave = Turbine.PluginData.Save;
-
-Settings = { WindowPosition = { Left = "300", Top = "20", Width = "700", Height = "700" + ShiftTop }, WindowVisible = "no", WindowOpacity="0.9", DirHeight = "100", TracksHeight = "150", TracksVisible = "yes", ToggleVisible = "yes", ToggleLeft = "10", ToggleTop = "10", ToggleOpacity = "1", SearchVisible = "yes", DescriptionVisible = "no", DescriptionFirst = "no", UserChatName = "" , PlayersSyncInfoWindowPosition = { Left = "350", Top = "100", Width = "400", Height = "300" } , 
-Timer_WindowPosition = { Left = "50", Top = "1" } , TimerWindowVisible = "true" , UseRaidChat = "false", UseFellowshipChat = "false", AutoPickOnSongChange = "true", AutoPickOnInsChange = "true", hideMatchedSongsPopup = "false",
-HelpWindowDisable = "false" }; -- default values
-
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Help_Window = Turbine.UI.Lotro.Window();
@@ -77,7 +69,7 @@ Help_Window_CB:SetParent( Help_Window );
 Help_Window_CB:SetPosition(50, 460 );
 Help_Window_CB:SetSize(200,20);
 Help_Window_CB:SetText(" Don't Show this again.");
-Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
+Help_Window_CB:SetChecked(Settings.HelpWindowDisable );
 Help_Window_CB.CheckedChanged = function(sender, args)
 	if songbookWindow then
 		songbookWindow:SetHelpWindowDisabled( sender:IsChecked( ) );
@@ -378,43 +370,8 @@ end
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-CharSettings = {
-};
-
--- if (lang == "de" or lang == "fr") then	
-	-- if (Turbine.Engine.GetLocale() == "de" or Turbine.Engine.GetLocale() == "fr") then
-		-- Settings.WindowOpacity = "0,9";
-	-- end
--- end
-euroFormat=(tonumber("1,000")==1);
-if euroFormat then
-	Settings.WindowOpacity = "0,9";
-	Settings.ToggleOpacity = "1";
-end
-
-SongDB = {
-	Directories = {
-	},
-	Songs = {	
-	}
-};
-
 function SongbookWindow:Constructor()
 	Turbine.UI.Lotro.Window.Constructor( self );
-	
-	SongDB = SongbookLoad( Turbine.DataScope.Account , "SongbookData") or SongDB;
-	table.sort(SongDB, sortby_Name);
-	SettingsTemp = SongbookLoad( Turbine.DataScope.Account , gSettings) or Settings;
-	if SettingsTemp.Timer_WindowPosition then
-		Settings = SettingsTemp;
-	end
-	
-	CharSettingsTemp = SongbookLoad( Turbine.DataScope.Character , gSettings) or CharSettings;
-	if CharSettingsTemp.InstrSlots then 
-		if CharSettingsTemp.InstrSlots[1] then
-			CharSettings = CharSettingsTemp;
-		end
-	end
 	
 	-- Variables for filters and setups
 	self.sFilterPartcount = nil -- A char for every acceptable part count, with 'A' being solo, 'B' two parts, etc.
@@ -560,136 +517,16 @@ function SongbookWindow:Constructor()
 	self.chWrongPart = "P"
 	self.chMultiple = "M"
 	
-	-- Legacy fixes
-	
-	if not CharSettings.UserChatNumber then CharSettings.UserChatNumber = 0; end
-	if not CharSettings.InstrumentSlots_Rows then CharSettings.InstrumentSlots_Rows = 1; end
-	
-	if not Settings.UserChatName then
-		Settings.UserChatName = "";
-	end
-	-- if not Settings.PlayersSyncInfoWindowPosition.Left then Settings.PlayersSyncInfoWindowPosition.Left = 350 end
-	-- if not Settings.PlayersSyncInfoWindowPosition.Top then Settings.PlayersSyncInfoWindowPosition.Top = 100 end
-	-- if not Settings.PlayersSyncInfoWindowPosition.Width then Settings.PlayersSyncInfoWindowPosition.Width = 400 end
-	-- if not Settings.PlayersSyncInfoWindowPosition.Height then Settings.PlayersSyncInfoWindowPosition.Height = 300 end
-	
-	
-	if not Settings.DirHeight then
-		Settings.DirHeight = "100";
-	end
-	if not Settings.TracksHeight then
-		Settings.TracksHeight = "150";
-	end
-	if not Settings.TracksVisible then
-		Settings.TracksVisible = "yes";
-	end
-	if not WindowVisible then
-		WindowVisible = "no";
-	end	
-	if not Settings.SearchVisible then
-		Settings.SearchVisible = "yes";	
-	end
-	if not Settings.DescriptionVisible then
-		Settings.DescriptionVisible = "no";	
-	end
-	if not Settings.DescriptionFirst then
-		Settings.DescriptionFirst = "no";	
-	end
-	
-	if not Settings.ToggleOpacity then
-		Settings.ToggleOpacity = 1;
-	end		
-
-	if not Settings.FiltersState then Settings.FiltersState = "false"; end		
-	if not Settings.ChiefMode then Settings.ChiefMode = "true"; end		
-	if not Settings.TimerState then Settings.TimerState = "true"; end
-	if not Settings.TimerCountdown then Settings.TimerCountdown = "true"; end		
- 	if not Settings.ReadyColState then Settings.ReadyColState = "true"; end
- 	if not Settings.ReadyColHighlight then Settings.ReadyColHighlight = "true"; end
-	
- 	if not Settings.TimerWindowVisible then Settings.TimerWindowVisible = "true"; end
-	self:ToggleTimerWindow( Settings.TimerWindowVisible == "true" )
-	
-	if not Settings.HelpWindowDisable then Settings.HelpWindowDisable = "false"; end
-	self:SetHelpWindowDisabled( Settings.HelpWindowDisable == "true" )
-	Help_Window_CB:SetChecked(Settings.HelpWindowDisable == "true" );
-	
-	if not Settings.UseRaidChat       then Settings.UseRaidChat 	  = "false"; end
-	if not Settings.UseFellowshipChat then Settings.UseFellowshipChat = "false"; end
-	self:ToggleUseRaidChat	    ( Settings.UseRaidChat 	     == "true" )
-	self:ToggleUseFellowshipChat( Settings.UseFellowshipChat == "true" )
-
-	if not Settings.AutoPickOnSongChange then Settings.AutoPickOnSongChange = "true"; end
-	if not Settings.AutoPickOnInsChange then Settings.AutoPickOnInsChange = "true"; end
-
-	if not Settings.hideMatchedSongsPopup then Settings.hideMatchedSongsPopup = "false"; end
-	
-	if not SongDB.Songs then
-		SongDB = {
-			Directories = {
-			},
-			Songs = {	
-			}
-		};
-	end		
-	
-	if not Settings.Commands then
-		Settings.Commands = {};		
-		Settings.Commands["1"] = { Title = Strings["cmd_demo1_title"], Command = Strings["cmd_demo1_cmd"] };
-		Settings.Commands["2"] = { Title = Strings["cmd_demo2_title"], Command = Strings["cmd_demo2_cmd"] };
-		Settings.Commands["3"] = { Title = Strings["cmd_demo3_title"], Command = Strings["cmd_demo3_cmd"] };
-		Settings.DefaultCommand = "1";
-	end
-
-	CharSettings.InstrumentSlots_Rows = tonumber(CharSettings.InstrumentSlots_Rows);
-	
-	if not CharSettings.InstrSlots then
-		CharSettings.InstrSlots = {};
-		for j = 1, CharSettings.InstrumentSlots_Rows do
-			table.insert(CharSettings.InstrSlots , {});
-			CharSettings.InstrSlots[j]["visible"] = "yes";
-			CharSettings.InstrSlots[j]["number"] = 11;
-			for i = 1, CharSettings.InstrSlots[j]["number"] do
-				CharSettings.InstrSlots[j][tostring(i)] = { qsType = "", qsData = "" };		
-			end
-		end
-	end
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		if not CharSettings.InstrSlots[j]["number"] then
-			CharSettings.InstrSlots[j]["number"] = 11;
-		end
-	end
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		for i = 1, CharSettings.InstrSlots[j]["number"] do
-			CharSettings.InstrSlots[j][tostring(i)].qsType = tonumber(CharSettings.InstrSlots[j][tostring(i)].qsType);
-		end	
-	end
+	-- Apply settings to instance state
+	self:ToggleTimerWindow( Settings.TimerWindowVisible )
+	self:SetHelpWindowDisabled( Settings.HelpWindowDisable )
+	Help_Window_CB:SetChecked( Settings.HelpWindowDisable );
+	self:ToggleUseRaidChat( Settings.UseRaidChat )
+	self:ToggleUseFellowshipChat( Settings.UseFellowshipChat )
 	
 	UserChatName = string.lower ( Settings.UserChatName );
-	
-	-- unstringify settings
-	Settings.WindowPosition.Left = tonumber(Settings.WindowPosition.Left);
-	Settings.WindowPosition.Top = tonumber(Settings.WindowPosition.Top);
-	Settings.WindowPosition.Width = tonumber(Settings.WindowPosition.Width);
-	Settings.WindowPosition.Height = tonumber(Settings.WindowPosition.Height);
+
 	self:ValidateWindowPosition( Settings.WindowPosition )
-	Settings.ToggleTop = tonumber(Settings.ToggleTop);
-	Settings.ToggleLeft = tonumber(Settings.ToggleLeft);
-	Settings.DirHeight = tonumber(Settings.DirHeight);
-	Settings.TracksHeight = tonumber(Settings.TracksHeight);
-	Settings.WindowOpacity = tonumber(Settings.WindowOpacity);
-	Settings.ToggleOpacity = tonumber(Settings.ToggleOpacity);
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		CharSettings.InstrSlots[j]["number"] = tonumber(CharSettings.InstrSlots[j]["number"]);
-	end
-	
-	Settings.PlayersSyncInfoWindowPosition.Left = tonumber(Settings.PlayersSyncInfoWindowPosition.Left);
-	Settings.PlayersSyncInfoWindowPosition.Top = tonumber(Settings.PlayersSyncInfoWindowPosition.Top);
-	Settings.PlayersSyncInfoWindowPosition.Width = tonumber(Settings.PlayersSyncInfoWindowPosition.Width);
-	Settings.PlayersSyncInfoWindowPosition.Height = tonumber(Settings.PlayersSyncInfoWindowPosition.Height);
-	
-	Settings.Timer_WindowPosition.Left = tonumber(Settings.Timer_WindowPosition.Left);
-	Settings.Timer_WindowPosition.Top = tonumber(Settings.Timer_WindowPosition.Top);
 	
 	-- Fix to prevent window or toggle to travel outside of the screen
 	local displayWidth, displayHeight = Turbine.UI.Display.GetSize();
@@ -798,7 +635,7 @@ function SongbookWindow:Constructor()
 					self:SetVisible(true);
 					self:Activate();
 				end
-				if (Settings.ToggleVisible == "yes") then
+				if (Settings.ToggleVisible) then
 					toggleWindow:SetVisible(true);
 				end
 				
@@ -857,7 +694,7 @@ function SongbookWindow:Constructor()
 	-- self.lFXmod = 23; -- listFrame x coord modifier
 	-- self.lCXmod = 28; -- listContainer x coord modifier (original value was 42)
 
-	-- if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+	-- if (CharSettings.InstrSlots[1]["visible"]) then
 	-- 	self.lFYmod = 214 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listFrame     y coord modifier = difference between bottom pixels and window bottom
 	-- 	self.lCYmod = 233 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listContainer y coord modifier = difference between bottom pixels and window bottom
 	-- else
@@ -1288,7 +1125,7 @@ function SongbookWindow:Constructor()
 		local insIndex = self:PlayerSyncInfo();
 		if insIndex == 0 then return; end
 		local trackListEmpty = self.tracklistBox == nil or self.tracklistBox:GetItemCount( ) < 1
-		if Settings.AutoPickOnInsChange == "true" and not trackListEmpty then
+		if Settings.AutoPickOnInsChange and not trackListEmpty then
 			-- Check if current track is already the right instrument
 			if self:IsAvailableTrackWithMatchingInstrument(selectedSongIndex, selectedTrack, insIndex) then
 				return;
@@ -1313,7 +1150,6 @@ function SongbookWindow:Constructor()
 	self.MessageTitle:SetSize(self:GetWidth() - 30, 14);
 	--self.MessageTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
 	
-	CharSettings.UserChatNumber = tonumber(CharSettings.UserChatNumber);
 	UserChatNumber = CharSettings.UserChatNumber;
 	if UserChatNumber ~= 0 and UserChatNumber ~= nil then
 		Chatchannel = "/" .. UserChatNumber;
@@ -1436,7 +1272,7 @@ function SongbookWindow:Constructor()
 	end
 	
 	-- hide search components if not toggled
-	if (Settings.SearchVisible == "yes") then
+	if (Settings.SearchVisible) then
 		self.searchInput:SetVisible( true );
 		self.searchBtn:SetVisible( true );
 		self.clearBtn:SetVisible( true );				
@@ -1453,7 +1289,7 @@ function SongbookWindow:Constructor()
 	
 	self:AdjustTracklistLeft( );
 	-- show track components if toggled
-	self:ShowTrackListbox( Settings.TracksVisible == "yes" )
+	self:ShowTrackListbox( Settings.TracksVisible )
 	
 	
 	-- main song list box
@@ -1471,7 +1307,7 @@ function SongbookWindow:Constructor()
 		self.instrContainer[j]:SetParent( self );
 		local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
 		self.instrContainer[j]:SetPosition( 10, self:GetHeight() - TopShift );
-		if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+		if (CharSettings.InstrSlots[1]["visible"]) then
 			self.instrContainer[j]:SetVisible( true );
 		else
 			self.instrContainer[j]:SetVisible( false );
@@ -1568,10 +1404,10 @@ function SongbookWindow:Constructor()
 		end
 	end
 	
-	self.bTimer = ( Settings.TimerState == "true" )
-	self.bTimerCountdown = ( Settings.TimerCountdown == "true" )
-	self.bShowReadyChars = ( Settings.ReadyColState == "true" )
-	self.bHighlightReadyCol = ( Settings.ReadyColHighlight == "true" )
+	self.bTimer = ( Settings.TimerState )
+	self.bTimerCountdown = ( Settings.TimerCountdown )
+	self.bShowReadyChars = ( Settings.ReadyColState )
+	self.bHighlightReadyCol = ( Settings.ReadyColHighlight )
 	self.tracklistBox:EnableCharColumn( self.bShowReadyChars )
 
 	-- initialize list items from song database
@@ -1684,7 +1520,7 @@ function SongbookWindow:Constructor()
 		height = gameDisplayHeight - WindowTop ; end
 
 		-- Optional: enforce enough vertical room for dirlist + tracks + songlist
-		local tracksHeight = (Settings.TracksVisible == "yes") and Settings.TracksHeight or 0
+		local tracksHeight = (Settings.TracksVisible) and Settings.TracksHeight or 0
 		local minContentHeight = Settings.DirHeight + tracksHeight + 80  -- fudge room for list and padding
 		if height < minContentHeight then
 			height = minContentHeight
@@ -1719,7 +1555,7 @@ function SongbookWindow:Constructor()
 			self:AdjustSonglistHeight( )
 			if self.songlistBox:GetHeight() < 40 then
 				self:SetSonglistHeight( 40 )
-				if (Settings.TracksVisible == "yes") then
+				if (Settings.TracksVisible) then
 					self.dirlistBox:SetHeight(self.listContainer:GetHeight() - Settings.TracksHeight - self.songlistBox:GetHeight() - 26);
 				else
 					self.dirlistBox:SetHeight(self.listContainer:GetHeight() - self.songlistBox:GetHeight() - 13);
@@ -1812,12 +1648,12 @@ function SongbookWindow:Constructor()
 	self.listboxPlayers:EnableCharColumn( self.bShowReadyChars )
 	self:RefreshPlayerListbox( ) -- lists the current party members; more will be added through chat messages
 	
-	if Settings.FiltersState == "true" then self:ShowFilterUI( true ); end
-	self:SetChiefMode( Settings.ChiefMode == "true" )
+	if Settings.FiltersState then self:ShowFilterUI( true ); end
+	self:SetChiefMode( Settings.ChiefMode )
 	self:HightlightReadyColumns( self.bHighlightReadyCol )
 	
 	-- adjust to search visibility
-	if (Settings.SearchVisible == "no") then 
+	if (not Settings.SearchVisible) then 
 		self:ToggleSearch("off");
 	end
 	
@@ -1930,7 +1766,7 @@ function SongbookWindow:ReflowLayout()
 
 	-- Search
 	local searchHeight = 0
-	if Settings.SearchVisible == "yes" then
+	if Settings.SearchVisible then
 		searchHeight = 20
 		self.searchInput:SetVisible(true)
 		self.searchBtn:SetVisible(true)
@@ -1948,13 +1784,13 @@ function SongbookWindow:ReflowLayout()
 
 	-- Calculate instrument slot height
 	local instrHeight = 0
-	if CharSettings.InstrSlots[1]["visible"] == "yes" then
+	if CharSettings.InstrSlots[1]["visible"] then
 		instrHeight = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows
 	end
 
 	-- Calculate track height
 	local tracksHeight = 0
-	if Settings.TracksVisible == "yes" then
+	if Settings.TracksVisible then
 		tracksHeight = Settings.TracksHeight
 	end
 
@@ -1970,47 +1806,48 @@ function SongbookWindow:ReflowLayout()
 	self.listContainer:SetSize(listContainerWidth, availableListHeight)
 	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
 
-	-- Set up directory list
-	self.dirlistBox:SetHeight(Settings.DirHeight)
-	self:AdjustDirlistPosition()
+	-- Stack list sections within the container
+	Layout.stackVertical({
+		{ control = self.dirlistBox,     height = Settings.DirHeight },
+		{ control = self.separator1,     height = SEPARATOR_HEIGHT },
+		{ control = self.songlistBox,    height = "fill" },
+		{ control = self.sepSongsTracks, height = SEPARATOR_HEIGHT,     visible = Settings.TracksVisible },
+		{ control = self.tracklistBox,   height = Settings.TracksHeight, visible = Settings.TracksVisible },
+	}, { height = availableListHeight })
 
-	-- Position separator after directory list
-	local dirSeparatorTop = Settings.DirHeight
-	self.separator1:SetTop(dirSeparatorTop)
+	-- Position heading labels above their separators
 	if self.separator1.heading then
-		self.separator1.heading:SetTop(dirSeparatorTop - SEPARATOR_HEIGHT)
+		self.separator1.heading:SetTop(self.separator1:GetTop() - SEPARATOR_HEIGHT)
 	end
-
-	-- Calculate song list height and position track separator
-	local reservedHeight = Settings.DirHeight + SEPARATOR_HEIGHT + tracksHeight
-	if tracksHeight > 0 then
-		reservedHeight = reservedHeight + SEPARATOR_HEIGHT  -- separator between songs and tracks
-	end
-	local songListHeight = availableListHeight - reservedHeight
-	local trackSeparatorTop = dirSeparatorTop + SEPARATOR_HEIGHT + songListHeight
-	
-	self.sepSongsTracks:SetTop(trackSeparatorTop)
 	if self.sepSongsTracks.heading then
-		self.sepSongsTracks.heading:SetTop(trackSeparatorTop - SEPARATOR_HEIGHT)
+		self.sepSongsTracks.heading:SetTop(self.sepSongsTracks:GetTop() - SEPARATOR_HEIGHT)
 	end
 
-	-- Set song list height
-	self:SetSonglistHeight(songListHeight)
-	self:AdjustSonglistPosition()
+	-- Horizontal positioning and widths (layout handles vertical only)
+	self:AdjustDirlistPosition()
+	self:AdjustSonglistLeft()
+	self.separator1:SetWidth(listContainerWidth)
+	self.sArrows1:SetLeft(self.separator1:GetWidth() / 2 - 10)
 
-	-- Position and size track list if visible
-	if Settings.TracksVisible == "yes" then
-		local trackTop = trackSeparatorTop + SEPARATOR_HEIGHT
-		self:SetTracklistTop(trackTop)
-		self:AdjustTracklistSize(Settings.TracksHeight)
-		self:UpdateTracklistTop()
+	-- Controls that move with the song list
+	self.btnParty:SetTop(self.songlistBox:GetTop())
+	self.listboxPlayers:SetTop(self.songlistBox:GetTop() + 20)
+	self.listboxPlayers:SetHeight(self.songlistBox:GetHeight() - 20)
+
+	-- Track list associated controls
+	if Settings.TracksVisible then
 		self:ShowTrackListbox(true)
+		self:AdjustTracklistLeft()
+		self:AdjustTracklistWidth()
+		self.listboxSetups:SetTop(self.tracklistBox:GetTop())
+		self.listboxSetups:SetHeight(self.tracklistBox:GetHeight())
 		self.listboxSetups:SetVisible(self.bShowSetups)
 	else
 		self:ShowTrackListbox(false)
 		self.listboxSetups:SetVisible(false)
-		self.tracksMsg:SetPosition(self.dirlistBox:GetLeft() + self.dirlistBox:GetWidth() - 160, 
-									self.dirlistBox:GetTop() + self.dirlistBox:GetHeight())
+		self.tracksMsg:SetPosition(
+			self.dirlistBox:GetLeft() + self.dirlistBox:GetWidth() - 160,
+			self.dirlistBox:GetTop() + self.dirlistBox:GetHeight())
 	end
 
 	-- Reposition instrument containers
@@ -2018,7 +1855,7 @@ function SongbookWindow:ReflowLayout()
 		local TopShift = 75 + InstrumentSlots_Shift * (j - 1)
 		if self.instrContainer and self.instrContainer[j] then
 			self.instrContainer[j]:SetTop(height - TopShift)
-			self.instrContainer[j]:SetVisible(CharSettings.InstrSlots[1]["visible"] == "yes")
+			self.instrContainer[j]:SetVisible(CharSettings.InstrSlots[1]["visible"])
 		end
 	end
 
@@ -2124,8 +1961,8 @@ function SongbookWindow:LoadSongs( )
 		local songItem = Turbine.UI.Label();
 		-- Added function to filter song data
 		if( SongDB.Songs[i].Filepath == selectedDir and self:ApplyFilters( SongDB.Songs[i] ) ) then
-			if (Settings.DescriptionVisible == "yes") then
-				if (Settings.DescriptionFirst == "yes") then
+			if (Settings.DescriptionVisible) then
+				if (Settings.DescriptionFirst) then
 					songItem:SetText(SongDB.Songs[i].Tracks[1].Name .. " / " .. SongDB.Songs[i].Filename);					
 				else
 					songItem:SetText(SongDB.Songs[i].Filename .. " / " .. SongDB.Songs[i].Tracks[1].Name);
@@ -2199,7 +2036,7 @@ function SongbookWindow:SelectSong( iSong )
 	selectedSongIndex = self.aFilteredIndices[ iSong ];
 	selectedSong = SongDB.Songs[selectedSongIndex].Filename;
 
-	if Settings.AutoPickOnSongChange == "true" then
+	if Settings.AutoPickOnSongChange then
 			track = self:GetTrackToSelect(selectedSongIndex);
 			if track == 0 then track = 1; end
 			if self.bShowReadyChars then track = track * 2; end
@@ -2337,7 +2174,7 @@ function SongbookWindow:SearchSongs()
 		
 		if matchFound == true then
 			local songItem = Turbine.UI.Label();
-			if (Settings.DescriptionVisible == "yes") then			
+			if (Settings.DescriptionVisible) then			
 				songItem:SetText(SongDB.Songs[i].Filename .. " / " .. SongDB.Songs[i].Tracks[1].Name);
 			else
 				songItem:SetText(SongDB.Songs[i].Filename);
@@ -2359,17 +2196,17 @@ end
 
 -- action for toggling search function on and off
 function SongbookWindow:ToggleSearch(mode)
-	if (Settings.SearchVisible == "yes" or mode == "off") then		
-		Settings.SearchVisible = "no";
+	if (Settings.SearchVisible or mode == "off") then		
+		Settings.SearchVisible = false;
 		self:SetSearch( -20, false )
 	else
-		Settings.SearchVisible = "yes";
+		Settings.SearchVisible = true;
 		self:SetSearch( 20, true )
 	end
 
 	self.listFrame:SetHeight(self:GetHeight() - self.lFYmod);	
 	self.listContainer:SetHeight(self:GetHeight() - self.lCYmod);		
-	if (Settings.TracksVisible == "no") then
+	if (not Settings.TracksVisible) then
 		self:ShowTrackListbox( false ) -- ?
 	end
 end
@@ -2385,22 +2222,22 @@ end
 -- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);		
 -- 	self:MoveTracklistTop( -delta );
 	
--- 	if Settings.TracksVisible == "no" then
+-- 	if not Settings.TracksVisible then
 -- 		self.tracksMsg:SetTop( self.dirlistBox:GetTop()+self.dirlistBox:GetHeight() );
 -- 	end
 -- end
 
 -- action for toggling description on and off
 function SongbookWindow:ToggleDescription()
-	if (Settings.DescriptionVisible == "yes") then
-		Settings.DescriptionVisible = "no";
+	if (Settings.DescriptionVisible) then
+		Settings.DescriptionVisible = false;
 		self.songlistBox:ClearItems();
 		self:LoadSongs();
 		local found = self.songlistBox:GetItemCount();		
 		if (found > 0) then self:SelectSong(1);
 		else self:ClearSongState( ); end
 	else
-		Settings.DescriptionVisible = "yes";
+		Settings.DescriptionVisible = true;
 		self.songlistBox:ClearItems();
 		self:LoadSongs();
 		local found = self.songlistBox:GetItemCount();		
@@ -2411,9 +2248,9 @@ end
 
 -- action for toggling description on and off
 function SongbookWindow:ToggleDescriptionFirst()
-	if (Settings.DescriptionFirst == "yes") then
-		Settings.DescriptionFirst = "no";		
-		if (Settings.DescriptionVisible == "yes") then
+	if (Settings.DescriptionFirst) then
+		Settings.DescriptionFirst = false;		
+		if (Settings.DescriptionVisible) then
 			self.songlistBox:ClearItems();
 			self:LoadSongs();
 			local found = self.songlistBox:GetItemCount();		
@@ -2421,8 +2258,8 @@ function SongbookWindow:ToggleDescriptionFirst()
 			else self:ClearSongState( ); end
 		end
 	else
-		Settings.DescriptionFirst = "yes";
-		if (Settings.DescriptionVisible == "yes") then
+		Settings.DescriptionFirst = true;
+		if (Settings.DescriptionVisible) then
 			self.songlistBox:ClearItems();
 			self:LoadSongs();
 			local found = self.songlistBox:GetItemCount();		
@@ -2434,7 +2271,7 @@ end
 
 -- -- action for toggling tracks display on and off
 -- function SongbookWindow:ToggleTracks()
--- 	if (Settings.TracksVisible == "yes") then
+-- 	if (Settings.TracksVisible) then
 -- 		Settings.TracksVisible = "no";
 -- 		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13);
 -- 		self:ShowTrackListbox( false )
@@ -2461,7 +2298,7 @@ end
 -- 		self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );	
 -- 		--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
 		
--- 		if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+-- 		if (CharSettings.InstrSlots[1]["visible"]) then
 -- 			for j = 1, CharSettings.InstrumentSlots_Rows do
 -- 				local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
 -- 				self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
@@ -2473,15 +2310,15 @@ end
 -- action for toggling instrument slots on and off
 function SongbookWindow:ToggleInstrSlots()
 	local hMod = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows;
-	if (CharSettings.InstrSlots[1]["visible"] == "yes") then		
-		CharSettings.InstrSlots[1]["visible"] = "no";
+	if (CharSettings.InstrSlots[1]["visible"]) then		
+		CharSettings.InstrSlots[1]["visible"] = false;
 		
 		self:SetInstrSlots( -hMod );
 		for j = 1, CharSettings.InstrumentSlots_Rows do
 			self.instrContainer[j]:SetVisible( false );
 		end
 	else
-		CharSettings.InstrSlots[1]["visible"] = "yes";
+		CharSettings.InstrSlots[1]["visible"] = true;
 		
 		self:SetInstrSlots( hMod );
 		for j = 1, CharSettings.InstrumentSlots_Rows do
@@ -2496,7 +2333,7 @@ end
 -- 	self.listFrame:SetHeight(self.listFrame:GetHeight() - delta);
 -- 	self.listContainer:SetHeight(self.listContainer:GetHeight() - delta);
 -- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);
--- 	if (Settings.TracksVisible == "yes") then
+-- 	if (Settings.TracksVisible) then
 -- 		self:MoveTracklistTop( -delta )
 -- 		--self.tracklistBox:SetTop(self.tracklistBox:GetTop() - hMod);
 -- 		--self.sepSongsTracks:SetTop(self.sepSongsTracks:GetTop() - hMod);		
@@ -2507,7 +2344,7 @@ end
 	
 -- 	local listContainerHeight = height - self.lCYmod;
 -- 	local tracksHeight = 0;
--- 	if Settings.TracksVisible == "yes" then tracksHeight = Settings.TracksHeight; end
+-- 	if Settings.TracksVisible then tracksHeight = Settings.TracksHeight; end
 -- 	if listContainerHeight < Settings.DirHeight + 13 + tracksHeight + 13 + 40 then
 -- 		listContainerHeight = Settings.DirHeight + 13 + tracksHeight + 13 + 40;
 -- 		height = listContainerHeight + self.lCYmod;
@@ -2588,7 +2425,7 @@ end
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function SongbookWindow:AddSlot_row()
-	if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+	if (CharSettings.InstrSlots[1]["visible"]) then
 		CharSettings.InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows + 1;
 		local InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows;
 		
@@ -2598,7 +2435,7 @@ function SongbookWindow:AddSlot_row()
 		self.instrContainer[InstrumentSlots_Rows]:SetParent( self );
 		local TopShift = 75 + InstrumentSlots_Shift * ( InstrumentSlots_Rows - 1 );
 		self.instrContainer[InstrumentSlots_Rows]:SetPosition( 10, self:GetHeight() - TopShift );
-		if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+		if (CharSettings.InstrSlots[1]["visible"]) then
 			self.instrContainer[InstrumentSlots_Rows]:SetVisible( true );
 		else
 			self.instrContainer[InstrumentSlots_Rows]:SetVisible( false );
@@ -2610,7 +2447,7 @@ function SongbookWindow:AddSlot_row()
 		table.insert(self.instrSlot , {});
 		
 		table.insert(CharSettings.InstrSlots , {});
-		CharSettings.InstrSlots[InstrumentSlots_Rows]["visible"] = "yes";
+		CharSettings.InstrSlots[InstrumentSlots_Rows]["visible"] = true;
 		CharSettings.InstrSlots[InstrumentSlots_Rows]["number"] = CharSettings.InstrSlots[1]["number"];
 		for i = 1, CharSettings.InstrSlots[InstrumentSlots_Rows]["number"] do
 			CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)] = { qsType = "", qsData = "" };		
@@ -2662,7 +2499,7 @@ function SongbookWindow:AddSlot_row()
 end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function SongbookWindow:DelSlot_row()
-	if (CharSettings.InstrSlots[1]["visible"] == "yes") then
+	if (CharSettings.InstrSlots[1]["visible"]) then
 		if CharSettings.InstrumentSlots_Rows > 1 then
 			local InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows;
 			
@@ -2714,60 +2551,26 @@ function SongbookWindow:ExpandCmd(cmdId)
 end
 
 function SongbookWindow:SaveSettings()
-	Settings.WindowPosition.Left = tostring(self:GetLeft());
-	Settings.WindowPosition.Top = tostring(self:GetTop());
-	Settings.WindowPosition.Width = tostring(self:GetWidth());
-	Settings.WindowPosition.Height = tostring(self:GetHeight());
-	Settings.ToggleTop = tostring(Settings.ToggleTop);
-	Settings.ToggleLeft = tostring(Settings.ToggleLeft);
-	Settings.DirHeight = tostring(Settings.DirHeight);
-	Settings.TracksHeight = tostring(Settings.TracksHeight);
-	Settings.WindowOpacity = tostring(Settings.WindowOpacity);
-	Settings.ToggleOpacity = tostring(Settings.ToggleOpacity);
-	Settings.FiltersState = tostring( self.bFilter )
-	Settings.ChiefMode = tostring( self.bChiefMode )
-	Settings.TimerState = tostring( self.bTimer )
-	Settings.TimerCountdown = tostring( self.bTimerCountdown )
-	Settings.ReadyColState = tostring( self.bShowReadyChars )
-	Settings.ReadyColHighlight = tostring( self.bHighlightReadyCol )
-	
-	Settings.TimerWindowVisible = tostring( self.TimerWindowVisible )
-	Settings.HelpWindowDisable = tostring( self.HelpWindowDisable )
-	
-	Settings.UseRaidChat = tostring( self.UseRaidChat )
-	Settings.UseFellowshipChat = tostring( self.UseFellowshipChat )
-	
-	Settings.PlayersSyncInfoWindowPosition.Left = tostring(PlayersSyncInfoWindow:GetLeft());
-	Settings.PlayersSyncInfoWindowPosition.Top = tostring(PlayersSyncInfoWindow:GetTop());
-	Settings.PlayersSyncInfoWindowPosition.Width = tostring(PlayersSyncInfoWindow:GetWidth());
-	Settings.PlayersSyncInfoWindowPosition.Height = tostring(PlayersSyncInfoWindow:GetHeight());
-	
-	CharSettings.UserChatNumber = tostring(CharSettings.UserChatNumber);
-	CharSettings.InstrumentSlots_Rows = tostring(CharSettings.InstrumentSlots_Rows);
-	
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		for i = 1, CharSettings.InstrSlots[j]["number"] do
-			CharSettings.InstrSlots[j][tostring(i)].qsType = tostring(CharSettings.InstrSlots[j][tostring(i)].qsType);
-		end
-		CharSettings.InstrSlots[j]["number"] = tostring(CharSettings.InstrSlots[j]["number"]);
-	end
-	
-	SongbookSave( Turbine.DataScope.Account, gSettings, Settings,
-		function( result, message )
-			if ( result ) then
-				Turbine.Shell.WriteLine( "<rgb=#00FF00>" .. Strings["sh_saved"] .. "</rgb>");
-			else
-				Turbine.Shell.WriteLine( "<rgb=#FF0000>" .. Strings["sh_notsaved"] .. " " .. message .. "</rgb>" );
-			end
-		end);
-	SongbookSave( Turbine.DataScope.Character, gSettings, CharSettings,
-		function( result, message )
-			if ( result ) then
-				--Turbine.Shell.WriteLine( "<rgb=#00FF00>" .. Strings["sh_saved"] .. "</rgb>");
-			else
-				Turbine.Shell.WriteLine( "<rgb=#FF0000>" .. Strings["sh_notsaved"] .. " " .. message .. "</rgb>" );
-			end
-		end);	
+	Settings.WindowPosition.Left = self:GetLeft()
+	Settings.WindowPosition.Top = self:GetTop()
+	Settings.WindowPosition.Width = self:GetWidth()
+	Settings.WindowPosition.Height = self:GetHeight()
+	Settings.FiltersState = self.bFilter
+	Settings.ChiefMode = self.bChiefMode
+	Settings.TimerState = self.bTimer
+	Settings.TimerCountdown = self.bTimerCountdown
+	Settings.ReadyColState = self.bShowReadyChars
+	Settings.ReadyColHighlight = self.bHighlightReadyCol
+	Settings.TimerWindowVisible = self.TimerWindowVisible
+	Settings.HelpWindowDisable = self.HelpWindowDisable
+	Settings.UseRaidChat = self.UseRaidChat
+	Settings.UseFellowshipChat = self.UseFellowshipChat
+	Settings.PlayersSyncInfoWindowPosition.Left = PlayersSyncInfoWindow:GetLeft()
+	Settings.PlayersSyncInfoWindowPosition.Top = PlayersSyncInfoWindow:GetTop()
+	Settings.PlayersSyncInfoWindowPosition.Width = PlayersSyncInfoWindow:GetWidth()
+	Settings.PlayersSyncInfoWindowPosition.Height = PlayersSyncInfoWindow:GetHeight()
+
+	SettingsManager.Save()
 end
 
 
@@ -3821,7 +3624,7 @@ end
 
 function SongbookWindow:AdjustSonglistHeight( )
 	local height = self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13;
-	if Settings.TracksVisible == "yes" then height = height - self.tracklistBox:GetHeight() - 13; end
+	if Settings.TracksVisible then height = height - self.tracklistBox:GetHeight() - 13; end
 	self:SetSonglistHeight( height )
 end
 
@@ -3851,7 +3654,7 @@ function SongbookWindow:AdjustDirlistSize( )
 	local height = self.listContainer:GetHeight() - self.songlistBox:GetHeight() - 13;
 
 	if self.bFilter then width = width - 170; end
-	if Settings.TracksVisible == "yes" then height = height - Settings.TracksHeight - 13; end
+	if Settings.TracksVisible then height = height - Settings.TracksHeight - 13; end
 
 	self.dirlistBox:SetSize( width, height );
 end
@@ -5161,7 +4964,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 	Multiple_songs_match_Synced = 0;
 	MatchedSongsWindow:SetVisible(false);
 	
-	if SongIndex[0] > 1 and Settings.hideMatchedSongsPopup ~= "true" then
+	if SongIndex[0] > 1 and not Settings.hideMatchedSongsPopup then
 		YouDontHaveTheSameSong_Flag = 0;
 		if PlayerName == songbookWindow.sPlayerName then
 			-- OtherPlayer_SyncedSong_Index = selectedSongIndex;
@@ -5249,7 +5052,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				end
 			end
 		end
-	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup == "true" then
+	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup then
 		YouDontHaveTheSameSong_Flag = 0;
 		local indexToSelect = 0;
 
@@ -5364,7 +5167,7 @@ function SongbookWindow:ShowHelpWindow( )
 end
 
 function SongbookWindow:HelpWindow( )
-	if Settings.HelpWindowDisable == "false" and HelpWindow_Load_Flag == 1 then
+	if not Settings.HelpWindowDisable and HelpWindow_Load_Flag == 1 then
 		Help_Window:SetVisible(true);
 	end
 	HelpWindow_Load_Flag = 0;
