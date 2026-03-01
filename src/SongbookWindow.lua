@@ -7,13 +7,6 @@
 
 SongbookWindow = class( Turbine.UI.Window );
 
-selectedSong = ""; -- set the default song
-selectedSongIndex = 1;
-selectedTrack = 1;
-selectedDir = "/"; -- set the default dir
-dirPath = {}; -- table holding directory path
-dirPath[1] = "/"; -- set first item as root dir
-librarySize = 0;
 
 ListBoxScrolled = class( Turbine.UI.ListBox ); -- Listbox with child scrollbar and separator
 ListBoxCharColumn = class( ListBoxScrolled ) -- Listbox with single char column
@@ -36,7 +29,6 @@ GroupIsRaid = 0;
 PlayerCantUseUserChat_Message = 0;
 UserChatName = "";
 Chatchannel = "/f";
-selectedSongIndexListBox = 0;
 syncSlot_Correct_Instrument = 0;
 ShiftTop = 50;
 UserChatNumber = 0;
@@ -373,23 +365,14 @@ end
 function SongbookWindow:Constructor()
 	Turbine.UI.Lotro.Window.Constructor( self );
 	
-	-- Variables for filters and setups
-	self.sFilterPartcount = nil -- A char for every acceptable part count, with 'A' being solo, 'B' two parts, etc.
-	self.maxTrackCount = 25 -- Assumed maximum number of track setups (adjust if necessary):
-
 	self.bFilter = false -- show/hide filter UI
 	self.bChiefMode = true -- enables sync start shortcut, uses party object (seems to work for FS leader)
 	self.bShowPlayers = true -- show/hide players listbox (used to auto-hide, but disabled for now)
-	self.aFilteredIndices = { } -- Array for filtered indices, k = display index; v = SongDB index
 	self.aPlayers = { } -- k = player name, v = ready track, 0 if no track ready
 	self.aPlayers_sync_msg = { }
 	self.nPlayers = 0 -- number of players (unfortunately not as simple as #self.aPlayers)
 	self.aCurrentSongReady = { } -- k = player name; v = track ready state (see GetTrackReadyState())
 	self.aReadyTracks = "" -- indicates which tracks are ready (A = 1st, B = 2nd, etc). Used for setup checks
-	self.aSetupTracksIndices = { } -- when tracks are filtered for a setup, this array contains track indices
-	self.aSetupListIndices = { } -- list index for tracks that are part of the currently selected setup
-	self.iCurrentSetup = nil -- indicates which setup is currently selected
-	self.selectedSetupCount = 'A' -- Stores the code of the current setup to select it on song change, if available
 	self.maxPartCount = nil -- the number of parts to use as filter (nil if not filtering, else player count)
 	self.alignTracksRight = false -- if true, track names are listed right-aligned (resize will reset to left aligned)
 	self.listboxSetupsWidth = 20 -- width of the setups listbox (to the left of the tracks list)
@@ -660,8 +643,6 @@ function SongbookWindow:Constructor()
 		end
 	end
 	
-	librarySize = #SongDB.Songs;
-	
 	self:SetPosition( Settings.WindowPosition.Left, Settings.WindowPosition.Top );
 	self:SetSize( Settings.WindowPosition.Width, Settings.WindowPosition.Height );
 	--self:SetZOrder(10);
@@ -875,12 +856,12 @@ function SongbookWindow:Constructor()
 	-- actions for track change
 	self.trackPrev.MouseClick = function(sender, args)
 		if(args.Button == Turbine.UI.MouseButton.Left) then
-			self:SelectTrack(selectedTrack - 1);
+			self:SelectTrack(SongLibrary.selectedTrack - 1);
 		end
 	end
 	self.trackNext.MouseClick = function(sender, args)
 		if(args.Button == Turbine.UI.MouseButton.Left) then
-			self:SelectTrack(selectedTrack + 1);
+			self:SelectTrack(SongLibrary.selectedTrack + 1);
 		end
 	end
 		
@@ -955,8 +936,8 @@ function SongbookWindow:Constructor()
 	self.syncSlot.MouseClick = function(sender,args)
 		
 		PlayerCantUseUserChat_Message = 0;
-		syncedSongIndex = selectedSongIndex;
-		syncedTrack = selectedTrack;
+		syncedSongIndex = SongLibrary.selectedSongIndex;
+		syncedTrack = SongLibrary.selectedTrack;
 		PlayerSynced = 0;
 		self:PlayerSyncInfo();
 	end
@@ -1127,11 +1108,11 @@ function SongbookWindow:Constructor()
 		local trackListEmpty = self.tracklistBox == nil or self.tracklistBox:GetItemCount( ) < 1
 		if Settings.AutoPickOnInsChange and not trackListEmpty then
 			-- Check if current track is already the right instrument
-			if self:IsAvailableTrackWithMatchingInstrument(selectedSongIndex, selectedTrack, insIndex) then
+			if self:IsAvailableTrackWithMatchingInstrument(SongLibrary.selectedSongIndex, SongLibrary.selectedTrack, insIndex) then
 				return;
 			end
 
-			local iTrack = self:GetTrackToSelect(selectedSongIndex);
+			local iTrack = self:GetTrackToSelect(SongLibrary.selectedSongIndex);
 			if iTrack == 0 then return; end
 			if self.bShowReadyChars then iTrack = iTrack * 2; end
 			self:SelectTrack(iTrack);
@@ -1411,7 +1392,7 @@ function SongbookWindow:Constructor()
 	self.tracklistBox:EnableCharColumn( self.bShowReadyChars )
 
 	-- initialize list items from song database
-	if (librarySize ~= 0 and not SongDB.Songs[1].Realnames) then
+	if (SongLibrary.librarySize ~= 0 and not SongDB.Songs[1].Realnames) then
 		
 		for i = 1, #SongDB.Directories do
 			local dirItem = Turbine.UI.Label();
@@ -1424,7 +1405,7 @@ function SongbookWindow:Constructor()
 			end
 		end
 		
-		self.listFrame.heading:SetText( Strings["ui_dirs"] .. " (" .. selectedDir .. ")" );
+		self.listFrame.heading:SetText( Strings["ui_dirs"] .. " (" .. SongLibrary.selectedDir .. ")" );
 		
 		if (self.dirlistBox:ContainsItem(1)) then
 			local dirItem = self.dirlistBox:GetItem(1);
@@ -1660,14 +1641,6 @@ function SongbookWindow:Constructor()
 	self:ReflowLayout()
 end -- SongbookWindow:Constructor()
 
-function sortby_Name (song1, song2)
-	if song1.Filepath == song2.Filepath then
-		return string.lower(song1.Filename) < string.lower(song2.Filename)
-	else
-		return string.lower(song1.Filepath) < string.lower(song2.Filepath)
-	end
-end
-
 -- TODO: add complete set of checks
 function SongbookWindow:ValidateWindowPosition( winPos )
 	if winPos.Left < 0 or winPos.Top < 0 or winPos.Width < 0 or winPos.Height < 0 then
@@ -1882,117 +1855,65 @@ end -- ReflowLayout
 
 
 -- action for selecting a directory
-function SongbookWindow:SelectDir( iDir , Directory )
-	if not Directory then 
-		local selectedItem = self:SetListboxColours( self.dirlistBox ) --, iDir )
-		if not selectedItem then return; end
-		Directory = selectedItem:GetText();
-		
+function SongbookWindow:SelectDir(iDir, Directory)
+	if not Directory then
+		local selectedItem = self:SetListboxColours(self.dirlistBox)
+		if not selectedItem then return end
+		Directory = selectedItem:GetText()
 		if Directory == ".." then
-			selectedDir = "";
-			table.remove(dirPath,#dirPath);
-			for i = 1,#dirPath do 
-				selectedDir = selectedDir .. dirPath[i];
-			end
-		else		
-			selectedDir = selectedDir .. Directory;
-			dirPath[#dirPath+1] = Directory;	
+			SongLibrary.NavigateUp()
+		else
+			SongLibrary.NavigateToDirectory(Directory)
 		end
 	else
-		selectedDir = Directory;
-		-- Fix a bug where clicking a song link multiple times breaks path
-		-- dirPath[#dirPath+1] = Directory;
-		dirPath = {}
-		dirPath[1] = "/"
-		for token in string.gmatch(Directory, "([^/]+)") do
-			dirPath[#dirPath+1] = token .. "/"
-		end
+		SongLibrary.NavigateToPath(Directory)
 	end
-		
-	if (string.len(selectedDir)<31) then 
-		self.listFrame.heading:SetText( Strings["ui_dirs"] .. " (" .. selectedDir .. ")" );
-	else 
-		self.listFrame.heading:SetText( Strings["ui_dirs"] .. " (" .. string.sub(selectedDir,string.len(selectedDir)-30) .. ")" );
+
+	local dir = SongLibrary.selectedDir
+	if string.len(dir) < 31 then
+		self.listFrame.heading:SetText(Strings["ui_dirs"] .. " (" .. dir .. ")")
+	else
+		self.listFrame.heading:SetText(Strings["ui_dirs"] .. " (" .. string.sub(dir, string.len(dir)-30) .. ")")
 	end
-	
-	-- refresh dir list
-	self.dirlistBox:ClearItems();
-	local dirItem = Turbine.UI.Label();
-	if (selectedDir ~= "/") then
-		dirItem:SetText(".."); -- first item as link to previous directory
-		dirItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-		dirItem:SetSize( 1000, 20 );				
-		self.dirlistBox:AddItem( dirItem );
+
+	self.dirlistBox:ClearItems()
+	if SongLibrary.selectedDir ~= "/" then
+		local dotdot = Turbine.UI.Label()
+		dotdot:SetText("..")
+		dotdot:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
+		dotdot:SetSize(1000, 20)
+		self.dirlistBox:AddItem(dotdot)
 	end
-	
-	for i = 1, #SongDB.Directories do
-		dirItem = Turbine.UI.Label();		
-		local _, dirLevelIni = string.gsub(selectedDir, "/", "/");
-		local _, dirLevel = string.gsub(SongDB.Directories[i], "/", "/");
-		if (dirLevel == dirLevelIni + 1) then
-			if (selectedDir ~= "/") then
-				local matchPos,_ = string.find(SongDB.Directories[i], selectedDir, 0, true);
-				if (matchPos == 1) then	
-					local _,cutPoint = string.find(SongDB.Directories[i], dirPath[#dirPath], 0, true);
-					dirItem:SetText(string.sub(SongDB.Directories[i],cutPoint+1));			
-					dirItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-					dirItem:SetSize( 1000, 20 );				
-					self.dirlistBox:AddItem( dirItem );
-				end
-			else 
-				dirItem:SetText(string.sub(SongDB.Directories[i],2));			
-				dirItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-				dirItem:SetSize( 1000, 20 );				
-				self.dirlistBox:AddItem( dirItem );
-			end
-		end
+	local subdirs = SongLibrary.GetSubdirectories()
+	for _, name in ipairs(subdirs) do
+		local dirItem = Turbine.UI.Label()
+		dirItem:SetText(name)
+		dirItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
+		dirItem:SetSize(1000, 20)
+		self.dirlistBox:AddItem(dirItem)
 	end
-	
-	self.songlistBox:ClearItems();
-	self:LoadSongs( );
-	self:InitSonglist( );
+
+	self.songlistBox:ClearItems()
+	self:LoadSongs()
+	self:InitSonglist()
 end -- SelectDir
 
 
--- load content to song list box
-function SongbookWindow:LoadSongs( )
-	local nFiltered = 0;
-	for i = 1, librarySize do
-		local songItem = Turbine.UI.Label();
-		-- Added function to filter song data
-		if( SongDB.Songs[i].Filepath == selectedDir and self:ApplyFilters( SongDB.Songs[i] ) ) then
-			if (Settings.DescriptionVisible) then
-				if (Settings.DescriptionFirst) then
-					songItem:SetText(SongDB.Songs[i].Tracks[1].Name .. " / " .. SongDB.Songs[i].Filename);					
-				else
-					songItem:SetText(SongDB.Songs[i].Filename .. " / " .. SongDB.Songs[i].Tracks[1].Name);
-				end
-			else
-				songItem:SetText( SongDB.Songs[i].Filename );
-			end
-			songItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-			songItem:SetSize( 1000, 20 );
-			
-			self.songlistBox:AddItem( songItem );
-			nFiltered = nFiltered + 1;
-			self.aFilteredIndices[ nFiltered ] = i; -- Create filtered index		
-			
-			if SelectedMatchedSong_Index == i then
-				SelectedMatchedSong_IndexListBox = nFiltered;
-			end
-			if OtherPlayer_SyncedSong_Index == i then
-				OtherPlayer_SyncedSong_IndexListBox = nFiltered;
-			end
+function SongbookWindow:LoadSongs()
+	local songs = SongLibrary.GetSongsInDirectory(self:GetFilters())
+	for pos, entry in ipairs(songs) do
+		local songItem = Turbine.UI.Label()
+		songItem:SetText(entry.text)
+		songItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
+		songItem:SetSize(1000, 20)
+		self.songlistBox:AddItem(songItem)
+		if SelectedMatchedSong_Index == entry.index then
+			SelectedMatchedSong_IndexListBox = pos
+		end
+		if OtherPlayer_SyncedSong_Index == entry.index then
+			OtherPlayer_SyncedSong_IndexListBox = pos
 		end
 	end
-end
-
-function SongbookWindow:SelectedTrackIndex( iList )
-	if not iList then iList = selectedTrack; end -- use global selected track index if none provided
-	if self.iCurrentSetup and self.aSetupTracksIndices[ iList ] then
-		return self.aSetupTracksIndices[ iList ];
-	end
-	return iList;
 end
 
 function SongbookWindow:IsAvailableTrackWithMatchingInstrument(songIdx, trackIdx, equippedInstrumentIdx)
@@ -2004,14 +1925,14 @@ function SongbookWindow:IsAvailableTrackWithMatchingInstrument(songIdx, trackIdx
 	return (readyState[0] == nil and isRightIns == 1);
 end
 
-function SongbookWindow:GetTrackToSelect(selectedSongIndex)
-	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
+function SongbookWindow:GetTrackToSelect(songIdx)
+	local trackcount = #SongDB.Songs[songIdx].Tracks;
 
 	-- Get instrument of current player
 	local equippedInstrument_Index = self:UpdatePlayerTitle();
 
 	for iTrack = 1,trackcount do
-		if self:IsAvailableTrackWithMatchingInstrument(selectedSongIndex, iTrack, equippedInstrument_Index) then
+		if self:IsAvailableTrackWithMatchingInstrument(songIdx, iTrack, equippedInstrument_Index) then
 			return iTrack;
 		end
 	end
@@ -2025,48 +1946,48 @@ function SongbookWindow:SelectSong( iSong )
 		return;
 	end
 	local track = 1;
-	self.aSetupTracksIndices = { };
-	self.aSetupListIndices = { };
-	self.iCurrentSetup = nil
+	SongLibrary.setupTrackIndices = { };
+	SongLibrary.setupListIndices = { };
+	SongLibrary.currentSetup = nil
 
 	-- clear focus
 	self:SetListboxColours( self.songlistBox ) --, iSong )
 	
-	selectedSongIndexListBox = iSong;
-	selectedSongIndex = self.aFilteredIndices[ iSong ];
-	selectedSong = SongDB.Songs[selectedSongIndex].Filename;
+	SongLibrary.selectedSongIndexListBox = iSong;
+	SongLibrary.selectedSongIndex = SongLibrary.filteredIndices[ iSong ];
+	SongLibrary.selectedSong = SongDB.Songs[SongLibrary.selectedSongIndex].Filename;
 
 	if Settings.AutoPickOnSongChange then
-			track = self:GetTrackToSelect(selectedSongIndex);
+			track = self:GetTrackToSelect(SongLibrary.selectedSongIndex);
 			if track == 0 then track = 1; end
 			if self.bShowReadyChars then track = track * 2; end
 	end
 			
-	if ( SongDB.Songs[selectedSongIndex].Tracks[1].Name ~= "") then
-		self.songTitle:SetText( SongDB.Songs[selectedSongIndex].Tracks[1].Name );	
+	if ( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[1].Name ~= "") then
+		self.songTitle:SetText( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[1].Name );	
 	else
-		self.songTitle:SetText( SongDB.Songs[selectedSongIndex].Filename );	
+		self.songTitle:SetText( SongDB.Songs[SongLibrary.selectedSongIndex].Filename );	
 	end
-	self.trackNumber:SetText( SongDB.Songs[selectedSongIndex].Tracks[1].Id );
+	self.trackNumber:SetText( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[1].Id );
 	self.trackPrev:SetVisible(false);
 	
-	if (#SongDB.Songs[selectedSongIndex].Tracks > 1) then
+	if (#SongDB.Songs[SongLibrary.selectedSongIndex].Tracks > 1) then
 		self.trackNext:SetVisible(true);
 	else
 		self.trackNext:SetVisible(false);
 	end
 
-	self:ListTracks(selectedSongIndex);	
+	self:ListTracks(SongLibrary.selectedSongIndex);	
 	
 	self:ClearPlayerReadyStates( );
 	self:SelectTrack( track );
 	self:SetPlayerColours( );
-	self:ListSetups( selectedSongIndex )
-	self.iCurrentSetup = self:SetupIndexForCount( selectedSongIndex, self.selectedSetupCount )
-	self:SelectSetup( self.iCurrentSetup )
+	self:ListSetups( SongLibrary.selectedSongIndex )
+	SongLibrary.currentSetup = SongLibrary.SetupIndexForCount( SongLibrary.selectedSongIndex, SongLibrary.selectedSetupCount )
+	self:SelectSetup( SongLibrary.currentSetup )
 	self:UpdateSetupColours( );
 	
-	self:SetTrackColours( selectedTrack );
+	self:SetTrackColours( SongLibrary.selectedTrack );
 	
 	local found = self.tracklistBox:GetItemCount();
 	self.sepSongsTracks.heading:SetText( Strings["ui_parts"] .. " (" .. found .. ")" );
@@ -2094,7 +2015,7 @@ function SongbookWindow:CreateTracklistItem( sText )
 end
 
 function SongbookWindow:AddTrackToList( iSong, iTrack )
-	local sTerseName = self:TerseTrackname( SongDB.Songs[iSong].Tracks[iTrack].Name );
+	local sTerseName = SongLibrary.TerseTrackname( SongDB.Songs[iSong].Tracks[iTrack].Name );
 	local trackItem = self:CreateTracklistItem( "[" .. SongDB.Songs[iSong].Tracks[iTrack].Id .. "] " .. sTerseName )
 	trackItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
 	trackItem:SetSize( 1000, 20 );
@@ -2149,49 +2070,18 @@ function SongbookWindow:SetTrackReadyChar( iList, readyState )
 end
 
 
--- action to search songs
 function SongbookWindow:SearchSongs()
 	self.songlistBox:ClearItems()
-	local matchFound
-	local nFound = 0
-	
-	self.aFilteredIndices = { }
-	for i = 1, librarySize do		
-		matchFound = false
-
-		if self:ApplyFilters( SongDB.Songs[i] ) == true then -- filters are matched, now look for search input
-			if string.find( string.lower(SongDB.Songs[i].Filename ), string.lower( self.searchInput:GetText( ) ) ) ~= nil then
-				matchFound = true;
-			else
-				for j = 1, #SongDB.Songs[i].Tracks do
-					if string.find(string.lower(SongDB.Songs[i].Tracks[j].Name), string.lower(self.searchInput:GetText())) ~= nil then
-						matchFound = true;
-						break;
-					end
-				end
-			end
-		end
-		
-		if matchFound == true then
-			local songItem = Turbine.UI.Label();
-			if (Settings.DescriptionVisible) then			
-				songItem:SetText(SongDB.Songs[i].Filename .. " / " .. SongDB.Songs[i].Tracks[1].Name);
-			else
-				songItem:SetText(SongDB.Songs[i].Filename);
-			end
-			songItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-			songItem:SetSize( 1000, 20 );				
-			self.songlistBox:AddItem( songItem );
-			nFound = nFound + 1;
-			self.aFilteredIndices[ nFound ] = i; -- Create index redirect table
-		end
+	local songs = SongLibrary.SearchSongs(self.searchInput:GetText(), self:GetFilters())
+	for _, entry in ipairs(songs) do
+		local songItem = Turbine.UI.Label()
+		songItem:SetText(entry.text)
+		songItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
+		songItem:SetSize(1000, 20)
+		self.songlistBox:AddItem(songItem)
 	end
-	
-	--local found = self.songlistBox:GetItemCount();
-	if (nFound > 0) then self:SelectSong(1);
-	else --self:ClearSongState( );
-	end
-	self.separator1.heading:SetText( Strings["ui_songs"] .. " (" .. nFound .. ")" );
+	if #songs > 0 then self:SelectSong(1) end
+	self.separator1.heading:SetText(Strings["ui_songs"] .. " (" .. #songs .. ")")
 end
 
 -- action for toggling search function on and off
@@ -2524,20 +2414,20 @@ end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:ExpandCmd(cmdId)
-	local selTrack = self:SelectedTrackIndex( );
-	if librarySize ~= 0 then
+	local selTrack = SongLibrary.SelectedTrackIndex( );
+	if SongLibrary.librarySize ~= 0 then
 		local cmd = Settings.Commands[cmdId].Command;
-		if SongDB.Songs[selectedSongIndex].Tracks[ selTrack ] then
-			cmd = string.gsub(cmd, "%%name", SongDB.Songs[selectedSongIndex].Tracks[ selTrack ].Name);				
-			cmd = string.gsub(cmd, "%%file", SongDB.Songs[selectedSongIndex].Filename);
+		if SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[ selTrack ] then
+			cmd = string.gsub(cmd, "%%name", SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[ selTrack ].Name);				
+			cmd = string.gsub(cmd, "%%file", SongDB.Songs[SongLibrary.selectedSongIndex].Filename);
 			if (selTrack ~= 1) then
 				cmd = string.gsub(cmd, "%%part", selTrack );
 			else
 				cmd = string.gsub(cmd, "%%part", "");
 			end
-		elseif SongDB.Songs[selectedSongIndex].Filename then
-			cmd = string.gsub(cmd, "%%name", SongDB.Songs[selectedSongIndex].Filename);
-			cmd = string.gsub(cmd, "%%file", SongDB.Songs[selectedSongIndex].Filename);	
+		elseif SongDB.Songs[SongLibrary.selectedSongIndex].Filename then
+			cmd = string.gsub(cmd, "%%name", SongDB.Songs[SongLibrary.selectedSongIndex].Filename);
+			cmd = string.gsub(cmd, "%%file", SongDB.Songs[SongLibrary.selectedSongIndex].Filename);	
 			if (selTrack ~= 1) then
 				cmd = string.gsub(cmd, "%%part", selTrack);
 			else
@@ -2574,107 +2464,25 @@ function SongbookWindow:SaveSettings()
 end
 
 
--- Parse filter string entered by the user.
-function SongbookWindow:ParsePartsFilter( sText )
-	local sPattern = "[";
-	local iEnd = 0;
-	local number, numberTo, iEndTo, temp, maxTracks;
-
-	for maxTracks = 1,self.maxTrackCount do
-		iEnd = iEnd + 1;
-		temp, iEnd, number = string.find( sText, "%s*(%d+)%s*", iEnd );
-
-		if( iEnd == nil ) then break; end
-
-		iEnd = iEnd + 1;
-		if( string.sub( sText, iEnd, iEnd ) == "-" ) then
-			temp, iEndTo, numberTo = string.find( sText, "%s*(%d+)%s*", iEnd + 1 );
-			if( iEndTo == nil ) then
-				numberTo = self.maxTrackCount;
-			else
-				iEnd = iEndTo + 1;
-			end
-		else
-			numberTo = number;
-		end
-	
-		for temp = number, numberTo do
-			sPattern = sPattern .. string.char( 0x40 + temp ); -- 0x40 is ASCII-code 'A' - 1
-		end
+function SongbookWindow:GetFilters()
+	local filters = { maxPartCount = self.maxPartCount }
+	if self.cbComposer and self.cbComposer:IsChecked() then
+		filters.composer = self.editComposer:GetText()
 	end
-	
-	if( sPattern == "[" ) then
-		self.sFilterPartcount = "[a-z]";
-	else
-		self.sFilterPartcount = sPattern .. "]";
+	if self.cbPartcount and self.cbPartcount:IsChecked() then
+		filters.partcount = self.editPartcount:GetText()
 	end
-end -- ParsePartsFilter
-
-
--- return true if at least one word is in both string lists 
-function SongbookWindow:MatchStringList( list1, list2 )
-	for word1 in string.gmatch( list1, "%a+" ) do
-		for word2 in string.gmatch( list2, "%a+" ) do
-			if word1 == word2 then return true; end
-		end
+	if self.cbGenre and self.cbGenre:IsChecked() then
+		filters.genre = self.editGenre:GetText()
 	end
-	return false;
+	if self.cbMood and self.cbMood:IsChecked() then
+		filters.mood = self.editMood:GetText()
+	end
+	if self.cbAuthor and self.cbAuthor:IsChecked() then
+		filters.author = self.editAuthor:GetText()
+	end
+	return filters
 end
-
-function SongbookWindow:IsEmptyString( s )
-  return not not tostring( s ):find( "^%s*$" )
-end
-
--- Check whether the given song fits all the filters that are currently set 
-function SongbookWindow:ApplyFilters( songData )
-	if( songData == nil ) then return false; end
-	
-	if( self.cbComposer and self.cbComposer:IsChecked( ) ) then
-		if( songData.Artist == nil ) then return false; end
-		local sFilter = string.lower( self.editComposer:GetText( ) );
-		if( sFilter ~= "" and string.find( string.lower( songData.Artist ), sFilter ) == nil ) then
-			return false
-		end
-	end
-	if( self.cbPartcount and self.cbPartcount:IsChecked( ) ) then
-		local sFilter = self.editPartcount:GetText( )
-		if( sFilter == "" ) then
-			if not self.maxPartCount then return true
-			else sFilter = "1-" .. tostring( self.maxPartCount ); end
-		end
-		if( songData.Partcounts == nil ) then return false; end
-		self:ParsePartsFilter( sFilter );
-		if( string.match( songData.Partcounts, self.sFilterPartcount ) == nil ) then
-			return false -- Song does not have a setup with an acceptable number of players
-		end
-	end
-	if( self.cbGenre and self.cbGenre:IsChecked( ) ) then
-		if( songData.Genre == nil ) then return false; end
-		local sFilter = string.lower( self.editGenre:GetText( ) );
-		if sFilter ~= "" and not self:MatchStringList( sFilter, string.lower( songData.Genre ) ) then
-		--if( sFiler ~= "" and string.find( string.lower( songData.Genre ), sFilter ) == nil ) then
-			return false
-		end
-	end
-	if( self.cbMood and self.cbMood:IsChecked( ) ) then
-		if( songData.Mood == nil ) then return false; end;
-		local sFilter = string.lower( self.editMood:GetText( ) );
-		if sFilter ~= "" and not self:MatchStringList( sFilter, string.lower( songData.Mood ) ) then
-		--if( sFilter ~= "" and string.find( sFilter, string.lower( songData.Mood ) ) == nil ) then
-			return false;
-		end
-	end
-	if( self.cbAuthor and self.cbAuthor:IsChecked( ) ) then
-		if( songData.Transcriber == nil ) then return false; end;
-		local sFilter = string.lower( self.editAuthor:GetText( ) );
-		if( sFilter ~= "" and string.find( sFilter, string.lower( songData.Transcriber ) ) == nil ) then
-			return false;
-		end
-	end
-
-	return true;
-end -- ApplyFilters
-
 
 -- Update the song list
 function SongbookWindow:UpdateSongs( )
@@ -2702,20 +2510,13 @@ function SongbookWindow:InitSonglist( )
 	self.separator1.heading:SetText( Strings["ui_songs"] .. " (" .. nSongs .. ")" );
 end -- UpdateSongs
 
--- Create compact track name by removing the title.
--- Note: Many of our older songs have quite different naming schemes; not sure if it's even worth parsing.
-function SongbookWindow:TerseTrackname( sTrack )
-	return sTrack; -- disabled for now.
-end
-
-
 function SongbookWindow:ClearSongState(  )
 	syncedSongIndex = -1;
 	syncedTrack = -1;
 	self.aReadyTracks = "";
 	self:ClearPlayerStates( );
 	self:ClearSetups(  );
-	self:SetTrackColours( selectedTrack );
+	self:SetTrackColours( SongLibrary.selectedTrack );
 	self:SetPlayerColours( );
 	self:SetListboxColours( self.songlistBox );
 end
@@ -2959,10 +2760,10 @@ function SongbookWindow:ShowReadyColumns( bShow )
 	if self.bShowReadyChars == bShow then return; end
 	self.bShowReadyChars = bShow
 	self:EnableReadyColumns( bShow )
-	if selectedSongIndex then
-		--self:ListTracks( selectedSongIndex )
+	if SongLibrary.selectedSongIndex then
+		--self:ListTracks( SongLibrary.selectedSongIndex )
 		--self:RefreshPlayerListbox( )
-		self:SetTrackColours( selectedTrack );
+		self:SetTrackColours( SongLibrary.selectedTrack );
 		self:SetPlayerColours( );
 	end
 end
@@ -3159,7 +2960,7 @@ function SongbookWindow:SelectSetup( iSetup )
 end
 
 function SongbookWindow:ListTracksForSetup( iSetup )
-	if not SongDB.Songs[selectedSongIndex] or not SongDB.Songs[selectedSongIndex].Setups then return; end
+	if not SongDB.Songs[SongLibrary.selectedSongIndex] or not SongDB.Songs[SongLibrary.selectedSongIndex].Setups then return; end
 	
 	for iItem = 1, self.listboxSetups:GetItemCount( ) do
 		self.listboxSetups:GetItem( iItem ):SetBackColor( self.backColourDefault );
@@ -3167,24 +2968,24 @@ function SongbookWindow:ListTracksForSetup( iSetup )
 
 	local selTrack = self.tracklistBox:GetSelectedIndex( );
 	
-	self.aSetupTracksIndices = { };
-	self.aSetupListIndices = { };
-	self.iCurrentSetup = nil;
+	SongLibrary.setupTrackIndices = { };
+	SongLibrary.setupListIndices = { };
+	SongLibrary.currentSetup = nil;
 
 	if not iSetup or iSetup >= self.listboxSetups:GetItemCount( ) then
-		self:ListTracks( selectedSongIndex );
-		self.selectedSetupCount = nil
+		self:ListTracks( SongLibrary.selectedSongIndex );
+		SongLibrary.selectedSetupCount = nil
 	else
-		self.iCurrentSetup = iSetup;
+		SongLibrary.currentSetup = iSetup;
 		self.tracklistBox:ClearItems( );
 		SyncInfolistbox:ClearItems( );
-		for i = 1, #SongDB.Songs[selectedSongIndex].Setups[ iSetup ] do
-			local iTrack = SongDB.Songs[selectedSongIndex].Setups[ iSetup ]:byte( i ) - 64;
-			self.aSetupTracksIndices[ i ] = iTrack;
-			self.aSetupListIndices[ iTrack ] = i;
-			self:AddTrackToList( selectedSongIndex, iTrack )
+		for i = 1, #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ] do
+			local iTrack = SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ]:byte( i ) - 64;
+			SongLibrary.setupTrackIndices[ i ] = iTrack;
+			SongLibrary.setupListIndices[ iTrack ] = i;
+			self:AddTrackToList( SongLibrary.selectedSongIndex, iTrack )
 		end
-		self.selectedSetupCount = #SongDB.Songs[selectedSongIndex].Setups[ iSetup ]
+		SongLibrary.selectedSetupCount = #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ]
 	end
 
 	local selItem = self.listboxSetups:GetSelectedItem( );
@@ -3196,16 +2997,8 @@ function SongbookWindow:ListTracksForSetup( iSetup )
 	self.sepSongsTracks.heading:SetText( Strings["ui_parts"] .. " (" .. found .. ")" );
 end
 
-function SongbookWindow:SetupIndexForCount( iSong, setupCount )
-	if not setupCount or not SongDB.Songs[iSong] or not SongDB.Songs[iSong].Setups then return nil; end
-	for i = 1, #SongDB.Songs[iSong].Setups do
-		if setupCount == #SongDB.Songs[iSong].Setups[ i ] then return i; end
-	end
-	return i
-end
-
 function SongbookWindow:UpdateSetupColours(  )
-	if not self.listboxSetups or not SongDB.Songs[selectedSongIndex] or not SongDB.Songs[selectedSongIndex].Setups then return; end
+	if not self.listboxSetups or not SongDB.Songs[SongLibrary.selectedSongIndex] or not SongDB.Songs[SongLibrary.selectedSongIndex].Setups then return; end
 	
 	self:UpdateTrackReadyString( );
 
@@ -3216,15 +3009,15 @@ function SongbookWindow:UpdateSetupColours(  )
 	for i = 1, self.listboxSetups:GetItemCount( ) - 1 do
 		item = self.listboxSetups:GetItem( i );
 
-		matchPattern = "[" .. SongDB.Songs[selectedSongIndex].Setups[ i ] .. "]";
-		antiMatchPattern = "[^" .. SongDB.Songs[selectedSongIndex].Setups[ i ] .. "]";
+		matchPattern = "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
+		antiMatchPattern = "[^" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
 		_, matchLength = string.gsub( self.aReadyTracks, matchPattern, " " )
 
-		if SongDB.Songs[selectedSongIndex].Setups[ i ] == self.aReadyTracks then
+		if SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] == self.aReadyTracks then
 			item:SetForeColor( self.colourReady );
 		elseif string.match( self.aReadyTracks, antiMatchPattern ) then
 			item:SetForeColor( Turbine.UI.Color( 0.7, 0, 0 ) );
-		elseif matchLength and matchLength + 1 == #SongDB.Songs[selectedSongIndex].Setups[ i ] then
+		elseif matchLength and matchLength + 1 == #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] then
 			item:SetForeColor( Turbine.UI.Color( 0, 0.7, 0 ) );
 		else
 			item:SetForeColor( self.colourDefault );
@@ -3241,8 +3034,8 @@ end
 function SongbookWindow:UpdateTrackReadyString( )
 	self.aReadyTracks = "";
 	for iList = 1,self.tracklistBox:GetItemCount( ) do
-		local i = self:SelectedTrackIndex( iList );
-		local ReadyState = self:GetTrackReadyState(  selectedSongIndex, i );
+		local i = SongLibrary.SelectedTrackIndex( iList );
+		local ReadyState = self:GetTrackReadyState(  SongLibrary.selectedSongIndex, i );
 		
 		if ReadyState[4] > 0 then
 			self.aReadyTracks = self.aReadyTracks .. string.char( 0x40 + i );
@@ -3512,7 +3305,7 @@ end
 function SongbookWindow:SetListboxColours( listbox, bNoSelectionHighlight )
 	for i = 1,listbox:GetItemCount() do
 		local item = listbox:GetItem( i );
-		local SongIndex = self.aFilteredIndices[ i ];
+		local SongIndex = SongLibrary.filteredIndices[ i ];
 		
 		local ReadyState = self:GetSongReadyState( SongIndex );
 		
@@ -3778,12 +3571,12 @@ end
 function SongbookWindow:SelectTrack( trackid )
 	self.tracklistBox.SetSelectedIndex(trackid);
 	if self.bShowReadyChars then trackid = math.floor( (trackid+1) / 2 ); end
-	selectedTrack = trackid;
-	local iTrack = self:SelectedTrackIndex( trackid );
-	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
+	SongLibrary.selectedTrack = trackid;
+	local iTrack = SongLibrary.SelectedTrackIndex( trackid );
+	local trackcount = #SongDB.Songs[SongLibrary.selectedSongIndex].Tracks;
 
-	if selectedTrack > 1 then
-		if selectedTrack == trackcount then
+	if SongLibrary.selectedTrack > 1 then
+		if SongLibrary.selectedTrack == trackcount then
 			self.trackPrev:SetVisible( true );
 			self.trackNext:SetVisible( false );
 		else
@@ -3791,7 +3584,7 @@ function SongbookWindow:SelectTrack( trackid )
 			self.trackNext:SetVisible( true );
 		end
 	end
-	if ( selectedTrack == 1) then
+	if ( SongLibrary.selectedTrack == 1) then
 		self.trackPrev:SetVisible( false );
 		if (trackcount == 1) then		
 			self.trackNext:SetVisible( false );
@@ -3800,14 +3593,14 @@ function SongbookWindow:SelectTrack( trackid )
 		end
 	end
 
-	self.trackNumber:SetText(SongDB.Songs[selectedSongIndex].Tracks[iTrack].Id);
-	self.songTitle:SetText(SongDB.Songs[selectedSongIndex].Tracks[iTrack].Name);
+	self.trackNumber:SetText(SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id);
+	self.songTitle:SetText(SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Name);
 
-	self.playSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_play"] .. " \"" .. SongDB.Songs[selectedSongIndex].Filepath .. selectedSong .. "\" " .. SongDB.Songs[selectedSongIndex].Tracks[iTrack].Id);
+	self.playSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_play"] .. " \"" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong .. "\" " .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id);
 	self.playSlot:SetShortcut( self.playSlotShortcut );
 	self.playSlot:SetVisible( true );
 
-	self.syncSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_play"] .. " \"" .. SongDB.Songs[selectedSongIndex].Filepath .. selectedSong .. "\" " .. SongDB.Songs[selectedSongIndex].Tracks[iTrack].Id .. " " .. Strings["cmd_sync"]);
+	self.syncSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_play"] .. " \"" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong .. "\" " .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id .. " " .. Strings["cmd_sync"]);
 	self.syncSlot:SetShortcut( self.syncSlotShortcut );
 	self.syncSlot:SetVisible( true );
 	
@@ -3819,7 +3612,7 @@ function SongbookWindow:SelectTrack( trackid )
 	
 	if YouDontHaveTheSameSong_Flag == 0 then
 		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[selectedSongIndex].Filepath .. selectedSong then
+		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
 			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
@@ -3830,24 +3623,24 @@ function SongbookWindow:SelectTrack( trackid )
 		end
 	end
 	
-	self:SetTrackColours( selectedTrack );
+	self:SetTrackColours( SongLibrary.selectedTrack );
 end
 
 -- action for setting focus on the track list
 function SongbookWindow:SetTrackColours( iSelectedTrack )
 	if not self.tracklistBox or self.tracklistBox:GetItemCount( ) < 1 then return; end
 	self:ClearPlayerReadyStates( ); -- Clear ready states for currently displayed song
-	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
+	local trackcount = #SongDB.Songs[SongLibrary.selectedSongIndex].Tracks;
 	
 	local numberOfCorrectStates = 0;
 	for iTrack = 1,trackcount do
-		if self.iCurrentSetup and not self.aSetupListIndices[ iTrack ] then
-			self:GetTrackReadyState( selectedSongIndex, iTrack, 3 );
+		if SongLibrary.currentSetup and not SongLibrary.setupListIndices[ iTrack ] then
+			self:GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack, 3 );
 		else
 			local iList = iTrack;
-			if self.aSetupListIndices[ iTrack ] then iList = self.aSetupListIndices[ iTrack ]; end
+			if SongLibrary.setupListIndices[ iTrack ] then iList = SongLibrary.setupListIndices[ iTrack ]; end
 			local item = self.tracklistBox:GetItem(iList);
-			local readyState = self:GetTrackReadyState( selectedSongIndex, iTrack );
+			local readyState = self:GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack );
 			
 			
 			if readyState[0] == 10 then numberOfCorrectStates = numberOfCorrectStates + 1; end
@@ -3858,10 +3651,10 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			
 			self:SetTrackReadyChar( iList, readyState[0] );
 			
-			local sTerseName = self:TerseTrackname( SongDB.Songs[selectedSongIndex].Tracks[iTrack].Name );
+			local sTerseName = SongLibrary.TerseTrackname( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Name );
 			local Track_Instrument = self:FindInstrumentInTrack( sTerseName );
 			local Track_item = SyncInfolistbox:GetItem(iTrack);
-			Track_item:SetText( "[" .. SongDB.Songs[selectedSongIndex].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
+			Track_item:SetText( "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
 			
 			Track_item:SetForeColor( self:GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
 			Track_item:SetBackColor( self:GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
@@ -3916,8 +3709,8 @@ end
 function SongbookWindow:PlayerSyncInfo()
 	if not self.sendSyncInfoSlot then return 0; end
 	
-	local trackcount = #SongDB.Songs[selectedSongIndex].Tracks;
-	local Track_Name = SongDB.Songs[selectedSongIndex].Tracks[selectedTrack].Name; 
+	local trackcount = #SongDB.Songs[SongLibrary.selectedSongIndex].Tracks;
+	local Track_Name = SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[SongLibrary.selectedTrack].Name; 
 
 	local equippedInstrument_Index = self:UpdatePlayerTitle();
 	if equippedInstrument_Index == nil then return; end
@@ -3928,7 +3721,7 @@ function SongbookWindow:PlayerSyncInfo()
 	-------------------------------------------------------
 	
 	local CorrectSongAndTrack = 1;
-	if selectedSongIndex ~= syncedSongIndex or selectedTrack ~= syncedTrack then
+	if SongLibrary.selectedSongIndex ~= syncedSongIndex or SongLibrary.selectedTrack ~= syncedTrack then
 		CorrectSongAndTrack = 0;
 	end
 	
@@ -3970,7 +3763,7 @@ function SongbookWindow:PlayerSyncInfo()
 	
 	if CorrectSongAndTrack == 1 and PlayerSynced == 1 then
 	
-		self.sendSyncInfoSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Chatchannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[selectedSongIndex].Filename .. "|" .. Track_Name .. "|" .. PlayerSynced .. "|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|" .. selectedSongIndexListBox .. "|" .. selectedSongIndex .. "|" .. selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>");
+		self.sendSyncInfoSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Chatchannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filename .. "|" .. Track_Name .. "|" .. PlayerSynced .. "|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|" .. SongLibrary.selectedSongIndexListBox .. "|" .. SongLibrary.selectedSongIndex .. "|" .. SongLibrary.selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>");
 		self.sendSyncInfoSlot:SetShortcut( self.sendSyncInfoSlotShortcut );
 		self.sendSyncInfoSlot:SetVisible( true );
 	else
@@ -4149,7 +3942,7 @@ function ChatHandler( sender, args )
 			
 			--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 			
-			local SongIndex = songbookWindow:Find_OtherPlayer_SyncedSong_Index (Filename, TrackName, NumberOfParts) ;
+			local SongIndex = SongLibrary.FindSongByMatch(Filename, TrackName, NumberOfParts) ;
 			
 			if sPlayerName ~= nil then
 				
@@ -4169,7 +3962,7 @@ function ChatHandler( sender, args )
 				songbookWindow.Players_Data[ sPlayerName ] = SongIndex;
 				
 				songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-				songbookWindow:SetTrackColours( selectedTrack );
+				songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
 				songbookWindow:SetPlayerColours( );
 				songbookWindow:UpdateSetupColours( );
 			end
@@ -4346,12 +4139,12 @@ function ChatHandler( sender, args )
 			--songbookWindow.aPlayers[ songbookWindow.sPlayerName ] = "|sync_msg|" .. sTrackName .. "|";
 			songbookWindow.aPlayers[ songbookWindow.sPlayerName ] = sTrackName;
 			
-			--local SongIndex = songbookWindow:Find_OtherPlayer_SyncedSong_Index_WithOnlySync(sTrackName);
+			--local SongIndex = SongLibrary.FindSongByTrackName(sTrackName);
 			--OtherPlayer_Synced = 1;
 			--songbookWindow:Update_syncMessage(SongIndex, sPlayerName, sTrackName);
 			
 			songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-			songbookWindow:SetTrackColours( selectedTrack );
+			songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
 			songbookWindow:SetPlayerColours( );
 			songbookWindow:UpdateSetupColours( );
 			PlayerSynced = 1;
@@ -4363,12 +4156,12 @@ function ChatHandler( sender, args )
 				--songbookWindow.aPlayers[ sPlayerName ] = "|sync_msg|" .. sTrackName .. "|";
 				songbookWindow.aPlayers[ sPlayerName ] = sTrackName;
 				
-				local SongIndex = songbookWindow:Find_OtherPlayer_SyncedSong_Index_WithOnlySync(sTrackName);
+				local SongIndex = SongLibrary.FindSongByTrackName(sTrackName);
 				OtherPlayer_Synced = 1;
 				songbookWindow:Update_syncMessage(SongIndex, sPlayerName, sTrackName);
 				
 				songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-				songbookWindow:SetTrackColours( selectedTrack );
+				songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
 				songbookWindow:SetPlayerColours( );
 				songbookWindow:UpdateSetupColours( );
 			end
@@ -4865,100 +4658,6 @@ function SongbookWindow:CompareInstrument (equippedInstrument_Index, Track_Instr
 end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function SongbookWindow:Find_OtherPlayer_SyncedSong_Index (Filename, TrackName, NumberOfParts)
-	local SongIndex = {};
-	
-	local Number_Of_Found_Songs = 0;
-	SongIndex[0] = Number_Of_Found_Songs;
-	
-	Filename = string.lower( Filename );
-	-- Filename = string.gsub( Filename , "%s+", "" );
-	
-	TrackName = string.lower( TrackName );
-	-- TrackName = string.gsub( TrackName , "%s+", "" );
-	
-	NumberOfParts = tonumber(NumberOfParts);
-	
-	for i = 1, librarySize do
-		local SongDB_Filename = string.lower( SongDB.Songs[i].Filename );
-		-- SongDB_Filename = string.gsub( SongDB_Filename , "%s+", "" );
-		
-		if SongDB_Filename == Filename then
-			local trackcount = #SongDB.Songs[i].Tracks;
-			
-			if trackcount == NumberOfParts then
-				for j = 1, trackcount do
-					local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-					-- SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
-					
-					if SongDB_TrackName == TrackName then
-						
-						Number_Of_Found_Songs = Number_Of_Found_Songs + 1;
-						SongIndex[Number_Of_Found_Songs] = i;
-						break;
-					end
-				end
-			end
-		end
-	end
-	
-	if Number_Of_Found_Songs == 0 then
-		for i = 1, librarySize do
-			local trackcount = #SongDB.Songs[i].Tracks;
-			
-			if trackcount == NumberOfParts then
-				for j = 1, trackcount do
-					local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-					-- SongDB_TrackName = string.gsub( SongDB_TrackName , "%s+", "" );
-					
-					if SongDB_TrackName == TrackName then
-					
-						Number_Of_Found_Songs = Number_Of_Found_Songs + 1;
-						SongIndex[Number_Of_Found_Songs] = i;
-						break;
-					end
-				end
-			end
-		end
-	end
-	
-	SongIndex[0] = Number_Of_Found_Songs;
-	
-	return SongIndex;
-end
-
-function SongbookWindow:Find_OtherPlayer_SyncedSong_Index_WithOnlySync (TrackName)
-	local SongIndex = {};
-	
-	local Number_Of_Found_Songs = 0;
-	SongIndex[0] = Number_Of_Found_Songs;
-	
-	local Synced_TrackName = string.lower( TrackName );
-	-- Synced_TrackName = string.gsub( string.sub( Synced_TrackName, 1, 63 ) , "%s+", "" );
-	
-	for i = 1, librarySize do
-		
-		local trackcount = #SongDB.Songs[i].Tracks;
-		
-		for j = 1, trackcount do
-			local SongDB_TrackName = string.lower( SongDB.Songs[i].Tracks[j].Name );
-			-- SongDB_TrackName = string.gsub( string.sub( SongDB_TrackName, 1, 63 ) , "%s+", "" );
-			
-			-- Check if track name starts with 63-len-max track name sent by lotro
-			if Synced_TrackName == string.sub(SongDB_TrackName, 1, #Synced_TrackName) then
-				
-				Number_Of_Found_Songs = Number_Of_Found_Songs + 1;
-				SongIndex[Number_Of_Found_Songs] = i;
-				break;
-			end
-		end
-	end
-	
-	SongIndex[0] = Number_Of_Found_Songs;
-	
-	return SongIndex;
-end
-
 function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 	
 	Multiple_songs_match_Synced = 0;
@@ -4967,7 +4666,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 	if SongIndex[0] > 1 and not Settings.hideMatchedSongsPopup then
 		YouDontHaveTheSameSong_Flag = 0;
 		if PlayerName == songbookWindow.sPlayerName then
-			-- OtherPlayer_SyncedSong_Index = selectedSongIndex;
+			-- OtherPlayer_SyncedSong_Index = SongLibrary.selectedSongIndex;
 			-- OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
 			-- OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
 			
@@ -5058,7 +4757,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 
 		-- Check if any paths are exactly the current dir
 		for i = 1, SongIndex[0] do
-			if SongDB.Songs[SongIndex[i]].Filepath == selectedDir then
+			if SongDB.Songs[SongIndex[i]].Filepath == SongLibrary.selectedDir then
 				indexToSelect = i;
 				break;
 			end
@@ -5067,7 +4766,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 		-- Else check if any paths are a sub-path of the current dir
 		if indexToSelect == 0 then
 			for i = 1, SongIndex[0] do
-				if selectedDir == string.sub(SongDB.Songs[SongIndex[i]].Filepath, 1, #selectedDir) then
+				if SongLibrary.selectedDir == string.sub(SongDB.Songs[SongIndex[i]].Filepath, 1, #SongLibrary.selectedDir) then
 					indexToSelect = i;
 					break;
 				end
@@ -5093,7 +4792,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 		end
 		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[selectedSongIndex].Filepath .. selectedSong then
+		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
 			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
@@ -5125,7 +4824,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 		end
 		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[selectedSongIndex].Filepath .. selectedSong then
+		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
 			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then

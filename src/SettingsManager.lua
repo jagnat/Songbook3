@@ -162,8 +162,6 @@ function SettingsManager.Load()
 	if not SongDB.Songs then
 		SongDB = { Directories = {}, Songs = {} }
 	end
-	table.sort(SongDB, sortby_Name)
-
 	-- Load account settings
 	local loadedSettings = Turbine.PluginData.Load(Turbine.DataScope.Account, DATA_KEY)
 	if loadedSettings and loadedSettings.Timer_WindowPosition then

@@ -19,6 +19,9 @@ import "Songbook3.src.SongbookLang";
 import "Songbook3.src.SettingsManager";
 SettingsManager.Load(); -- must run before imports that reference Settings at module level
 
+import "Songbook3.src.SongLibrary";
+SongLibrary.Init();
+
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
 import "Songbook3.src.TimerWindow";
