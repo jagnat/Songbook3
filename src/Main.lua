@@ -22,6 +22,10 @@ SettingsManager.Load(); -- must run before imports that reference Settings at mo
 import "Songbook3.src.SongLibrary";
 SongLibrary.Init();
 
+import "Songbook3.src.Utils"
+import "Songbook3.src.InstrumentManager"
+import "Songbook3.src.SyncManager"
+
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
 import "Songbook3.src.TimerWindow";
@@ -29,6 +33,7 @@ import "Songbook3.src.InstrumentSlots";
 import "Songbook3.src.SongbookWindow";
 
 songbookWindow = Songbook3.src.SongbookWindow();
+SyncManager.Init();
 songbookWindow:SetVisible( Settings.WindowVisible );
 settingsWindow = Songbook3.src.SettingsWindow();
 settingsWindow:SetVisible( false );

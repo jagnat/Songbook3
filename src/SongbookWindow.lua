@@ -14,27 +14,10 @@ ListBoxCharColumn = class( ListBoxScrolled ) -- Listbox with single char column
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 HelpWindow_Load_Flag = 1;
-Synced_Song_TrackName = "";
 SelectedMatchedSong_Index = 1;
 --MatchedSongsIndex = {};
-OtherPlayer_Synced = 1;
-Multiple_songs_match_Synced = 0;
-YouDontHaveTheSameSong_Flag = 0;
 InstrumentSlots_Shift = 45;
-OtherPlayer_SyncedSong_Filepath = "";
-OtherPlayer_SyncedSong_Filename = "";
-OtherPlayer_SyncedSong_Index = 1;
-OtherPlayer_SyncedSong_IndexListBox = 1;
-GroupIsRaid = 0;
-PlayerCantUseUserChat_Message = 0;
-UserChatName = "";
-Chatchannel = "/f";
-syncSlot_Correct_Instrument = 0;
 ShiftTop = 50;
-UserChatNumber = 0;
-PlayerSynced = 0;
-syncedSongIndex = -1;
-syncedTrack = -1;
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -263,8 +246,6 @@ SyncStartWindow.Message:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCente
 SyncStartWindow.Message:SetText("Nothing to Start");
 
 
-SyncStartWindow_ShowFlag = 1;
-
 -- Yes button
 --SyncStartWindow.YesSlot = SyncStartWindow:CreateMainShortcut(100);
 SyncStartWindow.YesSlot = Turbine.UI.Lotro.Quickslot();
@@ -366,24 +347,14 @@ function SongbookWindow:Constructor()
 	Turbine.UI.Lotro.Window.Constructor( self );
 	
 	self.bFilter = false -- show/hide filter UI
-	self.bChiefMode = true -- enables sync start shortcut, uses party object (seems to work for FS leader)
 	self.bShowPlayers = true -- show/hide players listbox (used to auto-hide, but disabled for now)
-	self.aPlayers = { } -- k = player name, v = ready track, 0 if no track ready
-	self.aPlayers_sync_msg = { }
-	self.nPlayers = 0 -- number of players (unfortunately not as simple as #self.aPlayers)
-	self.aCurrentSongReady = { } -- k = player name; v = track ready state (see GetTrackReadyState())
-	self.aReadyTracks = "" -- indicates which tracks are ready (A = 1st, B = 2nd, etc). Used for setup checks
 	self.maxPartCount = nil -- the number of parts to use as filter (nil if not filtering, else player count)
 	self.alignTracksRight = false -- if true, track names are listed right-aligned (resize will reset to left aligned)
 	self.listboxSetupsWidth = 20 -- width of the setups listbox (to the left of the tracks list)
 	self.setupsWidth = self.listboxSetupsWidth + 10 -- total width of setup list including scrollbar
 	self.bShowSetups = false -- show/hide setups (autohide for songs with no setups defined)
-	
-	
-	self.Players_Data = { } ;
+
 	self.TimerWindowVisible = true;
-	self.UseRaidChat = false;
-	self.UseFellowshipChat = false;
 	self.HelpWindowDisable = false;
 	
 	-- colours for the different track/player ready states in the track and player listboxes
@@ -435,60 +406,6 @@ function SongbookWindow:Constructor()
 	
 	self.bCheckInstrument = true
 	self.bInstrumentOk = true
-	self.aInstruments = { "bagpipe", "clarinet", "cowbell", "drum", "flute", "harp", "horn", "lute", "pibgorn", "theorbo"  }
-	
-	self.Instruments_List = {
-	{"Basic Harp"},
-	{"Misty Mountain Harp", "Summer Celebration Mountain Harp"},
-	{"Basic Lute", "Summer Celebration Lute"},
-	{"Lute of Ages"},
-	{"Basic Theorbo"},
-	{"Traveller's Trusty Fiddle"},
-	{"Bardic Fiddle"},
-	{"Basic Fiddle"},
-	{"Lonely Mountain Fiddle", "Summer Celebration Fiddle"},
-	{"Sprightly Fiddle"},
-	{"Student's Fiddle"},
-	{"Basic Bagpipe"},
-	{"Basic Bassoon"},
-	{"Brusque Bassoon"},
-	{"Lonely Mountain Bassoon"},
-	{"Basic Clarinet"},
-	{"Basic Flute"},
-	{"Basic Horn"},
-	{"Basic Pibgorn"},
-	{"Basic Cowbell", "Summer Celebration Cowbell"},
-	{"Moor Cowbell"},
-	{"Basic Drum"},
-	{"Jaunty Hand-knells"} }
-	
-	self.Instruments_Names_inTrack = {
-	{"Basic Harp"}, -- 1
-	{"Misty Mountain Harp", "Misty Harp", "MM Harp", "MMH", "Mountain Harp", "Mountains Harp"}, -- 2
-	{"Basic Lute", "New Lute", "LuteB", "BLute", "B Lute"}, -- 3
-	{"Lute of Ages", "Lute of Age", "Age Lute", "Ages Lute", "LuteA", "LOA", "Lute OA"}, -- 4
-	{"Basic Theorbo", "Theorbo", " Theo "}, -- 5
-	{"Traveller's Trusty Fiddle", "Traveller's Fiddle", "Travellers Fiddle", "Traveller Fiddle", "Traveler Fiddle", "Trusty Fiddle", "TT Fiddle", "TTF"}, -- 6
-	{"Bardic Fiddle"}, -- 7
-	{"Basic Fiddle", "B Fiddle", "BFiddle"}, -- 8
-	{"Lonely Mountain Fiddle", "Lonely Fiddle", "LM Fiddle", "LMFiddle", "LMF", "Mountain Fiddle", "Mountains Fiddle"}, -- 9
-	{"Sprightly Fiddle", "Spright Fiddle"}, -- 10
-	{"Student's Fiddle", "Students Fiddle", "Student Fiddle"}, -- 11
-	{"Basic Bagpipe", "Bagpipe", "Bag pipe"}, -- 12
-	{"Basic Bassoon"}, -- 13
-	{"Brusque Bassoon", "Brusk Bassoon"}, -- 14
-	{"Lonely Mountain Bassoon", "Lonely Bassoon", "LM Bassoon", "Mountain Bassoon", "Mountains Bassoon"}, -- 15
-	{"Basic Clarinet", "Clarinet"}, -- 16
-	{"Basic Flute", "Flute"}, -- 17
-	{"Basic Horn", "Horn"}, -- 18
-	{"Basic Pibgorn", "Pibgorn"}, -- 19
-	{"Basic Cowbell"}, -- 20
-	{"Moor Cowbell", "More Cowbell"}, -- 21
-	{"Basic Drum", "Drum"}, -- 22
-	{"Jaunty Hand-knells", "Hand-knells", "Jaunty", "Glockenspiel"} } -- 23
-	
-	self.aSpecialInstruments = { }
-	self.aSpecialInstruments[ "satakieli" ] = 6 -- index in the insturments array
 	self.bTimer = true
 	self.bTimerCountdown = true
 	
@@ -504,10 +421,6 @@ function SongbookWindow:Constructor()
 	self:ToggleTimerWindow( Settings.TimerWindowVisible )
 	self:SetHelpWindowDisabled( Settings.HelpWindowDisable )
 	Help_Window_CB:SetChecked( Settings.HelpWindowDisable );
-	self:ToggleUseRaidChat( Settings.UseRaidChat )
-	self:ToggleUseFellowshipChat( Settings.UseFellowshipChat )
-	
-	UserChatName = string.lower ( Settings.UserChatName );
 
 	self:ValidateWindowPosition( Settings.WindowPosition )
 	
@@ -809,7 +722,7 @@ function SongbookWindow:Constructor()
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	-- Join User Chat button
 	self.joinUserChatSlot = self:CreateMainShortcut(410);
-	self.joinUserChatSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, "/joinchannel " .. UserChatName );
+	self.joinUserChatSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, "/joinchannel " .. SyncManager.userChatName );
 	self.joinUserChatSlot.DragDrop =
 	function( sender, args )
 		if( self.joinUserChatSlotShortcut ) then
@@ -917,9 +830,9 @@ function SongbookWindow:Constructor()
 		self.tipLabel:SetText(Strings["tt_sync"]);
 	end
 	self.syncSlot.MouseLeave = function(sender,args)
-		if syncSlot_Correct_Instrument == 1 then
+		if SyncManager.correctInstrument then
 			self.syncIcon:SetBackground(gDir .. "icn_s.tga");
-		elseif syncSlot_Correct_Instrument == 0 then
+		else
 			self.syncIcon:SetBackground(gDir .. "icn_s_f.tga");
 		end
 		self.tipLabel:SetText("");
@@ -934,11 +847,11 @@ function SongbookWindow:Constructor()
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.syncSlot.MouseClick = function(sender,args)
-		
-		PlayerCantUseUserChat_Message = 0;
-		syncedSongIndex = SongLibrary.selectedSongIndex;
-		syncedTrack = SongLibrary.selectedTrack;
-		PlayerSynced = 0;
+
+		SyncManager.userChatBlocked = false;
+		SyncManager.syncedSongIndex = SongLibrary.selectedSongIndex;
+		SyncManager.syncedTrack = SongLibrary.selectedTrack;
+		SyncManager.localPlayerSynced = false;
 		self:PlayerSyncInfo();
 	end
 
@@ -959,8 +872,8 @@ function SongbookWindow:Constructor()
 	end
 	
 	self.sendSyncInfoSlot.MouseClick = function(sender,args)
-		
-		PlayerCantUseUserChat_Message = 0;
+
+		SyncManager.userChatBlocked = false;
 		self:PlayerSyncInfo();
 	end
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1019,8 +932,8 @@ function SongbookWindow:Constructor()
 
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	self.syncStartSlot.MouseClick = function(sender,args)
-		
-		if SyncStartWindow_ShowFlag == 1 then
+
+		if not SyncManager.syncStartReady then
 			SyncStartWindow:SetVisible(true);
 			SyncStartWindow:Activate();
 		end
@@ -1101,7 +1014,8 @@ function SongbookWindow:Constructor()
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	self:UpdatePlayerTitle();
-	
+	self.playerEquipment = self.playerInstance:GetEquipment()
+
 	self.playerEquipment.ItemEquipped = function(sender, args)
 		local insIndex = self:PlayerSyncInfo();
 		if insIndex == 0 then return; end
@@ -1131,10 +1045,9 @@ function SongbookWindow:Constructor()
 	self.MessageTitle:SetSize(self:GetWidth() - 30, 14);
 	--self.MessageTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
 	
-	UserChatNumber = CharSettings.UserChatNumber;
-	if UserChatNumber ~= 0 and UserChatNumber ~= nil then
-		Chatchannel = "/" .. UserChatNumber;
-		self.MessageTitle:SetText("SongBook is using User Chat channel " .. UserChatNumber .. " - " .. UserChatName);
+	if SyncManager.userChatNumber ~= 0 and SyncManager.userChatNumber ~= nil then
+		SyncManager.chatChannel = "/" .. SyncManager.userChatNumber;
+		self.MessageTitle:SetText("SongBook is using User Chat channel " .. SyncManager.userChatNumber .. " - " .. SyncManager.userChatName);
 	else
 		self.MessageTitle:SetText("SongBook is using Fellowship channel");
 	end
@@ -1154,7 +1067,7 @@ function SongbookWindow:Constructor()
 	
 	self.syncMessageTitle.MouseEnter = function(sender, args)
 		if self.syncMessageTitle:IsVisible() then
-			if OtherPlayer_Synced == 0 then
+			if not SyncManager.otherPlayerSynced then
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_Highlighted );
 			else
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_Highlighted_OnlySynced );
@@ -1163,7 +1076,7 @@ function SongbookWindow:Constructor()
 	end
 	self.syncMessageTitle.MouseLeave = function(sender, args)
 		if self.syncMessageTitle:IsVisible() then
-			if OtherPlayer_Synced == 0 then
+			if not SyncManager.otherPlayerSynced then
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 			else
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
@@ -1172,7 +1085,7 @@ function SongbookWindow:Constructor()
 	end
 	self.syncMessageTitle.MouseDown = function(sender,args)
 		if self.syncMessageTitle:IsVisible() then
-			if OtherPlayer_Synced == 0 then
+			if not SyncManager.otherPlayerSynced then
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_MouseDown );
 			else
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_MouseDown_OnlySynced );
@@ -1181,17 +1094,17 @@ function SongbookWindow:Constructor()
 	end
 	self.syncMessageTitle.MouseUp = function(sender,args)
 		if self.syncMessageTitle:IsVisible() then
-			if OtherPlayer_Synced == 0 then
+			if not SyncManager.otherPlayerSynced then
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 			else
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 			end
-			if Multiple_songs_match_Synced == 1 then
+			if SyncManager.multipleSongsMatch then
 				MatchedSongsWindow:SetVisible( true );
-			elseif YouDontHaveTheSameSong_Flag == 0 then
-				self:SelectDir( nil, OtherPlayer_SyncedSong_Filepath );
-				self:SelectSong(OtherPlayer_SyncedSong_IndexListBox);
-				local selectedItem = self.songlistBox:GetItem( OtherPlayer_SyncedSong_IndexListBox )
+			elseif not SyncManager.missingMatchedSong then
+				self:SelectDir( nil, SyncManager.otherPlayerSong.filepath );
+				self:SelectSong(SyncManager.otherPlayerSong.indexListBox);
+				local selectedItem = self.songlistBox:GetItem( SyncManager.otherPlayerSong.indexListBox )
 				if selectedItem then selectedItem:SetForeColor( self.colourDefaultHighlighted ); end
 			end
 		end
@@ -1619,18 +1532,46 @@ function SongbookWindow:Constructor()
 	if (Plugins ["Songbook"] ~= nil ) then
 		Plugins["Songbook"].Unload = function( sender, args )
 			self:SaveSettings();
-			RemoveCallback( Turbine.Chat, "Received", ChatHandler );
+			SyncManager.Shutdown();
 		end
 	end
-	
+
 	self:CreateTimerUI( )
 	self:CreateFilterUI( ) -- Creates the UI elements for the filters
-	AddCallback( Turbine.Chat, "Received", ChatHandler ); -- installs handler for chat messages (to catch ready messages)
+
+	SyncManager.onPlayerJoined = function(name) self:AddPlayerToList(name) end
+	SyncManager.onPlayerLeft = function(name) self:RemovePlayerFromList(name) end
+	SyncManager.onChiefModeChanged = function(state)
+		self.syncStartSlot:SetVisible(state)
+		self.syncStartIcon:SetVisible(state)
+	end
+	SyncManager.onPlayerStateChanged = function()
+		self:SetListboxColours(self.songlistBox)
+		self:SetTrackColours(SongLibrary.selectedTrack)
+		self:SetPlayerColours()
+		self:UpdateSetupColours()
+		self:PlayerSyncInfo()
+	end
+	SyncManager.onSyncMessage = function(songIndex, playerName, trackName)
+		self:Update_syncMessage(songIndex, playerName, trackName)
+	end
+	SyncManager.onSongStarted = function(trackName)
+		self:SongStarted()
+	end
+	SyncManager.onChatChannelChanged = function(channel, message)
+		self.MessageTitle:SetText(message)
+	end
+	SyncManager.onMaxPartCountChanged = function()
+		self:UpdateMaxPartCount()
+	end
+	SyncManager.onSongStateCleared = function()
+	end
+
 	self.listboxPlayers:EnableCharColumn( self.bShowReadyChars )
 	self:RefreshPlayerListbox( ) -- lists the current party members; more will be added through chat messages
-	
+
 	if Settings.FiltersState then self:ShowFilterUI( true ); end
-	self:SetChiefMode( Settings.ChiefMode )
+	SyncManager.SetChiefMode( Settings.ChiefMode )
 	self:HightlightReadyColumns( self.bHighlightReadyCol )
 	
 	-- adjust to search visibility
@@ -1699,7 +1640,7 @@ function SongbookWindow:StartTimer( )
 	local songTime
 	-- for i = 1, self.tracklistBox:GetItemCount( ) do
 		-- item = self.tracklistBox:GetItem( i )
-		sMinutes, sSeconds = string.match( Synced_Song_TrackName , ".*%((%d+):(%d+)%).*" ) -- try (mm:ss)
+		sMinutes, sSeconds = string.match( SyncManager.syncedTrackName , ".*%((%d+):(%d+)%).*" ) -- try (mm:ss)
 		-- if not sMinutes or not sSeconds then
 			-- sMinutes, sSeconds = string.match( item:GetText( ), ".*(%d+):(%d+).*" ) -- no luck, try just mm:ss
 		-- end
@@ -1910,18 +1851,18 @@ function SongbookWindow:LoadSongs()
 		if SelectedMatchedSong_Index == entry.index then
 			SelectedMatchedSong_IndexListBox = pos
 		end
-		if OtherPlayer_SyncedSong_Index == entry.index then
-			OtherPlayer_SyncedSong_IndexListBox = pos
+		if SyncManager.otherPlayerSong.index == entry.index then
+			SyncManager.otherPlayerSong.indexListBox = pos
 		end
 	end
 end
 
 function SongbookWindow:IsAvailableTrackWithMatchingInstrument(songIdx, trackIdx, equippedInstrumentIdx)
-	local readyState = self:GetTrackReadyState(songIdx, trackIdx);
+	local readyState = SyncManager.GetTrackReadyState(songIdx, trackIdx);
 	local Track_Name = SongDB.Songs[songIdx].Tracks[trackIdx].Name
-	local Track_Instrument = self:FindInstrumentInTrack( Track_Name );
+	local Track_Instrument = InstrumentManager.FindInstrumentInTrack( Track_Name );
 	local Track_Instrument_Index = Track_Instrument[0];
-	local isRightIns = self:CompareInstrument(equippedInstrumentIdx, Track_Instrument_Index, true --[[skip updating icon]]);
+	local isRightIns = InstrumentManager.CompareInstrument(equippedInstrumentIdx, Track_Instrument_Index);
 	return (readyState[0] == nil and isRightIns == 1);
 end
 
@@ -2021,8 +1962,8 @@ function SongbookWindow:AddTrackToList( iSong, iTrack )
 	trackItem:SetSize( 1000, 20 );
 	self.tracklistBox:AddItem( trackItem );
 	
-	local Track_Instrument = self:FindInstrumentInTrack( sTerseName );
-	
+	local Track_Instrument = InstrumentManager.FindInstrumentInTrack( sTerseName );
+
 	trackItem = Turbine.UI.Label();
 	trackItem:SetMultiline( false )
 	trackItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
@@ -2446,15 +2387,15 @@ function SongbookWindow:SaveSettings()
 	Settings.WindowPosition.Width = self:GetWidth()
 	Settings.WindowPosition.Height = self:GetHeight()
 	Settings.FiltersState = self.bFilter
-	Settings.ChiefMode = self.bChiefMode
+	Settings.ChiefMode = SyncManager.chiefMode
 	Settings.TimerState = self.bTimer
 	Settings.TimerCountdown = self.bTimerCountdown
 	Settings.ReadyColState = self.bShowReadyChars
 	Settings.ReadyColHighlight = self.bHighlightReadyCol
 	Settings.TimerWindowVisible = self.TimerWindowVisible
 	Settings.HelpWindowDisable = self.HelpWindowDisable
-	Settings.UseRaidChat = self.UseRaidChat
-	Settings.UseFellowshipChat = self.UseFellowshipChat
+	Settings.UseRaidChat = SyncManager.useRaidChat
+	Settings.UseFellowshipChat = SyncManager.useFellowshipChat
 	Settings.PlayersSyncInfoWindowPosition.Left = PlayersSyncInfoWindow:GetLeft()
 	Settings.PlayersSyncInfoWindowPosition.Top = PlayersSyncInfoWindow:GetTop()
 	Settings.PlayersSyncInfoWindowPosition.Width = PlayersSyncInfoWindow:GetWidth()
@@ -2510,45 +2451,39 @@ function SongbookWindow:InitSonglist( )
 	self.separator1.heading:SetText( Strings["ui_songs"] .. " (" .. nSongs .. ")" );
 end -- UpdateSongs
 
-function SongbookWindow:ClearSongState(  )
-	syncedSongIndex = -1;
-	syncedTrack = -1;
-	self.aReadyTracks = "";
-	self:ClearPlayerStates( );
-	self:ClearSetups(  );
-	self:SetTrackColours( SongLibrary.selectedTrack );
-	self:SetPlayerColours( );
-	self:SetListboxColours( self.songlistBox );
+function SongbookWindow:ClearSongState()
+	SyncManager.ClearSongState()
+	self:ClearSetups()
+	self:SetTrackColours(SongLibrary.selectedTrack)
+	self:SetPlayerColours()
+	self:SetListboxColours(self.songlistBox)
 end
 
-function SongbookWindow:SongStarted( )
-	self:ClearSongState(  )
-	
-	TimerWindow:SetSongText( Synced_Song_TrackName );
-	
-	songbookWindow.syncMessageTitle:SetText("");
-	songbookWindow.syncMessageTitle:SetVisible(false);
-	MatchedSongsWindow:SetVisible( false );
-	
-	SyncStartWindow_ShowFlag = 1;
-	SyncStartWindow.Message:SetText("Nothing to Start");
-	SyncStartWindow.YesSlot:SetVisible( false );
-	SyncStartWindow.NoSlot:SetVisible( false );
-	SyncStartWindow.YesIcon:SetVisible( false );
-	SyncStartWindow.NoIcon:SetVisible( false );
-		
-	self.syncStartSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Undefined , "" );
-	self.syncStartSlot:SetShortcut( self.syncStartSlotShortcut );
-	self.syncStartSlot:SetVisible( true );
-		
+function SongbookWindow:SongStarted()
+	self:ClearSongState()
+
+	TimerWindow:SetSongText( SyncManager.syncedTrackName )
+
+	songbookWindow.syncMessageTitle:SetText("")
+	songbookWindow.syncMessageTitle:SetVisible(false)
+	MatchedSongsWindow:SetVisible( false )
+
+	SyncStartWindow.Message:SetText("Nothing to Start")
+	SyncStartWindow.YesSlot:SetVisible( false )
+	SyncStartWindow.NoSlot:SetVisible( false )
+	SyncStartWindow.YesIcon:SetVisible( false )
+	SyncStartWindow.NoIcon:SetVisible( false )
+
+	self.syncStartSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Undefined , "" )
+	self.syncStartSlot:SetShortcut( self.syncStartSlotShortcut )
+	self.syncStartSlot:SetVisible( true )
+
 	if self.bInstrumentOk == false then
 		self.tracksMsg:SetForeColor( self.colourDefault )
 		self.tracksMsg:SetVisible( false )
 		self.bInstrumentOk = true
 	end
-	if self.bTimer then self:StartTimer( )
-	else --self:StopTimer( ) -- in case it is still counting ...
-	end
+	if self.bTimer then self:StartTimer() end
 end
 
 --%%%%%%%%%%%%%%%%
@@ -2669,40 +2604,22 @@ function SongbookWindow:CheckInstrument( sTrack )
 	local item = equip:GetItem( Turbine.Gameplay.Equipment.Instrument )
 	if not item then return; end
 	sTrack = sTrack:lower()
-	--local sName = string.match( item:GetName( ), "%a+$" )
 	self.bInstrumentOk = true -- only set to false if we can successfully determine track and equipped instrument
-	local iName = self:GetInstrumentName( item:GetName( ):lower( ) )
+	local iName = InstrumentManager.GetInstrumentIndex( item:GetName( ):lower( ) )
 	if not iName then return; end -- can't determine equipped instrument, disable message
 
-	local iTrackInstrument = self:CheckTracksForInstrument( sTrack, iName, self.aInstruments ) -- try english names first
-	if not iTrackInstrument then -- try localized names
-		iTrackInstrument = self:CheckTracksForInstrument( sTrack, iName, aInstrumentsLoc )
+	local iTrackInstrument, bOk = InstrumentManager.CheckTracksForInstrument( sTrack, iName, InstrumentManager.genericNames )
+	if iTrackInstrument then
+		self.bInstrumentOk = bOk
+	else -- try localized names
+		iTrackInstrument, bOk = InstrumentManager.CheckTracksForInstrument( sTrack, iName, aInstrumentsLoc )
+		if iTrackInstrument then
+			self.bInstrumentOk = bOk
+		end
 	end
 
 	if not iTrackInstrument then return; end -- could not determine the track instrument
 	self:SetInstrumentMessage( aInstrumentsLoc[ iTrackInstrument ] ) -- print the localized name
-end
-
-function SongbookWindow:GetInstrumentName( sItem )
-	if self.aSpecialInstruments and self.aSpecialInstruments[ sItem ] then
-		return self.aSpecialInstruments[ sItem ] -- already contains the index 
-	end
-	for k,v in pairs( aInstrumentsLoc ) do
-		if sItem:find( v ) then return k; end
-	end
-	return nil
-end
-
-function SongbookWindow:CheckTracksForInstrument( sTrack, iInstrument, aInstruments )
-	if not iInstrument or iInstrument > #aInstruments then return nil; end
-	local sName = aInstruments[ iInstrument ]
-	for k,v in pairs( aInstruments ) do
-		if sTrack:find( v ) then -- track name seems to contain the instrument name
-			self.bInstrumentOk = not not string.find( sTrack, "[^%a]" .. sName:lower() )
-			return k
-		end
-	end
-	return nil
 end
 	
 
@@ -2777,117 +2694,36 @@ end
 -- Read party member names and add them to the party members listbox
 -- TODO: Party object does not seem to report party members correctly?
 function SongbookWindow:RefreshPlayerListbox( )
-	if self.listboxPlayers == nil then return; end
-	
-	self.listboxPlayers:ClearItems( );
-
-	local player = Turbine.Gameplay.LocalPlayer:GetInstance( );
-	if player == nil then return; end
-	
-	if self.sPlayerName == nil then self.sPlayerName = player:GetName( ); end
-	
-	local party = player:GetParty( );
-	if party == nil or party:GetMemberCount( ) <= 0 then
-		if self.bChiefMode then	self.aPlayers = { }; self.aCurrentSongReady = { }; end
-		self:AddPlayerToList( self.sPlayerName )
-		self.aPlayers[ self.sPlayerName ] = 0;
-		self.Players_Data[ self.sPlayerName ] = 0;
-		return;
-	end 
-
-	-- If in chief mode, we rely on the party object; otherwise, we keep the known players.
-	if self.bChiefMode then	self.aPlayers = { }; self.Players_Data = { }; self.aCurrentSongReady = { }
-	else self:ListKnownPlayers( ); end
-	
-	local iPlayer;
-	for iPlayer = 1, party:GetMemberCount( ) do
-		local member = party:GetMember( iPlayer )
-		local sName = member:GetName( )
-		if self.aPlayers[ sName ] == nil then self:AddPlayer( sName ); end
-	end
-	
-	self:SetPlayerColours( ); -- restore current states
-	self:UpdateMaxPartCount( )
-	if self.maxPartCount then self:UpdateSongs( ) end
-	self:UpdateSetupColours( );
-end
-
--- Add player to arrays
-function SongbookWindow:AddPlayer( sName )
-	if self.aPlayers[ sName ] then return; end
-	self.aCurrentSongReady[ sName ] = false
-	self:AddPlayerToList( sName )
-	self.aPlayers[ sName ] = 0
-	self.Players_Data[ sName ] = 0
-end
-
--- Add player to arrays
-function SongbookWindow:RemovePlayer( sName )
-	if not self.aPlayers[ sName ] then return; end
-	self.aCurrentSongReady[ sName ] = nil
-	self:RemovePlayerFromList( sName )
-	self.aPlayers[ sName ] = nil
-	self.Players_Data[ sName ] = nil
-end
-
-
--- Write known players to player listbox
-function SongbookWindow:ListKnownPlayers( )
-	if not self.aPlayers then return; end
-	for k,v in pairs( self.aPlayers ) do
-		self:AddPlayerToList( k )
-	end
-end
-
-
--- Parse player join message, add player
--- Party object occasionally seems to become stale in raid settings, so we try to use client messages for player list updates
-function SongbookWindow:PlayerJoined( sMsg )
-	local temp, sPlayerName, sTrackName;
-	temp, temp, sPlayerName = string.find( sMsg, "(%a+)" .. Strings["chat_playerJoin"] );
-	if sPlayerName then self:AddPlayer( sPlayerName ); end
-	self:PlayerSyncInfo();
-end
-
--- Parse player left message, remove player
-function SongbookWindow:PlayerLeft( sMsg )
-	local temp, sPlayerName, sTrackName;
-	temp, temp, sPlayerName = string.find( sMsg, "(%a+)" .. Strings["chat_playerLeave"] );
-	if sPlayerName then self:RemovePlayer( sPlayerName ); end
-	self:PlayerSyncInfo();
-end
-
-
--- Clear the ready states for players
-function SongbookWindow:ClearPlayerStates( )
-	if not self.aPlayers then return; end
-	for k in pairs( self.aPlayers ) do
-		self.aPlayers[ k ] = 0; -- present, no song ready
-		self.Players_Data[ k ] = 0;
-	end
+	if self.listboxPlayers == nil then return end
+	self.listboxPlayers:ClearItems()
+	SyncManager.RefreshPlayers()
+	self:SetPlayerColours()
+	self:UpdateMaxPartCount()
+	if self.maxPartCount then self:UpdateSongs() end
+	self:UpdateSetupColours()
 end
 
 
 -- Update item colours in party listbox to indicate ready states
 function SongbookWindow:SetPlayerColours( )
-	if not self.aPlayers or not self.listboxPlayers then return; end
+	if not SyncManager.players or not self.listboxPlayers then return; end
 
 	local iMember;
 	for iMember=1,self.listboxPlayers:GetItemCount( ) do
 		local item = self.listboxPlayers:GetItem( iMember );
-		if( self.aPlayers[ item:GetText( ) ] == nil ) then	-- should not happen
+		if( SyncManager.players[ item:GetText( ) ] == nil ) then	-- should not happen
 			item:SetForeColor( self.colourDefault );
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
-		elseif( self.aPlayers[ item:GetText( ) ] == 0 ) then -- present, but no song ready
+		elseif( SyncManager.players[ item:GetText( ) ] == 0 ) then -- present, but no song ready
 			item:SetForeColor( self.colourDefault );
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
-		elseif self.aCurrentSongReady and self.aCurrentSongReady[ item:GetText( ) ] == 1 then 
+		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 1 then
 			item:SetForeColor( self.colourReady ); -- Track from the currently displayed song ready
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chReady, false ); end
-		elseif self.aCurrentSongReady and self.aCurrentSongReady[ item:GetText( ) ] == 2 then 
+		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 2 then
 			item:SetForeColor( self.colourReadyMultiple ); -- Correct song, but same track as another player
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chMultiple, true ); end
-		elseif self.aCurrentSongReady and self.aCurrentSongReady[ item:GetText( ) ] == 3 then 
+		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 3 then
 			item:SetForeColor( self.colourDifferentSetup ); -- Correct song, but track not in current setup
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chWrongPart, true ); end
 		else
@@ -3011,11 +2847,11 @@ function SongbookWindow:UpdateSetupColours(  )
 
 		matchPattern = "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
 		antiMatchPattern = "[^" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
-		_, matchLength = string.gsub( self.aReadyTracks, matchPattern, " " )
+		_, matchLength = string.gsub( SyncManager.readyTracks, matchPattern, " " )
 
-		if SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] == self.aReadyTracks then
+		if SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] == SyncManager.readyTracks then
 			item:SetForeColor( self.colourReady );
-		elseif string.match( self.aReadyTracks, antiMatchPattern ) then
+		elseif string.match( SyncManager.readyTracks, antiMatchPattern ) then
 			item:SetForeColor( Turbine.UI.Color( 0.7, 0, 0 ) );
 		elseif matchLength and matchLength + 1 == #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] then
 			item:SetForeColor( Turbine.UI.Color( 0, 0.7, 0 ) );
@@ -3031,16 +2867,11 @@ function SongbookWindow:ClearSetups(  )
 	if selItem then selItem:SetBackColor( self.backColourHighlight ); end
 end
 
-function SongbookWindow:UpdateTrackReadyString( )
-	self.aReadyTracks = "";
-	for iList = 1,self.tracklistBox:GetItemCount( ) do
-		local i = SongLibrary.SelectedTrackIndex( iList );
-		local ReadyState = self:GetTrackReadyState(  SongLibrary.selectedSongIndex, i );
-		
-		if ReadyState[4] > 0 then
-			self.aReadyTracks = self.aReadyTracks .. string.char( 0x40 + i );
-		end
-	end
+function SongbookWindow:UpdateTrackReadyString()
+	SyncManager.UpdateReadyTracks(
+		self.tracklistBox:GetItemCount(),
+		SongLibrary.SelectedTrackIndex
+	)
 end
 		
 
@@ -3081,18 +2912,7 @@ end
 
 
 function SongbookWindow:ClearPlayerReadyStates( )
-	if( self.aPlayers ~= nil ) then
-		for k,v in pairs( self.aPlayers ) do
-			self.aCurrentSongReady[ k ] = false;
-		end
-	end
-end
-
-
-function SongbookWindow:SetChiefMode( bState )
-	self.bChiefMode = (bState==true)
-	self.syncStartSlot:SetVisible( self.bChiefMode )
-	self.syncStartIcon:SetVisible( self.bChiefMode )
+	SyncManager.ClearPlayerReadyStates()
 end
 
 -- ListBoxScrolled ----------------------------------------
@@ -3307,7 +3127,7 @@ function SongbookWindow:SetListboxColours( listbox, bNoSelectionHighlight )
 		local item = listbox:GetItem( i );
 		local SongIndex = SongLibrary.filteredIndices[ i ];
 		
-		local ReadyState = self:GetSongReadyState( SongIndex );
+		local ReadyState = SyncManager.GetSongReadyState( SongIndex );
 		
 		if ReadyState[0] == nil then
 			item:SetForeColor( self.colourDefault );
@@ -3534,35 +3354,6 @@ function SongbookWindow:ShowSetups( bShow )
 end
 
 
-function AddCallback(object, event, callback)
-    if (object[event] == nil) then
-        object[event] = callback;
-    else
-        if (type(object[event]) == "table") then
-            table.insert(object[event], callback);
-        else
-            object[event] = {object[event], callback};
-        end
-    end
-    return callback;
-end
-
-function RemoveCallback(object, event, callback)
-    if (object[event] == callback) then
-        object[event] = nil;
-    else
-        if (type(object[event]) == "table") then
-            local size = table.getn(object[event]);
-            for i = 1, size do
-                if (object[event][i] == callback) then
-                    table.remove(object[event], i);
-                    break;
-                end
-            end
-        end
-    end
-end
-
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3610,12 +3401,12 @@ function SongbookWindow:SelectTrack( trackid )
 
 	self:PlayerSyncInfo();
 	
-	if YouDontHaveTheSameSong_Flag == 0 then
-		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
+	if not SyncManager.missingMatchedSong then
+
+		if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
-			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
+			if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename ~= "" then
 				if self.syncMessageTitle:GetText() ~= "" then
 					self.syncMessageTitle:SetVisible(true);
 				end
@@ -3635,12 +3426,12 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 	local numberOfCorrectStates = 0;
 	for iTrack = 1,trackcount do
 		if SongLibrary.currentSetup and not SongLibrary.setupListIndices[ iTrack ] then
-			self:GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack, 3 );
+			SyncManager.GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack, 3 );
 		else
 			local iList = iTrack;
 			if SongLibrary.setupListIndices[ iTrack ] then iList = SongLibrary.setupListIndices[ iTrack ]; end
 			local item = self.tracklistBox:GetItem(iList);
-			local readyState = self:GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack );
+			local readyState = SyncManager.GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack );
 			
 			
 			if readyState[0] == 10 then numberOfCorrectStates = numberOfCorrectStates + 1; end
@@ -3652,26 +3443,26 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			self:SetTrackReadyChar( iList, readyState[0] );
 			
 			local sTerseName = SongLibrary.TerseTrackname( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Name );
-			local Track_Instrument = self:FindInstrumentInTrack( sTerseName );
+			local Track_Instrument = InstrumentManager.FindInstrumentInTrack( sTerseName );
 			local Track_item = SyncInfolistbox:GetItem(iTrack);
 			Track_item:SetText( "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
-			
+
 			Track_item:SetForeColor( self:GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
 			Track_item:SetBackColor( self:GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
-						
+
 			for i = 0, readyState[4]-1 do
 				if tonumber( readyState[3][i] ) > 0 then
-					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>" .. 
-						self.Instruments_List[tonumber( readyState[3][i] )][1] .. "</rgb>]" );
+					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>" ..
+						InstrumentManager.GetName(tonumber( readyState[3][i] )) .. "</rgb>]" );
 				else
 					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>No Instrument</rgb>]" );
 				end
 			end
-			
+
 			for i = 0, readyState[7]-1 do
 				if tonumber( readyState[6][i] ) > 0 then
-					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>" .. 
-						self.Instruments_List[tonumber( readyState[6][i] )][1] .. "</rgb>]" );
+					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>" ..
+						InstrumentManager.GetName(tonumber( readyState[6][i] )) .. "</rgb>]" );
 				else
 					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>No Instrument</rgb>]" );
 				end
@@ -3684,18 +3475,18 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 	end
 	
 	if numberOfCorrectStates == trackcount then
-		SyncStartWindow_ShowFlag = 0;
+		SyncManager.syncStartReady = true;
 		self.syncStartSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_start"] );
 		self.syncStartSlot:SetShortcut( self.syncStartSlotShortcut );
 		self.syncStartSlot:SetVisible( true );
 	else
-		SyncStartWindow_ShowFlag = 1;
+		SyncManager.syncStartReady = false;
 		SyncStartWindow.Message:SetText("Some parts don't have correct state. Do you want to start?");
 		SyncStartWindow.YesSlot:SetVisible( true );
 		SyncStartWindow.NoSlot:SetVisible( true );
 		SyncStartWindow.YesIcon:SetVisible( true );
 		SyncStartWindow.NoIcon:SetVisible( true );
-		
+
 		self.syncStartSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Undefined , "" );
 		self.syncStartSlot:SetShortcut( self.syncStartSlotShortcut );
 		self.syncStartSlot:SetVisible( true );
@@ -3714,56 +3505,63 @@ function SongbookWindow:PlayerSyncInfo()
 
 	local equippedInstrument_Index = self:UpdatePlayerTitle();
 	if equippedInstrument_Index == nil then return; end
-	local Track_Instrument = self:FindInstrumentInTrack( Track_Name );
+	local Track_Instrument = InstrumentManager.FindInstrumentInTrack( Track_Name );
 	local Track_Instrument_Index = Track_Instrument[0];
-	local CorrectInstrument = self:CompareInstrument (equippedInstrument_Index, Track_Instrument_Index);
-	
+	local CorrectInstrument = InstrumentManager.CompareInstrument(equippedInstrument_Index, Track_Instrument_Index);
+	if CorrectInstrument == 0 then
+		self.syncIcon:SetBackground(gDir .. "icn_s_f.tga");
+		SyncManager.correctInstrument = false;
+	else
+		self.syncIcon:SetBackground(gDir .. "icn_s.tga");
+		SyncManager.correctInstrument = true;
+	end
+
 	-------------------------------------------------------
-	
+
 	local CorrectSongAndTrack = 1;
-	if SongLibrary.selectedSongIndex ~= syncedSongIndex or SongLibrary.selectedTrack ~= syncedTrack then
+	if SongLibrary.selectedSongIndex ~= SyncManager.syncedSongIndex or SongLibrary.selectedTrack ~= SyncManager.syncedTrack then
 		CorrectSongAndTrack = 0;
 	end
-	
+
 	local Party = self.playerInstance:GetParty();
 	local PartyMemberCount = 0;
 	if Party ~= nil then PartyMemberCount = Party:GetMemberCount(); end
-	
 
-	if self.UseFellowshipChat then
-		Chatchannel = "/f";
+
+	if SyncManager.useFellowshipChat then
+		SyncManager.chatChannel = "/f";
 		self.MessageTitle:SetText("SongBook is using Fellowship channel");
 	else
-	if self.UseRaidChat then
-		Chatchannel = "/ra";
+	if SyncManager.useRaidChat then
+		SyncManager.chatChannel = "/ra";
 		self.MessageTitle:SetText("SongBook is using Raid channel");
 	else
-		if UserChatNumber ~= 0 and UserChatNumber ~= nil then
-			Chatchannel = "/" .. UserChatNumber;
-			self.MessageTitle:SetText("SongBook is using User Chat channel " .. UserChatNumber .. " - " .. UserChatName);
+		if SyncManager.userChatNumber ~= 0 and SyncManager.userChatNumber ~= nil then
+			SyncManager.chatChannel = "/" .. SyncManager.userChatNumber;
+			self.MessageTitle:SetText("SongBook is using User Chat channel " .. SyncManager.userChatNumber .. " - " .. SyncManager.userChatName);
 		else
-			if PartyMemberCount > 6 or GroupIsRaid == 1 then
-				Chatchannel = "/ra";
-				if PlayerCantUseUserChat_Message == 0 then
+			if PartyMemberCount > 6 or SyncManager.isRaid then
+				SyncManager.chatChannel = "/ra";
+				if not SyncManager.userChatBlocked then
 					self.MessageTitle:SetText("SongBook is using Raid channel");
-				elseif PlayerCantUseUserChat_Message == 1 then
+				else
 					songbookWindow.MessageTitle:SetText("Low level to use User chat. Now using Raid channel");
 				end
 			elseif PartyMemberCount > 1 then
-				Chatchannel = "/f";
-				if PlayerCantUseUserChat_Message == 0 then 
+				SyncManager.chatChannel = "/f";
+				if not SyncManager.userChatBlocked then
 					self.MessageTitle:SetText("SongBook is using Fellowship channel");
-				elseif PlayerCantUseUserChat_Message == 1 then
+				else
 					songbookWindow.MessageTitle:SetText("Low level to use User chat. Now using Fellowship channel");
 				end
 			end
 		end
 	end
 	end
-	
-	if CorrectSongAndTrack == 1 and PlayerSynced == 1 then
-	
-		self.sendSyncInfoSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Chatchannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filename .. "|" .. Track_Name .. "|" .. PlayerSynced .. "|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|" .. SongLibrary.selectedSongIndexListBox .. "|" .. SongLibrary.selectedSongIndex .. "|" .. SongLibrary.selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>");
+
+	if CorrectSongAndTrack == 1 and SyncManager.localPlayerSynced then
+
+		self.sendSyncInfoSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, SyncManager.chatChannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filename .. "|" .. Track_Name .. "|1|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|" .. SongLibrary.selectedSongIndexListBox .. "|" .. SongLibrary.selectedSongIndex .. "|" .. SongLibrary.selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>");
 		self.sendSyncInfoSlot:SetShortcut( self.sendSyncInfoSlotShortcut );
 		self.sendSyncInfoSlot:SetVisible( true );
 	else
@@ -3834,7 +3632,7 @@ function SongbookWindow:GetBackColourForTrack( readyState, playerName , readySta
 	if readyState8 >= 1 then
 		if playerName == "LocalPlayer" then
 			return self.backColour_synced_multiple;
-		elseif readyState == 10 and playerName == self.sPlayerName then
+		elseif readyState == 10 and playerName == SyncManager.localPlayerName then
 			return self.backColour_synced_multiple;
 		elseif readyState8 > 1 then
 			return self.backColour_synced_multiple;
@@ -3868,7 +3666,7 @@ function SongbookWindow:GetBackColourForTrack( readyState, playerName , readySta
 	elseif readyState == 6 then
 		--return self.backColourWrongInstrument_ready;
 		return self.backColourDefault;
-	elseif readyState == 10 and playerName == self.sPlayerName then
+	elseif readyState == 10 and playerName == SyncManager.localPlayerName then
 		--return self.backColourHighlight_self;
 		return self.backColourHighlight;
 	else
@@ -3877,495 +3675,6 @@ function SongbookWindow:GetBackColourForTrack( readyState, playerName , readySta
 	--if self.bInstrumentOk then return self.backColourHighlight; end
 	--return self.backColourWrongInstrument
 end	
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--- Handler for chat messages to indicate players readying tracks
-function ChatHandler( sender, args )
-	local sMessage = args.Message;
-	if sMessage == nil or songbookWindow == nil then return; end
-	
-	if args.ChatType == Turbine.ChatType.Error then
-		if string.find( sMessage, "You are not in a Raid." ) ~= nil then
-			songbookWindow.MessageTitle:SetText("You are not in a Raid.");
-			GroupIsRaid = 0;
-		end
-		
-		return;
-	end
-	
-	if( args.ChatType == Turbine.ChatType.UserChat1 or args.ChatType == Turbine.ChatType.UserChat2  or
-		args.ChatType == Turbine.ChatType.UserChat3 or args.ChatType == Turbine.ChatType.UserChat4  or
-		args.ChatType == Turbine.ChatType.UserChat5 or args.ChatType == Turbine.ChatType.UserChat6  or
-		args.ChatType == Turbine.ChatType.UserChat7 or args.ChatType == Turbine.ChatType.UserChat8  or
-		args.ChatType == Turbine.ChatType.Raid		or args.ChatType == Turbine.ChatType.Fellowship	
-	) then
-		
-		if string.find( sMessage, "raid chat is now available." ) ~= nil then
-			GroupIsRaid = 1;
-			Chatchannel = "/ra";
-			songbookWindow:PlayerSyncInfo();
-			return;
-		end
-		
-		if string.find( sMessage, "You left room '" .. UserChatName .. "'" ) ~= nil then
-			UserChatNumber = 0;
-			CharSettings.UserChatNumber = 0;
-			songbookWindow:PlayerSyncInfo();
-			return;
-		end
-		
-		if  string.match( sMessage, "uc(%d+): '" .. UserChatName .. "'" ) ~= nil then 
-			UserChatNumber =  string.match( sMessage, "uc(%d+): '" .. UserChatName .. "'" );
-			CharSettings.UserChatNumber = UserChatNumber;
-			songbookWindow:PlayerSyncInfo();
-			return;
-		end
-		
-		if string.find( sMessage, "@SBL" ) then
-			
-			local sPlayerName, Filename, TrackName, SyncStatus, CorrectSongAndTrack, NumberOfParts, SongIndexListBox, SongIndex_OtherPlayer, TrackIndex, neededInstrument, equippedInstrument_Index, CorrectInstrument = string.match( sMessage, '|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|' );
-			
-			--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-			local PlayerIsInParty_Flag = 0;
-			
-			if( songbookWindow.aPlayers ~= nil ) then
-				for k,v in pairs( songbookWindow.aPlayers ) do
-					if k == sPlayerName then
-						PlayerIsInParty_Flag = 1;
-						break;
-					end
-				end
-			end
-			
-			if PlayerIsInParty_Flag == 0 then return; end
-			
-			--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-			
-			local SongIndex = SongLibrary.FindSongByMatch(Filename, TrackName, NumberOfParts) ;
-			
-			if sPlayerName ~= nil then
-				
-				OtherPlayer_Synced = 0;
-				if sPlayerName ~= songbookWindow.sPlayerName then
-					songbookWindow:Update_syncMessage(SongIndex, sPlayerName, TrackName);
-				end
-				
-				if not songbookWindow.aPlayers[ sPlayerName ] then --- Player not yet registered 
-					songbookWindow.nPlayers = songbookWindow.nPlayers + 1;
-					songbookWindow:AddPlayerToList( sPlayerName ); -- add to player listbox
-					songbookWindow:UpdateMaxPartCount( );
-				end
-				
-				songbookWindow.aPlayers[ sPlayerName ] = "|" .. sPlayerName .. "|" .. SyncStatus .. "|" .. CorrectSongAndTrack .. "|" .. SongIndex[0] .. "|" .. TrackIndex .. "|" .. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|"; -- and to player array with the track info
-				
-				songbookWindow.Players_Data[ sPlayerName ] = SongIndex;
-				
-				songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-				songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
-				songbookWindow:SetPlayerColours( );
-				songbookWindow:UpdateSetupColours( );
-			end
-		end
-		
-		return;
-	end
-	
-  -----------------------------------------------------------------------------------
-
-	if( args.ChatType ~= Turbine.ChatType.Standard ) then
-		return; -- Player ready messages appear in the standard chat
-	end
-	
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	if string.find( sMessage, "You have joined a Fellowship." ) ~= nil then
-		songbookWindow.playerInstance = Turbine.Gameplay.LocalPlayer:GetInstance( );
-		local Party = songbookWindow.playerInstance:GetParty();
-		local PartyMemberCount = 0;
-		if Party ~= nil then PartyMemberCount = Party:GetMemberCount(); end
-		
-		if PartyMemberCount > 1 then
-			for i = 1, PartyMemberCount do
-				local PartyMember = Party:GetMember(i);
-				local MemberName  = PartyMember:GetName();
-				if songbookWindow.aPlayers[ MemberName ] == nil then songbookWindow:AddPlayer( MemberName ); end
-			end
-		end
-		
-		--songbookWindow.MessageTitle:SetText("You have joined a Fellowship.");
-		Chatchannel = "/f";
-		GroupIsRaid = 0;
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-	if string.find( sMessage, "You have joined a Raid." ) ~= nil then
-		songbookWindow.playerInstance = Turbine.Gameplay.LocalPlayer:GetInstance( );
-		local Party = songbookWindow.playerInstance:GetParty();
-		local PartyMemberCount = 0;
-		if Party ~= nil then PartyMemberCount = Party:GetMemberCount(); end
-		
-		if PartyMemberCount > 1 then
-			for i = 1, PartyMemberCount do
-				local PartyMember = Party:GetMember(i);
-				local MemberName  = PartyMember:GetName();
-				if songbookWindow.aPlayers[ MemberName ] == nil then songbookWindow:AddPlayer( MemberName ); end
-			end
-		end
-		
-		--songbookWindow.MessageTitle:SetText("You have joined a Raid.");
-		GroupIsRaid = 1;
-		Chatchannel = "/ra";
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-	if string.find( sMessage, "You joined room '" .. UserChatName .. "'" ) ~= nil then
-		UserChatNumber = string.match( sMessage, 'UserChat(%d+)' );
-		CharSettings.UserChatNumber = UserChatNumber;
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-	if string.find( sMessage, "You are already in room '" .. UserChatName .. "'" ) ~= nil then
-		songbookWindow.MessageTitle:SetText("You are already in room '" .. UserChatName .. "'. Use recover button to find it.");
-		return;
-	end
-	
-	if string.find( sMessage, "You are not in room '" .. UserChatName .. "'" ) ~= nil then
-		UserChatNumber = 0;
-		CharSettings.UserChatNumber = 0;
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-	if string.find( sMessage, "You are already in 8 rooms, which is the maximum allowed" ) ~= nil then
-		songbookWindow.MessageTitle:SetText("You are already in 8 rooms, which is the maximum allowed");
-		return;
-	end
-	
-	if string.find( sMessage, "You haven't played this character for long enough to use this chat channel." ) ~= nil then
-		UserChatNumber = 0;
-		CharSettings.UserChatNumber = 0;
-		PlayerCantUseUserChat_Message = 1;
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-	if string.find( sMessage, "Your Raid has been disbanded." ) ~= nil then
-		songbookWindow.MessageTitle:SetText("Your Raid has been disbanded.");
-		Chatchannel = "/f";
-		GroupIsRaid = 0;
-		return;
-	end
-	
-	if string.find( sMessage, "dismiss" ) ~= nil then
-		if string.find( sMessage, "You have been dismissed from your" ) ~= nil then
-			songbookWindow.MessageTitle:SetText("You have been dismissed.");
-			Chatchannel = "/f";
-			GroupIsRaid = 0;
-			return;
-		end
-		
-		if string.find( sMessage, "You dismiss" ) ~= nil then
-			local temp, sPlayerName;
-			temp, temp, sPlayerName = string.find( sMessage, "You dismiss (%a+)" );
-			if sPlayerName then songbookWindow:RemovePlayer( sPlayerName ); end
-			
-			songbookWindow:PlayerSyncInfo();
-		
-			local PartyMemberCount = 0;
-			if( songbookWindow.aPlayers ~= nil ) then
-				for k,v in pairs( songbookWindow.aPlayers ) do
-					PartyMemberCount = PartyMemberCount + 1;
-				end
-			end
-			
-			if PartyMemberCount == 1 then
-				songbookWindow.MessageTitle:SetText("You dismiss party.");
-				Chatchannel = "/f";
-				GroupIsRaid = 0;
-				return;
-			end
-			
-			return;
-		end
-		
-		local temp, sPlayerName;
-		temp, temp, sPlayerName = string.find( sMessage, "(%a+) has been dismissed from your" );
-		if sPlayerName then songbookWindow:RemovePlayer( sPlayerName ); end
-		songbookWindow:PlayerSyncInfo();
-		return;
-	end
-	
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	if string.find( sMessage, Strings["chat_playBegin"] ) ~= nil or string.find( sMessage, Strings["chat_playBeginSelf"] ) ~= nil then
-		
-		local temp, temp, TrackName = string.find( sMessage, Strings["chat_playBeginSelf"] .. "\"(.+).\".*" );
-		if TrackName then
-			Synced_Song_TrackName = TrackName;
-		end
-		songbookWindow:SongStarted( );
-		return;
-	end
-
-	if string.find( sMessage, Strings["chat_playerJoin"] ) ~= nil then
-		songbookWindow:PlayerJoined( sMessage );
-		return;
-	end
-	if string.find( sMessage, Strings["chat_playerLeave"] ) ~= nil then
-		songbookWindow:PlayerLeft( sMessage );
-		return;
-	end
-	
-	local temp, sPlayerName, sTrackName;
-	temp, temp, sPlayerName, sTrackName = string.find( sMessage, Strings["chat_playReadyMsg"] );
-	if not sPlayerName or not sTrackName then
-		sPlayerName = songbookWindow.sPlayerName;
-		temp, temp, sTrackName = string.find( sMessage, Strings["chat_playSelfReadyMsg"] );
-	end
-	
-	-- if sTrackName then
-		-- Synced_Song_TrackName = sTrackName;
-	-- end
-	
-	if sPlayerName and sTrackName and songbookWindow.aPlayers then
-		if sPlayerName == songbookWindow.sPlayerName and songbookWindow.sPlayerName then
-			
-			Synced_Song_TrackName = sTrackName;
-			
-			--songbookWindow.aPlayers_sync_msg[ songbookWindow.sPlayerName ] = sTrackName;
-			--songbookWindow.aPlayers[ songbookWindow.sPlayerName ] = "|sync_msg|" .. sTrackName .. "|";
-			songbookWindow.aPlayers[ songbookWindow.sPlayerName ] = sTrackName;
-			
-			--local SongIndex = SongLibrary.FindSongByTrackName(sTrackName);
-			--OtherPlayer_Synced = 1;
-			--songbookWindow:Update_syncMessage(SongIndex, sPlayerName, sTrackName);
-			
-			songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-			songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
-			songbookWindow:SetPlayerColours( );
-			songbookWindow:UpdateSetupColours( );
-			PlayerSynced = 1;
-			songbookWindow:PlayerSyncInfo();
-		else
-			if songbookWindow.aPlayers[ sPlayerName ] ~= nil then
-				
-				--songbookWindow.aPlayers_sync_msg[ sPlayerName ] = sTrackName;
-				--songbookWindow.aPlayers[ sPlayerName ] = "|sync_msg|" .. sTrackName .. "|";
-				songbookWindow.aPlayers[ sPlayerName ] = sTrackName;
-				
-				local SongIndex = SongLibrary.FindSongByTrackName(sTrackName);
-				OtherPlayer_Synced = 1;
-				songbookWindow:Update_syncMessage(SongIndex, sPlayerName, sTrackName);
-				
-				songbookWindow:SetListboxColours( songbookWindow.songlistBox );
-				songbookWindow:SetTrackColours( SongLibrary.selectedTrack );
-				songbookWindow:SetPlayerColours( );
-				songbookWindow:UpdateSetupColours( );
-			end
-		end
-	end
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- Return a track state indicator: 
--- nil = track not ready, name of a player = ready by this player, 0 = ready by more than one player
-function SongbookWindow:GetTrackReadyState( sSongIndex, sTrackIndex,  indicator )
-	local ReadyState = {};
-	ReadyState[0] = nil;
-	ReadyState[1] = nil;
-	ReadyState[2] = nil;
-	ReadyState[3] = nil;
-	ReadyState[4] = nil;
-	ReadyState[5] = nil;
-	ReadyState[6] = nil;
-	ReadyState[7] = nil;
-	ReadyState[8] = nil;
-	ReadyState[9] = nil;
-	local readyIndicator = 1;
-	if indicator then readyIndicator = indicator; end
-	
-	local SyncedPlayersCounter = 0;
-	local SyncedPlayersNames = {};
-	local ReadyPlayersCounter = 0;
-	local ReadyPlayersNames = {};
-	local ReadyPlayersEquippedInstrument_Index = {};
-	local WrongPlayersCounter = 0;
-	local WrongPlayersNames = {};
-	local WrongPlayersEquippedInstrument_Index = {};
-	
-	local SyncedPlayer = 0;
-	
-	if( self.aPlayers ~= nil ) then
-		for k,v in pairs( self.aPlayers ) do
-			
-			v = string.gsub( v, "%s+", "" );
-			
-			local sPlayerName, SyncStatus, CorrectSongAndTrack, SongIndex, TrackIndex, equippedInstrument_Index, CorrectInstrument =  string.match( v, '|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|' );
-			
-			local Track_Name = SongDB.Songs[sSongIndex].Tracks[sTrackIndex].Name;
-			
-			if string.gsub( string.sub( Track_Name, 1, 63 ) , "%s+", "" ) == v or
-			   string.gsub( string.sub( Track_Name, 1, -2 ) , "%s+", "" ) == v
-			then
-				SyncedPlayersNames[SyncedPlayersCounter] = k;
-				SyncedPlayersCounter = SyncedPlayersCounter + 1;
-			end
-						
-			local SongIndex_Synced = 0;
-			
-			if self.Players_Data[ k ] ~= nil then
-			if self.Players_Data[ k ] ~= 0 then
-			if self.Players_Data[ k ][0] ~= 0 then
-				for i = 1, self.Players_Data[ k ][0] do
-					if sSongIndex == self.Players_Data[ k ][i] then
-						SongIndex_Synced = 1;
-					end
-				end
-			end
-			end
-			end
-			
-			if SongIndex_Synced == 1 and sTrackIndex == tonumber(TrackIndex) and
-			   tonumber(CorrectSongAndTrack) == 1 and tonumber(SyncStatus) == 1 then
-				
-				if sPlayerName == songbookWindow.sPlayerName then
-					ReadyState[1] = "LocalPlayer";
-				end
-
-				if tonumber(CorrectInstrument) == 1 then
-					ReadyPlayersNames[ReadyPlayersCounter] = k;
-					ReadyPlayersEquippedInstrument_Index[ReadyPlayersCounter] = equippedInstrument_Index;
-					ReadyPlayersCounter = ReadyPlayersCounter + 1;
-				else
-					WrongPlayersNames[WrongPlayersCounter] = k;
-					WrongPlayersEquippedInstrument_Index[WrongPlayersCounter] = equippedInstrument_Index;
-					WrongPlayersCounter = WrongPlayersCounter + 1;
-				end
-			else
-				if sSongIndex == syncedSongIndex and  sTrackIndex == syncedTrack and k == songbookWindow.sPlayerName then
-					
-					--------------------------------------------------------------------
-					local Track_Name = SongDB.Songs[sSongIndex].Tracks[sTrackIndex].Name; 
-
-					local equippedInstrument_Index = self:UpdatePlayerTitle();
-					local Track_Instrument = self:FindInstrumentInTrack( Track_Name );
-					local Track_Instrument_Index = Track_Instrument[0];
-					local CorrectInstrument = self:CompareInstrument (equippedInstrument_Index, Track_Instrument_Index);
-					
-					-------------------------------------------------------
-					
-					if CorrectInstrument == 1 then
-						SyncedPlayer = 1;
-					else
-						SyncedPlayer = 2;
-					end
-				end
-			end
-		end
-	end
-	
-	if ReadyPlayersCounter == 1 and SyncedPlayer == 0 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 10;
-		self.aCurrentSongReady[ ReadyPlayersNames[0] ] = readyIndicator;
-	elseif ReadyPlayersCounter > 1 and SyncedPlayer == 0 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 0;
-		for i = 0, ReadyPlayersCounter-1, 1 do
-			self.aCurrentSongReady[ ReadyPlayersNames[i] ] = 2;
-		end
-	elseif WrongPlayersCounter == 1 and ReadyPlayersCounter == 0 and SyncedPlayer == 0 then
-		ReadyState[0] = 5;
-	elseif WrongPlayersCounter >= 1 and ReadyPlayersCounter >= 0 and SyncedPlayer == 0 then
-		ReadyState[0] = 4;
-	elseif SyncedPlayer == 1 and ReadyPlayersCounter == 0 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 1;
-	elseif SyncedPlayer == 1 and ReadyPlayersCounter >= 1 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 2;
-	elseif SyncedPlayer == 1 and ReadyPlayersCounter >= 0 and WrongPlayersCounter >= 1 then
-		ReadyState[0] = 6;
-	elseif SyncedPlayer == 2 and ReadyPlayersCounter >= 1 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 6;
-	elseif SyncedPlayer == 2 and ReadyPlayersCounter >= 0 and WrongPlayersCounter >= 1 then
-		ReadyState[0] = 6;
-	elseif SyncedPlayer == 2 and ReadyPlayersCounter == 0 and WrongPlayersCounter == 0 then
-		ReadyState[0] = 3;
-	end
-	
-	
-	ReadyState[2] = ReadyPlayersNames;
-	ReadyState[3] = ReadyPlayersEquippedInstrument_Index;
-	ReadyState[4] = ReadyPlayersCounter;
-	ReadyState[5] = WrongPlayersNames;
-	ReadyState[6] = WrongPlayersEquippedInstrument_Index;
-	ReadyState[7] = WrongPlayersCounter;
-	
-	ReadyState[8] = SyncedPlayersCounter;
-	ReadyState[9] = SyncedPlayersNames;
-	
-	return ReadyState;
-end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function SongbookWindow:GetSongReadyState( sSongIndex )
-	local ReadyState = {};
-	ReadyState[0] = nil;
-	ReadyState[1] = nil;
-
-	local ReadyPlayersCounter = 0;
-	local ReadyPlayersNames = {};
-	
-	local SyncedPlayer = 0;
-			
-	if( self.aPlayers ~= nil ) then
-		for k,v in pairs( self.aPlayers ) do
-			
-			v = string.gsub( v, "%s+", "" );
-			
-			local sPlayerName, SyncStatus, CorrectSongAndTrack, SongIndex, TrackIndex, equippedInstrument_Index, CorrectInstrument =  string.match( v, '|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|' );
-			
-					
-			local SongIndex_Synced = 0;
-			
-			if self.Players_Data[ k ] ~= nil then
-			if self.Players_Data[ k ] ~= 0 then
-			if self.Players_Data[ k ][0] ~= 0 then
-				for i = 1, self.Players_Data[ k ][0] do
-					if sSongIndex == self.Players_Data[ k ][i] then
-						SongIndex_Synced = 1;
-					end
-				end
-			end
-			end
-			end
-			
-			if SongIndex_Synced == 1 and tonumber(SyncStatus) == 1 then
-			   
-				if sPlayerName == songbookWindow.sPlayerName then
-					ReadyState[1] = "LocalPlayer";
-				end
-				
-				ReadyPlayersNames[ReadyPlayersCounter] = k;
-				ReadyPlayersCounter = ReadyPlayersCounter + 1;
-			end
-		end
-	end
-	
-	if ReadyPlayersCounter == 1 then
-		ReadyState[0] = 10;
-		--ReadyState[1] = ReadyPlayersNames[0];
-	elseif ReadyPlayersCounter > 1 then
-		ReadyState[0] = 0;
-	end
-	
-	return ReadyState;
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4473,223 +3782,64 @@ end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:UserChatNameChange( Text )
-	
-	Settings.UserChatName = string.upper (Text);
-	UserChatName = string.upper (Text);
-	
-	self.joinUserChatSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, "/joinchannel " .. UserChatName );
-	self.joinUserChatSlot:SetShortcut( self.joinUserChatSlotShortcut );
-	self.joinUserChatSlot:SetVisible( true );
+	SyncManager.SetUserChatName(Text)
+	self.joinUserChatSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, "/joinchannel " .. SyncManager.userChatName )
+	self.joinUserChatSlot:SetShortcut( self.joinUserChatSlotShortcut )
+	self.joinUserChatSlot:SetVisible( true )
 end
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function SongbookWindow:FindInstrumentInTrack( Track_Name )
-	local Track_Instrument = {};
-	local Track_Instrument_Index = 0;
-	local Track_Instrument_Name = "";
-	
-	local Track_Name_lowercase = string.lower(Track_Name);
-	local found_Instruments = {};
-	local found_Instruments_startIndex = {};
-	local found_Instruments_count = 0;
-	
-	if  Track_Name == nil then return; end
-		
-	for k,v in pairs( self.Instruments_Names_inTrack ) do
-		for k2,v2 in pairs( self.Instruments_Names_inTrack[k] ) do
-			local startIndex = string.find( Track_Name_lowercase, string.lower(self.Instruments_Names_inTrack[k][k2]) );
-			if startIndex then
-				found_Instruments_count = found_Instruments_count + 1;
-				found_Instruments[found_Instruments_count] = k;
-				found_Instruments_startIndex[found_Instruments_count] = startIndex;
-				break;
-			end
-		end
+function SongbookWindow:UpdatePlayerTitle()
+	local equippedIndex, instrumentName = InstrumentManager.GetEquippedInstrument()
+	local player = Turbine.Gameplay.LocalPlayer:GetInstance()
+	if not player then return end
+	self.Player_Name = player:GetName()
+	if not self.Player_Name then return end
+	self.playerInstance = player
+
+	if not equippedIndex then
+		self.PlayerTitle:SetText(self.Player_Name .. " - No Instrument Equipped")
+		return
 	end
-	
-	if found_Instruments_count > 1 then
-		local startIndex = -1;
-		for i = 1, found_Instruments_count do
-			if found_Instruments_startIndex[i] > startIndex then
-				startIndex = found_Instruments_startIndex[i];
-				
-				Track_Instrument_Index = found_Instruments[i];
-				Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index][1];
-			end
-		end
-	elseif found_Instruments_count == 1 then
-		Track_Instrument_Index = found_Instruments[1];
-		Track_Instrument_Name = self.Instruments_List[Track_Instrument_Index][1];
-	end
-	
-	if Track_Instrument_Index == 0 then
-		if string.find( Track_Name_lowercase, "harp" ) then
-			Track_Instrument_Index = 1;
-			Track_Instrument_Name = "Basic Harp";
-		elseif string.find( Track_Name_lowercase, "lute" ) then
-			Track_Instrument_Index = 103;
-			Track_Instrument_Name = "Basic Lute";
-		elseif string.find( Track_Name_lowercase, "fiddle" ) or
-			   string.find( Track_Name_lowercase, "fiddl" )
-			then
-			Track_Instrument_Index = 108;
-			Track_Instrument_Name = "Basic Fiddle";
-		elseif string.find( Track_Name_lowercase, "bassoon" ) or
-			   string.find( Track_Name_lowercase, "basoon" ) or
-			   string.find( Track_Name_lowercase, "basson" )
-			then
-			Track_Instrument_Index = 13;
-			Track_Instrument_Name = "Basic Bassoon";
-		end
-	end
-		
-	Track_Instrument[0] = Track_Instrument_Index;
-	Track_Instrument[1] = Track_Instrument_Name;
-	
-	return Track_Instrument;
+	self.PlayerTitle:SetText(self.Player_Name .. " - " .. instrumentName)
+	return equippedIndex
 end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function SongbookWindow:UpdatePlayerTitle ( )
-	self.playerInstance = Turbine.Gameplay.LocalPlayer:GetInstance( );
-	self.playerEquipment = self.playerInstance:GetEquipment( );
-	self.playerInstrument = self.playerEquipment:GetItem( Turbine.Gameplay.Equipment.Instrument );
-			
-	if not self.playerInstrument then return; end
-	self.playerInstrumentName = self.playerInstrument:GetName( );
-	if not self.playerInstrumentName then return; end
-
-	self.Player_Name = self.playerInstance:GetName();
-	if not self.Player_Name then return; end
-
-	-------------------------------------------------------
-	local equippedInstrument_Index = 0;
-	for k,v in pairs( self.Instruments_List ) do
-		for k2,v2 in pairs(v) do
-			if v2 == self.playerInstrumentName then
-				equippedInstrument_Index = k;
-				break;
-			end
-		end
-	end
-	
-	local playerInstrumentName = string.lower(self.playerInstrumentName);
-	if equippedInstrument_Index == 0 then
-		if string.find( playerInstrumentName , "harp" ) then
-			equippedInstrument_Index = 1;
-		elseif string.find( playerInstrumentName , "flute" ) then
-			equippedInstrument_Index = 17;
-		elseif string.find( playerInstrumentName , "lute" ) then
-			equippedInstrument_Index = 3;
-		elseif string.find( playerInstrumentName , "theorbo" ) then
-			equippedInstrument_Index = 5;
-		elseif string.find( playerInstrumentName , "fiddle" ) then
-			equippedInstrument_Index = 8;
-		elseif string.find( playerInstrumentName , "bagpipe" ) then
-			equippedInstrument_Index = 12;
-		elseif string.find( playerInstrumentName , "bassoon" ) then
-			equippedInstrument_Index = 13;
-		elseif string.find( playerInstrumentName , "clarinet" ) then
-			equippedInstrument_Index = 16;
-		elseif string.find( playerInstrumentName , "horn" ) then
-			equippedInstrument_Index = 18;
-		elseif string.find( playerInstrumentName , "pibgorn" ) then
-			equippedInstrument_Index = 19;
-		elseif string.find( playerInstrumentName , "cowbell" ) then
-			equippedInstrument_Index = 21;
-		elseif string.find( playerInstrumentName , "drum" ) then
-			equippedInstrument_Index = 22;
-		end
-	end
-	
-	if equippedInstrument_Index ~= 0 then
-		self.PlayerTitle:SetText(self.Player_Name .. " - " .. self.playerInstrumentName);
-	else
-		self.PlayerTitle:SetText(self.Player_Name .. " - No Instrument Equipped");
-	end
-	-------------------------------------------------------
-	
-	return equippedInstrument_Index;
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function SongbookWindow:CompareInstrument (equippedInstrument_Index, Track_Instrument_Index, skipUpdateIcon)
-	
-	local CorrectInstrument = 0;
-	
-	if equippedInstrument_Index ~= 0 then
-		if Track_Instrument_Index ~= 0 then
-			if Track_Instrument_Index == equippedInstrument_Index then
-				CorrectInstrument = 1;
-			elseif Track_Instrument_Index == 103 then
-				if equippedInstrument_Index == 3 or equippedInstrument_Index == 4 then
-					CorrectInstrument = 1;
-				end
-			elseif Track_Instrument_Index == 108 then
-				if equippedInstrument_Index == 8 or equippedInstrument_Index == 9 then
-					CorrectInstrument = 1;
-				end
-			end
-		else
-			CorrectInstrument = 1;
-		end
-	else
-		CorrectInstrument = 0;
-	end
-
-	if skipUpdateIcon == true then
-		return CorrectInstrument;
-	end
-	
-	if CorrectInstrument == 0 then
-		self.syncIcon:SetBackground(gDir .. "icn_s_f.tga");
-		syncSlot_Correct_Instrument = 0;
-	else
-		self.syncIcon:SetBackground(gDir .. "icn_s.tga");
-		syncSlot_Correct_Instrument = 1;
-	end
-	
-	-------------------------------------------------------
-	
-	return CorrectInstrument;
-end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
-	
-	Multiple_songs_match_Synced = 0;
+
+	SyncManager.multipleSongsMatch = false;
 	MatchedSongsWindow:SetVisible(false);
-	
+
 	if SongIndex[0] > 1 and not Settings.hideMatchedSongsPopup then
-		YouDontHaveTheSameSong_Flag = 0;
-		if PlayerName == songbookWindow.sPlayerName then
+		SyncManager.missingMatchedSong = false;
+		if PlayerName == SyncManager.localPlayerName then
 			-- OtherPlayer_SyncedSong_Index = SongLibrary.selectedSongIndex;
-			-- OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
-			-- OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
-			
-			-- self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. " " .. OtherPlayer_SyncedSong_Filename);
-			
-			-- if OtherPlayer_Synced == 0 then
+			-- SyncManager.otherPlayerSong.filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
+			-- SyncManager.otherPlayerSong.filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
+
+			-- self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. " " .. SyncManager.otherPlayerSong.filename);
+
+			-- if not SyncManager.otherPlayerSynced then
 				-- self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 			-- else
 				-- self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 			-- end
-			
+
 			-- self.syncMessageTitle:SetVisible(false);
 		else
 			--MatchedSongsIndex = SongIndex;
-			Multiple_songs_match_Synced = 1;
+			SyncManager.multipleSongsMatch = true;
 			self.syncMessageTitle:SetText(PlayerName .. "-> " .. TrackName .. " - Multiple songs match");
-			if OtherPlayer_Synced == 0 then
+			if not SyncManager.otherPlayerSynced then
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 			else
 				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 			end
 			self.syncMessageTitle:SetVisible(true);
-			
+
 			MatchedSongsListbox:ClearItems( );
 			for i = 1, SongIndex[0] do
 				local SongItem = Turbine.UI.Label();
@@ -4697,7 +3847,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				SongItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
 				SongItem:SetSize( 2000, 20 );
 				SongItem:SetMarkupEnabled(true);
-				if OtherPlayer_Synced == 0 then
+				if not SyncManager.otherPlayerSynced then
 					SongItem:SetForeColor( self.colour_syncMessageTitle );
 				else
 					SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
@@ -4705,10 +3855,10 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				SongItem:SetBackColor( self.backColourDefault );
 				SongItem:SetText( SongDB.Songs[SongIndex[i]].Filepath .. " " .. SongDB.Songs[SongIndex[i]].Filename );
 				MatchedSongsListbox:AddItem( SongItem );
-				
+
 				SongItem.MouseEnter = function(sender, args)
 					if SongItem:IsVisible() then
-						if OtherPlayer_Synced == 0 then
+						if not SyncManager.otherPlayerSynced then
 							SongItem:SetForeColor( self.colour_syncMessageTitle_Highlighted );
 						else
 							SongItem:SetForeColor( self.colour_syncMessageTitle_Highlighted_OnlySynced );
@@ -4717,7 +3867,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				end
 				SongItem.MouseLeave = function(sender, args)
 					if SongItem:IsVisible() then
-						if OtherPlayer_Synced == 0 then
+						if not SyncManager.otherPlayerSynced then
 							SongItem:SetForeColor( self.colour_syncMessageTitle );
 						else
 							SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
@@ -4726,7 +3876,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				end
 				SongItem.MouseDown = function(sender,args)
 					if SongItem:IsVisible() then
-						if OtherPlayer_Synced == 0 then
+						if not SyncManager.otherPlayerSynced then
 							SongItem:SetForeColor( self.colour_syncMessageTitle_MouseDown );
 						else
 							SongItem:SetForeColor( self.colour_syncMessageTitle_MouseDown_OnlySynced );
@@ -4735,14 +3885,14 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				end
 				SongItem.MouseUp = function(sender,args)
 					if SongItem:IsVisible() then
-						if OtherPlayer_Synced == 0 then
+						if not SyncManager.otherPlayerSynced then
 							SongItem:SetForeColor( self.colour_syncMessageTitle );
 						else
 							SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 						end
-						
+
 						SelectedMatchedSong_Index = SongIndex[i];
-	
+
 						songbookWindow:SelectDir( nil, SongDB.Songs[SelectedMatchedSong_Index].Filepath );
 						songbookWindow:SelectSong(SelectedMatchedSong_IndexListBox);
 						local selectedItem = songbookWindow.songlistBox:GetItem( SelectedMatchedSong_IndexListBox )
@@ -4752,7 +3902,7 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			end
 		end
 	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup then
-		YouDontHaveTheSameSong_Flag = 0;
+		SyncManager.missingMatchedSong = false;
 		local indexToSelect = 0;
 
 		-- Check if any paths are exactly the current dir
@@ -4777,57 +3927,55 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			indexToSelect = 1;
 		end
 
-		OtherPlayer_SyncedSong_Index = SongIndex[indexToSelect];
+		SyncManager.otherPlayerSong.index = SongIndex[indexToSelect];
 
-		OtherPlayer_SyncedSong_Index = SongIndex[1];
-		OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
-		OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
-		
-		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename);
-		
-		
-		if OtherPlayer_Synced == 0 then
+		SyncManager.otherPlayerSong.index = SongIndex[1];
+		SyncManager.otherPlayerSong.filepath = SongDB.Songs[SyncManager.otherPlayerSong.index].Filepath;
+		SyncManager.otherPlayerSong.filename = SongDB.Songs[SyncManager.otherPlayerSong.index].Filename;
+
+		self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename);
+
+		if not SyncManager.otherPlayerSynced then
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 		else
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 		end
-		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
+
+		if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
-			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
+			if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename ~= "" then
 				self.syncMessageTitle:SetVisible(true);
 			end
 		end
 	elseif SongIndex[0] == 0 then
 		self.syncMessageTitle:SetText("You don't have the same song. " .. PlayerName .. "-> " .. TrackName);
-		if OtherPlayer_Synced == 0 then
+		if not SyncManager.otherPlayerSynced then
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 		else
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 		end
 		self.syncMessageTitle:SetVisible(true);
-		YouDontHaveTheSameSong_Flag = 1;
+		SyncManager.missingMatchedSong = true;
 	elseif SongIndex[0] == 1 then
-		YouDontHaveTheSameSong_Flag = 0;
-		
-		OtherPlayer_SyncedSong_Index = SongIndex[1];
-		OtherPlayer_SyncedSong_Filepath = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filepath;
-		OtherPlayer_SyncedSong_Filename = SongDB.Songs[OtherPlayer_SyncedSong_Index].Filename;
-		
-		self.syncMessageTitle:SetText(PlayerName .. "-> " .. OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename);
-		
-		
-		if OtherPlayer_Synced == 0 then
+		SyncManager.missingMatchedSong = false;
+
+		SyncManager.otherPlayerSong.index = SongIndex[1];
+		SyncManager.otherPlayerSong.filepath = SongDB.Songs[SyncManager.otherPlayerSong.index].Filepath;
+		SyncManager.otherPlayerSong.filename = SongDB.Songs[SyncManager.otherPlayerSong.index].Filename;
+
+		self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename);
+
+		if not SyncManager.otherPlayerSynced then
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
 		else
 			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
 		end
-		
-		if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
+
+		if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
 			self.syncMessageTitle:SetVisible(false);
 		else
-			if OtherPlayer_SyncedSong_Filepath .. OtherPlayer_SyncedSong_Filename ~= "" then
+			if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename ~= "" then
 				self.syncMessageTitle:SetVisible(true);
 			end
 		end
@@ -4840,21 +3988,13 @@ function SongbookWindow:ToggleTimerWindow( State )
 end
 
 function SongbookWindow:ToggleUseRaidChat( State )
-	self.UseRaidChat = State;
-	if State == true then
-		self.UseFellowshipChat = false;
-	else
-	end
-	self:PlayerSyncInfo();
+	SyncManager.SetUseRaidChat(State)
+	self:PlayerSyncInfo()
 end
 
 function SongbookWindow:ToggleUseFellowshipChat( State )
-	self.UseFellowshipChat = State;
-	if State == true then
-		self.UseRaidChat = false;
-	else
-	end
-	self:PlayerSyncInfo();
+	SyncManager.SetUseFellowshipChat(State)
+	self:PlayerSyncInfo()
 end
 
 function SongbookWindow:SetHelpWindowDisabled( State )

@@ -16,6 +16,10 @@ The goal is to decompose this into focused, composable modules. Bug fixes come a
 ## Completed
 
 - **SettingsManager** (`src/SettingsManager.lua`) — centralized settings with typed defaults, load/save, legacy coercion. All string-based `"yes"`/`"no"`/`"true"`/`"false"` comparisons replaced with native booleans across the codebase.
+- **SongLibrary** (`src/SongLibrary.lua`) — song loading, directory traversal, search/filtering, selected song/track/directory state.
+- **Utils** (`src/Utils.lua`) — shared utilities (`AddCallback`/`RemoveCallback`).
+- **SyncManager** (`src/SyncManager.lua`) — chat message parsing, player state tracking, ready-state calculation, `@SBL` protocol. Communicates with UI via callbacks. Global variables converted to proper booleans.
+- **InstrumentManager** (`src/InstrumentManager.lua`) — instrument definitions, fuzzy matching, equipped instrument detection. Two parallel arrays (`instruments` + `trackAliases`) unified into a single `registry` with `{ name, itemNames, aliases }` per entry.
 
 ## Work Order
 

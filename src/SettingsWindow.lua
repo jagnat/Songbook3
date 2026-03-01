@@ -70,7 +70,7 @@ function SettingsWindow:Constructor()
 		function(sender, args) songbookWindow:ShowFilterUI( sender:IsChecked( ) ); end, 120 )
 
 	self.chiefCheck = self:CreateCheckBox( "cb_chief", 0, Settings.ChiefMode,
-		function(sender, args) songbookWindow:SetChiefMode( sender:IsChecked( ) ); end, 150, 170 )
+		function(sender, args) SyncManager.SetChiefMode( sender:IsChecked( ) ); end, 150, 170 )
 
 	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", 0, Settings.TimerCountdown,
 		function(sender, args) songbookWindow.bTimerCountdown = sender:IsChecked( ); end, 150, 170 )
