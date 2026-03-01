@@ -357,51 +357,6 @@ function SongbookWindow:Constructor()
 	self.TimerWindowVisible = true;
 	self.HelpWindowDisable = false;
 	
-	-- colours for the different track/player ready states in the track and player listboxes
-	self.colourDefaultHighlighted = Turbine.UI.Color( 1, 0.15, 0.95, 0.15 )
-	self.colourReadyHighlighted = Turbine.UI.Color( 1, 0.40, 0.8, 0.15 )
-	--self.colourReadyHighlighted = Turbine.UI.Color( 1, 0.15, 0.60, 0.15 )
-	self.colourSyncedHighlighted = Turbine.UI.Color( 1, 1, 1, 0 )
-	self.colourSyncedHighlighted_notSelected = Turbine.UI.Color( 1, 0.80, 0.80, 0.15 )
-	self.colourReadyMultipleHighlighted = Turbine.UI.Color( 1, 0.7, 0.7, 1 )
-	self.colourReadyMultipleHighlighted_synced = Turbine.UI.Color( 1, 0.7, 0.7, 0.80 )
-	self.colourReadyMultipleHighlighted_synced_notSelected = Turbine.UI.Color( 1, 0.6, 0.6, 0.70 )
-	self.colourDefault = Turbine.UI.Color( 1, 1, 1, 1 )
-	--self.colourReady = Turbine.UI.Color( 1, 0.15, 0.70, 0 )
-	--self.colourReady = Turbine.UI.Color( 1, 0.4, 0.8, 0.8 )
-	self.colourReady = Turbine.UI.Color( 1, 0.4, 0.4, 0 )
-	self.colourReadyMultiple = Turbine.UI.Color( 1, 0.6, 0.6, 0.95 )
-	self.colourDifferentSong = Turbine.UI.Color( 1, 0, 0 )
-	self.colourDifferentSetup = Turbine.UI.Color( 1, 0.6, 0 )
-	self.colourWrongInstrument = Turbine.UI.Color( 1, 0.2, 0 )
-	self.colourWrongInstrument_synced = Turbine.UI.Color( 1, 0.5, 0 )
-	self.colourWrongInstrument_notSelected = Turbine.UI.Color( 1, 0.3, 0 )
-	self.colourWrongInstrument_notSelected_synced = Turbine.UI.Color( 1, 0.6, 0 )
-	self.colourWrongInstrumentMultiple = Turbine.UI.Color( 1, 0.4, 0.9 )
-	self.colourReadyMultiple2 = Turbine.UI.Color( 1, 0.4, 0.9 )
-	self.colourWrongInstrumentMultiple_notSelected = Turbine.UI.Color( 1, 0.1, 0.9 )
-	self.colourWrongInstrumentMultiple_synced = Turbine.UI.Color( 1, 0.6, 1 )
-	self.colourWrongInstrumentMultiple_synced_notSelected = Turbine.UI.Color( 1, 0.5, 1 )
-	self.backColourDefault = Turbine.UI.Color( 1, 0, 0, 0 )
-	self.backColourHighlight = Turbine.UI.Color( 1, 0.1, 0.1, 0.1 )
-	self.backColourHighlight_self = Turbine.UI.Color( 1, 0.1, 0.15, 0.1 )
-	self.backColourHighlight_wrong = Turbine.UI.Color( 1, 0.15, 0.15, 0.1 )
-	self.backColourHighlight_Multiple = Turbine.UI.Color( 1, 0.15, 0.15, 0.2 )
-	self.backColourHighlight_Multiple_synced = Turbine.UI.Color( 1, 0.15, 0.15, 0.15 )
-	self.backColourWrongInstrument = Turbine.UI.Color( 1, 0.15	, 0.1, 0.1 )
-	self.backColourWrongInstrument_ready = Turbine.UI.Color( 1, 0.2, 0.1, 0.1 )
-	
-	self.backColour_synced = Turbine.UI.Color( 1, 0.1, 0.1, 0 )
-	self.backColour_synced_multiple = Turbine.UI.Color( 1, 0.1, 0.1, 0.15 )
-	
-	self.colourMessageTitle = Turbine.UI.Color( 1, 0.8, 0.8, 0 )
-	self.colour_syncMessageTitle = Turbine.UI.Color( 1, 0, 1, 1 )
-	self.colour_syncMessageTitle_OnlySynced = Turbine.UI.Color( 1, 1, 1, 0 )
-	self.colour_syncMessageTitle_Back = Turbine.UI.Color( 1, 0.1, 0.2, 0.2 )
-	self.colour_syncMessageTitle_Highlighted = Turbine.UI.Color( 1, 0, 0.8, 1 )
-	self.colour_syncMessageTitle_Highlighted_OnlySynced = Turbine.UI.Color( 1, 1, 0.8, 0 )
-	self.colour_syncMessageTitle_MouseDown = Turbine.UI.Color( 1, 0, 0.8, 0.8 )
-	self.colour_syncMessageTitle_MouseDown_OnlySynced = Turbine.UI.Color( 1, 0.8, 0.8, 0 )
 	
 	
 	self.bCheckInstrument = true
@@ -578,7 +533,7 @@ function SongbookWindow:Constructor()
 	self.Version = Turbine.UI.Label();
 	self.Version:SetParent( self );
 	self.Version:SetFont(Turbine.UI.Lotro.Font.Verdana12);
-	self.Version:SetForeColor( self.colourMessageTitle );
+	self.Version:SetForeColor( ColorTheme.colourMessageTitle );
 	self.Version:SetPosition( 40, 25 );
 	self.Version:SetSize(50, 14);
 	self.Version:SetText("V" .. Plugins[gPlugin]:GetVersion());
@@ -994,7 +949,7 @@ function SongbookWindow:Constructor()
 	self.songTitle = Turbine.UI.Label();
 	self.songTitle:SetParent( self );
 	self.songTitle:SetFont(Turbine.UI.Lotro.Font.Verdana16);
-	self.songTitle:SetForeColor( self.colourDefaultHighlighted );	
+	self.songTitle:SetForeColor( ColorTheme.colourDefaultHighlighted );	
 	self.songTitle:SetPosition( 23, 90 + ShiftTop);
 	self.songTitle:SetSize( self:GetWidth() - 52, 16);
 	
@@ -1005,7 +960,7 @@ function SongbookWindow:Constructor()
 	self.PlayerTitle = Turbine.UI.Label();
 	self.PlayerTitle:SetParent( self );
 	self.PlayerTitle:SetFont(Turbine.UI.Lotro.Font.Verdana16);
-	self.PlayerTitle:SetForeColor( self.colourDefaultHighlighted );
+	self.PlayerTitle:SetForeColor( ColorTheme.colourDefaultHighlighted );
 	self.PlayerTitle:SetPosition( 15, 30 );
 	self.PlayerTitle:SetSize(self:GetWidth() - 30, 16);
 	self.PlayerTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
@@ -1040,7 +995,7 @@ function SongbookWindow:Constructor()
 	self.MessageTitle = Turbine.UI.Label();
 	self.MessageTitle:SetParent( self );
 	self.MessageTitle:SetFont(Turbine.UI.Lotro.Font.Verdana12);
-	self.MessageTitle:SetForeColor( self.colourMessageTitle );
+	self.MessageTitle:SetForeColor( ColorTheme.colourMessageTitle );
 	self.MessageTitle:SetPosition( 23, 50 );
 	self.MessageTitle:SetSize(self:GetWidth() - 30, 14);
 	--self.MessageTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
@@ -1057,8 +1012,8 @@ function SongbookWindow:Constructor()
 	self.syncMessageTitle = Turbine.UI.Label();
 	self.syncMessageTitle:SetParent( self );
 	self.syncMessageTitle:SetFont(Turbine.UI.Lotro.Font.Verdana16);
-	self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
-	self.syncMessageTitle:SetBackColor( self.backColourHighlight );
+	self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
+	self.syncMessageTitle:SetBackColor( ColorTheme.backColourHighlight );
 	self.syncMessageTitle:SetPosition( 23, 70 );
 	self.syncMessageTitle:SetSize(self:GetWidth() - 30, 16);
 	--self.syncMessageTitle:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
@@ -1068,36 +1023,36 @@ function SongbookWindow:Constructor()
 	self.syncMessageTitle.MouseEnter = function(sender, args)
 		if self.syncMessageTitle:IsVisible() then
 			if not SyncManager.otherPlayerSynced then
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_Highlighted );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted );
 			else
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_Highlighted_OnlySynced );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted_OnlySynced );
 			end
 		end
 	end
 	self.syncMessageTitle.MouseLeave = function(sender, args)
 		if self.syncMessageTitle:IsVisible() then
 			if not SyncManager.otherPlayerSynced then
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 			else
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 			end
 		end
 	end
 	self.syncMessageTitle.MouseDown = function(sender,args)
 		if self.syncMessageTitle:IsVisible() then
 			if not SyncManager.otherPlayerSynced then
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_MouseDown );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown );
 			else
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_MouseDown_OnlySynced );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown_OnlySynced );
 			end
 		end
 	end
 	self.syncMessageTitle.MouseUp = function(sender,args)
 		if self.syncMessageTitle:IsVisible() then
 			if not SyncManager.otherPlayerSynced then
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 			else
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 			end
 			if SyncManager.multipleSongsMatch then
 				MatchedSongsWindow:SetVisible( true );
@@ -1105,7 +1060,7 @@ function SongbookWindow:Constructor()
 				self:SelectDir( nil, SyncManager.otherPlayerSong.filepath );
 				self:SelectSong(SyncManager.otherPlayerSong.indexListBox);
 				local selectedItem = self.songlistBox:GetItem( SyncManager.otherPlayerSong.indexListBox )
-				if selectedItem then selectedItem:SetForeColor( self.colourDefaultHighlighted ); end
+				if selectedItem then selectedItem:SetForeColor( ColorTheme.colourDefaultHighlighted ); end
 			end
 		end
 	end
@@ -1322,7 +1277,7 @@ function SongbookWindow:Constructor()
 		
 		if (self.dirlistBox:ContainsItem(1)) then
 			local dirItem = self.dirlistBox:GetItem(1);
-			dirItem:SetForeColor( self.colourDefaultHighlighted );
+			dirItem:SetForeColor( ColorTheme.colourDefaultHighlighted );
 		end
 		
 		-- load content to song list box
@@ -1604,7 +1559,7 @@ function SongbookWindow:CreateTimerUI( )
 	self.tracksMsg:SetMultiline( false )
 	self.tracksMsg:SetSize( 150, 22 )
 	self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold22 );
-	--self.tracksMsg:SetForeColor( self.colourMessageTitle );
+	--self.tracksMsg:SetForeColor( ColorTheme.colourMessageTitle );
 	self.tracksMsg:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleRight )
 	self.tracksMsg:SetZOrder( 350 )
 	self.tracksMsg:SetVisible( false )
@@ -1951,7 +1906,7 @@ function SongbookWindow:CreateTracklistItem( sText )
 	trackItem:SetMultiline( false )
 	trackItem:SetText( sText );
 	trackItem.MouseClick = self.sepSongsTracks.MouseClick
-	trackItem:SetForeColor( self.colourDefault );
+	trackItem:SetForeColor( ColorTheme.colourDefault );
 	return trackItem
 end
 
@@ -1970,7 +1925,7 @@ function SongbookWindow:AddTrackToList( iSong, iTrack )
 	trackItem:SetSize( 2000, 20 );
 	trackItem:SetMarkupEnabled(true);
 	trackItem:SetText( "[" .. SongDB.Songs[iSong].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
-	trackItem:SetBackColor( self.backColourDefault );
+	trackItem:SetBackColor( ColorTheme.backColourDefault );
 	
 	SyncInfolistbox:AddItem( trackItem );
 end
@@ -2479,7 +2434,7 @@ function SongbookWindow:SongStarted()
 	self.syncStartSlot:SetVisible( true )
 
 	if self.bInstrumentOk == false then
-		self.tracksMsg:SetForeColor( self.colourDefault )
+		self.tracksMsg:SetForeColor( ColorTheme.colourDefault )
 		self.tracksMsg:SetVisible( false )
 		self.bInstrumentOk = true
 	end
@@ -2626,11 +2581,11 @@ end
 function SongbookWindow:SetInstrumentMessage( sInstr )
 	if self.bInstrumentOk then
 		self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold22 );
-		self.tracksMsg:SetForeColor( self.colourDefault )
+		self.tracksMsg:SetForeColor( ColorTheme.colourDefault )
 		self.tracksMsg:SetVisible( false )
 	else
 		self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold18 );
-		self.tracksMsg:SetForeColor( self.colourWrongInstrument )
+		self.tracksMsg:SetForeColor( ColorTheme.colourWrongInstrument )
 		self.tracksMsg:SetText( sInstr .. Strings["instr"] )
 		self.tracksMsg:SetVisible( true )
 	end
@@ -2712,22 +2667,22 @@ function SongbookWindow:SetPlayerColours( )
 	for iMember=1,self.listboxPlayers:GetItemCount( ) do
 		local item = self.listboxPlayers:GetItem( iMember );
 		if( SyncManager.players[ item:GetText( ) ] == nil ) then	-- should not happen
-			item:SetForeColor( self.colourDefault );
+			item:SetForeColor( ColorTheme.colourDefault );
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
 		elseif( SyncManager.players[ item:GetText( ) ] == 0 ) then -- present, but no song ready
-			item:SetForeColor( self.colourDefault );
+			item:SetForeColor( ColorTheme.colourDefault );
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
 		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 1 then
-			item:SetForeColor( self.colourReady ); -- Track from the currently displayed song ready
+			item:SetForeColor( ColorTheme.colourReady ); -- Track from the currently displayed song ready
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chReady, false ); end
 		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 2 then
-			item:SetForeColor( self.colourReadyMultiple ); -- Correct song, but same track as another player
+			item:SetForeColor( ColorTheme.colourReadyMultiple ); -- Correct song, but same track as another player
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chMultiple, true ); end
 		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 3 then
-			item:SetForeColor( self.colourDifferentSetup ); -- Correct song, but track not in current setup
+			item:SetForeColor( ColorTheme.colourDifferentSetup ); -- Correct song, but track not in current setup
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chWrongPart, true ); end
 		else
-			item:SetForeColor( self.colourDifferentSong ); -- Track ready, but different song
+			item:SetForeColor( ColorTheme.colourDifferentSong ); -- Track ready, but different song
 			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chWrongSong, true ); end
 		end
 	end
@@ -2799,7 +2754,7 @@ function SongbookWindow:ListTracksForSetup( iSetup )
 	if not SongDB.Songs[SongLibrary.selectedSongIndex] or not SongDB.Songs[SongLibrary.selectedSongIndex].Setups then return; end
 	
 	for iItem = 1, self.listboxSetups:GetItemCount( ) do
-		self.listboxSetups:GetItem( iItem ):SetBackColor( self.backColourDefault );
+		self.listboxSetups:GetItem( iItem ):SetBackColor( ColorTheme.backColourDefault );
 	end
 
 	local selTrack = self.tracklistBox:GetSelectedIndex( );
@@ -2825,7 +2780,7 @@ function SongbookWindow:ListTracksForSetup( iSetup )
 	end
 
 	local selItem = self.listboxSetups:GetSelectedItem( );
-	if selItem then selItem:SetBackColor( self.backColourHighlight ); end
+	if selItem then selItem:SetBackColor( ColorTheme.backColourHighlight ); end
 	
 	self:SelectTrack( 1 ); --selTrack );
 	self:SetPlayerColours( );
@@ -2850,13 +2805,13 @@ function SongbookWindow:UpdateSetupColours(  )
 		_, matchLength = string.gsub( SyncManager.readyTracks, matchPattern, " " )
 
 		if SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] == SyncManager.readyTracks then
-			item:SetForeColor( self.colourReady );
+			item:SetForeColor( ColorTheme.colourReady );
 		elseif string.match( SyncManager.readyTracks, antiMatchPattern ) then
 			item:SetForeColor( Turbine.UI.Color( 0.7, 0, 0 ) );
 		elseif matchLength and matchLength + 1 == #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] then
 			item:SetForeColor( Turbine.UI.Color( 0, 0.7, 0 ) );
 		else
-			item:SetForeColor( self.colourDefault );
+			item:SetForeColor( ColorTheme.colourDefault );
 		end
 	end
 end
@@ -2864,7 +2819,7 @@ end
 function SongbookWindow:ClearSetups(  )
 	if not self.listboxSetups then return; end	
 	local selItem = self:SetListboxColours( self.listboxSetups, true );
-	if selItem then selItem:SetBackColor( self.backColourHighlight ); end
+	if selItem then selItem:SetBackColor( ColorTheme.backColourHighlight ); end
 end
 
 function SongbookWindow:UpdateTrackReadyString()
@@ -3130,27 +3085,27 @@ function SongbookWindow:SetListboxColours( listbox, bNoSelectionHighlight )
 		local ReadyState = SyncManager.GetSongReadyState( SongIndex );
 		
 		if ReadyState[0] == nil then
-			item:SetForeColor( self.colourDefault );
-			item:SetBackColor( self.backColourDefault );
+			item:SetForeColor( ColorTheme.colourDefault );
+			item:SetBackColor( ColorTheme.backColourDefault );
 		elseif ReadyState[0] == 10 then
-			item:SetForeColor( self.colourSyncedHighlighted );
+			item:SetForeColor( ColorTheme.colourSyncedHighlighted );
 			if ReadyState[1] == "LocalPlayer" then
-				item:SetBackColor( self.backColourHighlight );
+				item:SetBackColor( ColorTheme.backColourHighlight );
 			else
-				item:SetBackColor( self.backColourDefault );
+				item:SetBackColor( ColorTheme.backColourDefault );
 			end
 		elseif ReadyState[0] == 0 then
-			item:SetForeColor( self.colourReadyMultiple2 );
+			item:SetForeColor( ColorTheme.colourReadyMultiple2 );
 			if ReadyState[1] == "LocalPlayer" then
-				item:SetBackColor( self.backColourHighlight );
+				item:SetBackColor( ColorTheme.backColourHighlight );
 			else
-				item:SetBackColor( self.backColourDefault );
+				item:SetBackColor( ColorTheme.backColourDefault );
 			end
 		end
 	end
 	if bNoSelectionHighlight then return nil; end 
 	local selectedItem = listbox:GetSelectedItem( )
-	if selectedItem then selectedItem:SetForeColor( self.colourDefaultHighlighted ); end
+	if selectedItem then selectedItem:SetForeColor( ColorTheme.colourDefaultHighlighted ); end
 	return selectedItem;
 end
 
@@ -3436,8 +3391,8 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			
 			if readyState[0] == 10 then numberOfCorrectStates = numberOfCorrectStates + 1; end
 			
-			item:SetForeColor( self:GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
-			item:SetBackColor( self:GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
+			item:SetForeColor( ColorTheme.GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
+			item:SetBackColor( ColorTheme.GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
 			
 			
 			self:SetTrackReadyChar( iList, readyState[0] );
@@ -3447,8 +3402,8 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			local Track_item = SyncInfolistbox:GetItem(iTrack);
 			Track_item:SetText( "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
 
-			Track_item:SetForeColor( self:GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
-			Track_item:SetBackColor( self:GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
+			Track_item:SetForeColor( ColorTheme.GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
+			Track_item:SetBackColor( ColorTheme.GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
 
 			for i = 0, readyState[4]-1 do
 				if tonumber( readyState[3][i] ) > 0 then
@@ -3572,110 +3527,6 @@ function SongbookWindow:PlayerSyncInfo()
 
 	return equippedInstrument_Index;
 end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- return track colour based on readyState retrieved from GetTrackReadyState(...)
-function SongbookWindow:GetColourForTrack( readyState, bSelectedTrack )
-	if bSelectedTrack then
-		if not readyState then -- track not ready
-			return self.colourDefaultHighlighted;
-		else
-			if readyState == 0 then -- track is ready by more than one player
-				return self.colourReadyMultipleHighlighted;
-			elseif readyState == 1 then -- track is synced but wrong or not ready yet
-				return self.colourSyncedHighlighted;
-			elseif readyState == 2 then -- track is ready by more than one player and is synced
-				return self.colourReadyMultipleHighlighted_synced;
-			elseif readyState == 3 then -- track is synced with wrong instrument
-				return self.colourWrongInstrument_synced;
-			elseif readyState == 4 then -- track is ready by more than one player and is synced with wrong instrument
-				return self.colourWrongInstrumentMultiple;
-			elseif readyState == 5 then -- track is ready with wrong instrument
-				return self.colourWrongInstrument;
-			elseif readyState == 6 then -- track is ready by more than one player wrong instrument
-				return self.colourWrongInstrumentMultiple_synced;
-			else -- track ready by one player
-				return self.colourReadyHighlighted;
-			end
-		end
-	else
-		if not readyState then
-			return self.colourDefault;
-		else
-			if readyState == 0 then
-				return self.colourReadyMultiple;
-			elseif readyState == 1 then
-				return self.colourSyncedHighlighted_notSelected;
-			elseif readyState == 2 then
-				return self.colourReadyMultipleHighlighted_synced_notSelected;
-			elseif readyState == 3 then
-				return self.colourWrongInstrument_notSelected_synced;
-			elseif readyState == 4 then
-				return self.colourWrongInstrumentMultiple_notSelected;
-			elseif readyState == 5 then
-				return self.colourWrongInstrument_notSelected;
-			elseif readyState == 6 then
-				return self.colourWrongInstrumentMultiple_synced_notSelected;
-			else
-				return self.colourReady;
-			end
-		end
-	end
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- background colour indicates the track one has ready
-function SongbookWindow:GetBackColourForTrack( readyState, playerName , readyState8)
-	if readyState8 >= 1 then
-		if playerName == "LocalPlayer" then
-			return self.backColour_synced_multiple;
-		elseif readyState == 10 and playerName == SyncManager.localPlayerName then
-			return self.backColour_synced_multiple;
-		elseif readyState8 > 1 then
-			return self.backColour_synced_multiple;
-		else
-			return self.backColour_synced;
-		end
-	end
-	
-	if not readyState then
-		return self.backColourDefault;
-	elseif playerName == "LocalPlayer" then
-		return self.backColourHighlight;
-	elseif readyState == 0 then
-		--return self.backColourHighlight_Multiple;
-		return self.backColourDefault;
-	elseif readyState == 1 then
-		--return self.backColourHighlight_wrong;
-		return self.backColourDefault;
-	elseif readyState == 2 then
-		--return self.backColourHighlight_Multiple_synced;
-		return self.backColourDefault;
-	elseif readyState == 3 then
-		--return self.backColourWrongInstrument;
-		return self.backColourDefault;
-	elseif readyState == 4 then
-		--return self.backColourWrongInstrument;
-		return self.backColourDefault;
-	elseif readyState == 5 then
-		--return self.backColourWrongInstrument_ready;
-		return self.backColourDefault;
-	elseif readyState == 6 then
-		--return self.backColourWrongInstrument_ready;
-		return self.backColourDefault;
-	elseif readyState == 10 and playerName == SyncManager.localPlayerName then
-		--return self.backColourHighlight_self;
-		return self.backColourHighlight;
-	else
-		return self.backColourDefault;
-	end
-	--if self.bInstrumentOk then return self.backColourHighlight; end
-	--return self.backColourWrongInstrument
-end	
-
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:Activated(sender, args)
@@ -3823,9 +3674,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			-- self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. " " .. SyncManager.otherPlayerSong.filename);
 
 			-- if not SyncManager.otherPlayerSynced then
-				-- self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+				-- self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 			-- else
-				-- self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+				-- self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 			-- end
 
 			-- self.syncMessageTitle:SetVisible(false);
@@ -3834,9 +3685,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			SyncManager.multipleSongsMatch = true;
 			self.syncMessageTitle:SetText(PlayerName .. "-> " .. TrackName .. " - Multiple songs match");
 			if not SyncManager.otherPlayerSynced then
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 			else
-				self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+				self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 			end
 			self.syncMessageTitle:SetVisible(true);
 
@@ -3848,47 +3699,47 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 				SongItem:SetSize( 2000, 20 );
 				SongItem:SetMarkupEnabled(true);
 				if not SyncManager.otherPlayerSynced then
-					SongItem:SetForeColor( self.colour_syncMessageTitle );
+					SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
 				else
-					SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+					SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 				end
-				SongItem:SetBackColor( self.backColourDefault );
+				SongItem:SetBackColor( ColorTheme.backColourDefault );
 				SongItem:SetText( SongDB.Songs[SongIndex[i]].Filepath .. " " .. SongDB.Songs[SongIndex[i]].Filename );
 				MatchedSongsListbox:AddItem( SongItem );
 
 				SongItem.MouseEnter = function(sender, args)
 					if SongItem:IsVisible() then
 						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( self.colour_syncMessageTitle_Highlighted );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted );
 						else
-							SongItem:SetForeColor( self.colour_syncMessageTitle_Highlighted_OnlySynced );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted_OnlySynced );
 						end
 					end
 				end
 				SongItem.MouseLeave = function(sender, args)
 					if SongItem:IsVisible() then
 						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( self.colour_syncMessageTitle );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
 						else
-							SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 						end
 					end
 				end
 				SongItem.MouseDown = function(sender,args)
 					if SongItem:IsVisible() then
 						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( self.colour_syncMessageTitle_MouseDown );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown );
 						else
-							SongItem:SetForeColor( self.colour_syncMessageTitle_MouseDown_OnlySynced );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown_OnlySynced );
 						end
 					end
 				end
 				SongItem.MouseUp = function(sender,args)
 					if SongItem:IsVisible() then
 						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( self.colour_syncMessageTitle );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
 						else
-							SongItem:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 						end
 
 						SelectedMatchedSong_Index = SongIndex[i];
@@ -3936,9 +3787,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 		self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename);
 
 		if not SyncManager.otherPlayerSynced then
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 		else
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 		end
 
 		if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then
@@ -3951,9 +3802,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 	elseif SongIndex[0] == 0 then
 		self.syncMessageTitle:SetText("You don't have the same song. " .. PlayerName .. "-> " .. TrackName);
 		if not SyncManager.otherPlayerSynced then
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 		else
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 		end
 		self.syncMessageTitle:SetVisible(true);
 		SyncManager.missingMatchedSong = true;
@@ -3967,9 +3818,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 		self.syncMessageTitle:SetText(PlayerName .. "-> " .. SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename);
 
 		if not SyncManager.otherPlayerSynced then
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle );
 		else
-			self.syncMessageTitle:SetForeColor( self.colour_syncMessageTitle_OnlySynced );
+			self.syncMessageTitle:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
 		end
 
 		if SyncManager.otherPlayerSong.filepath .. SyncManager.otherPlayerSong.filename == SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong then

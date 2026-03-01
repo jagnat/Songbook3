@@ -15,7 +15,8 @@ gDir = "Songbook3/resources/"
 
 import "Songbook3.src.Class"; -- Turbine library included so that there's no outside dependencies
 import "Songbook3.src.Layout";
-import "Songbook3.src.SongbookLang";
+import "Songbook3.src.ColorTheme";
+import "Songbook3.src.Lang";
 import "Songbook3.src.SettingsManager";
 SettingsManager.Load(); -- must run before imports that reference Settings at module level
 
