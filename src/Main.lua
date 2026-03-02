@@ -27,6 +27,9 @@ import "Songbook3.src.Utils"
 import "Songbook3.src.InstrumentManager"
 import "Songbook3.src.SyncManager"
 
+import "Songbook3.src.ListBoxScrolled";
+import "Songbook3.src.SongFileBrowser";
+import "Songbook3.src.TrackDetailPanel";
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
 import "Songbook3.src.TimerWindow";

@@ -1,6 +1,10 @@
 
 ColorTheme = {}
 
+-- File browser colours
+ColorTheme.colourDir                                       = Turbine.UI.Color( 1, 0.8, 0.8, 0.5 )
+ColorTheme.colourSongSelected                              = Turbine.UI.Color( 1, 0.15, 0.95, 0.15 )
+
 -- Foreground colours for track/player ready states
 ColorTheme.colourDefaultHighlighted                        = Turbine.UI.Color( 1, 0.15, 0.95, 0.15 )
 ColorTheme.colourReadyHighlighted                          = Turbine.UI.Color( 1, 0.40, 0.8, 0.15 )

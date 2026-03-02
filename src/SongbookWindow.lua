@@ -7,10 +7,6 @@
 
 SongbookWindow = class( Turbine.UI.Window );
 
-
-ListBoxScrolled = class( Turbine.UI.ListBox ); -- Listbox with child scrollbar and separator
-ListBoxCharColumn = class( ListBoxScrolled ) -- Listbox with single char column
-
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 HelpWindow_Load_Flag = 1;
@@ -983,7 +979,6 @@ function SongbookWindow:Constructor()
 
 			local iTrack = self:GetTrackToSelect(SongLibrary.selectedSongIndex);
 			if iTrack == 0 then return; end
-			if self.bShowReadyChars then iTrack = iTrack * 2; end
 			self:SelectTrack(iTrack);
 		end
 	end
@@ -1057,10 +1052,9 @@ function SongbookWindow:Constructor()
 			if SyncManager.multipleSongsMatch then
 				MatchedSongsWindow:SetVisible( true );
 			elseif not SyncManager.missingMatchedSong then
-				self:SelectDir( nil, SyncManager.otherPlayerSong.filepath );
-				self:SelectSong(SyncManager.otherPlayerSong.indexListBox);
-				local selectedItem = self.songlistBox:GetItem( SyncManager.otherPlayerSong.indexListBox )
-				if selectedItem then selectedItem:SetForeColor( ColorTheme.colourDefaultHighlighted ); end
+				SongLibrary.NavigateToDirectory(SyncManager.otherPlayerSong.filepath)
+				self.songFileBrowser:Populate()
+				self:SelectSongByIndex(SyncManager.otherPlayerSong.index)
 			end
 		end
 	end
@@ -1115,9 +1109,7 @@ function SongbookWindow:Constructor()
 	
 	self.clearBtn.MouseClick = function(sender, args)
 		self.searchInput:SetText("");
-		self.songlistBox:ClearItems();
-		self:LoadSongs();
-		self:SelectSong(1);
+		self.songFileBrowser:ClearSearch()
 	end
 	
 	-- hide search components if not toggled
@@ -1135,10 +1127,6 @@ function SongbookWindow:Constructor()
 	-- track list box
 	self.tracklistBox = ListBoxCharColumn:New( 10, 20 );
 	self.tracklistBox:SetParent( self.listContainer );
-	
-	self:AdjustTracklistLeft( );
-	-- show track components if toggled
-	self:ShowTrackListbox( Settings.TracksVisible )
 	
 	
 	-- main song list box
@@ -1383,40 +1371,6 @@ function SongbookWindow:Constructor()
 		sender:SetPosition( self:GetWidth() - sender:GetWidth(), self:GetHeight() - sender:GetHeight() );
 	end -- resizeCtrl.MouseMove
 	
-	-- dir list, song list ratio adjust
-	self.separator1.MouseDown = function(sender,args)
-	  sender.dragStartX = args.X;
-	  sender.dragStartY = args.Y;
-	  sender.dragging = true;
-	end
-	
-	self.separator1.MouseUp = function(sender,args)
-	  sender.dragging = false;
-	  Settings.DirHeight = self.dirlistBox:GetHeight(); 
-	end
-	
-	self.separator1.MouseMove = function(sender,args)
-		if ( sender.dragging ) then
-			local y = self.separator1:GetTop();
-			local h = self.dirlistBox:GetHeight() + args.Y - sender.dragStartY;
-			if h < 40 then h = 40; end
-			self.dirlistBox:SetHeight( h );
-			self:AdjustSonglistHeight( )
-			if self.songlistBox:GetHeight() < 40 then
-				self:SetSonglistHeight( 40 )
-				if (Settings.TracksVisible) then
-					self.dirlistBox:SetHeight(self.listContainer:GetHeight() - Settings.TracksHeight - self.songlistBox:GetHeight() - 26);
-				else
-					self.dirlistBox:SetHeight(self.listContainer:GetHeight() - self.songlistBox:GetHeight() - 13);
-				end
-			end
-			--self.separator1:SetTop(self.dirlistBox:GetHeight());
-			self:SetSonglistTop( self.dirlistBox:GetHeight() + 13 )
-
-			self:AdjustFilterUI( );
-		end	
-	end
-	
 	-- song list, track list ratio adjust
 	self.sepSongsTracks.MouseDown = function(sender,args)
 	  sender.dragStartX = args.X;
@@ -1424,25 +1378,18 @@ function SongbookWindow:Constructor()
 	  sender.dragging = true;
 	end
 	
-	self.sepSongsTracks.MouseUp = function(sender,args)
-	  sender.dragging = false;
-	  Settings.TracksHeight = self.tracklistBox:GetHeight(); 
+	self.sepSongsTracks.MouseUp = function(sender, args)
+		sender.dragging = false
+		Settings.TracksHeight = self.trackDetailPanel:GetHeight()
 	end
-	
-	self.sepSongsTracks.MouseMove = function(sender,args)
-		if ( sender.dragging ) then
-			local y = self.sepSongsTracks:GetTop();
-			local h = self.tracklistBox:GetHeight() - args.Y + sender.dragStartY;
-			if h < 40 then h = 40; end
-			self:SetTracklistHeight( h )
-			self:UpdateTracklistTop( );
-			self:AdjustSonglistHeight( )
+
+	self.sepSongsTracks.MouseMove = function(sender, args)
+		if sender.dragging then
+			local newHeight = Settings.TracksHeight - args.Y + sender.dragStartY
+			if newHeight < 40 then newHeight = 40 end
+			Settings.TracksHeight = newHeight
+			self:ReflowLayout()
 		end
-		if self.songlistBox:GetHeight() < 40 then
-			self:SetSonglistHeight( 40 )
-			self:SetTracklistHeight( self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - self.songlistBox:GetHeight() - 26 );
-			self:UpdateTracklistTop( );
-		end	
 	end
 	
 	-- Settings button	
@@ -1675,48 +1622,32 @@ function SongbookWindow:ReflowLayout()
 	self.listContainer:SetSize(listContainerWidth, availableListHeight)
 	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
 
-	-- Stack list sections within the container
 	Layout.stackVertical({
-		{ control = self.dirlistBox,     height = Settings.DirHeight },
-		{ control = self.separator1,     height = SEPARATOR_HEIGHT },
-		{ control = self.songlistBox,    height = "fill" },
-		{ control = self.sepSongsTracks, height = SEPARATOR_HEIGHT,     visible = Settings.TracksVisible },
-		{ control = self.tracklistBox,   height = Settings.TracksHeight, visible = Settings.TracksVisible },
+		{ control = self.songFileBrowser,   height = "fill" },
+		{ control = self.sepSongsTracks,    height = SEPARATOR_HEIGHT,     visible = Settings.TracksVisible },
+		{ control = self.trackDetailPanel,  height = Settings.TracksHeight, visible = Settings.TracksVisible },
 	}, { height = availableListHeight })
 
-	-- Position heading labels above their separators
-	if self.separator1.heading then
-		self.separator1.heading:SetTop(self.separator1:GetTop() - SEPARATOR_HEIGHT)
-	end
 	if self.sepSongsTracks.heading then
 		self.sepSongsTracks.heading:SetTop(self.sepSongsTracks:GetTop() - SEPARATOR_HEIGHT)
 	end
 
-	-- Horizontal positioning and widths (layout handles vertical only)
-	self:AdjustDirlistPosition()
-	self:AdjustSonglistLeft()
-	self.separator1:SetWidth(listContainerWidth)
-	self.sArrows1:SetLeft(self.separator1:GetWidth() / 2 - 10)
+	self.songFileBrowser:SetWidth(listContainerWidth)
+	self.trackDetailPanel:SetWidth(listContainerWidth)
+	self.sepSongsTracks:SetWidth(listContainerWidth)
+	self.sArrows2:SetLeft(self.sepSongsTracks:GetWidth() / 2 - 10)
 
-	-- Controls that move with the song list
-	self.btnParty:SetTop(self.songlistBox:GetTop())
-	self.listboxPlayers:SetTop(self.songlistBox:GetTop() + 20)
-	self.listboxPlayers:SetHeight(self.songlistBox:GetHeight() - 20)
+	self.btnParty:SetTop(self.songFileBrowser:GetTop())
+	self.listboxPlayers:SetTop(self.songFileBrowser:GetTop() + 20)
+	self.listboxPlayers:SetHeight(self.songFileBrowser:GetHeight() - 20)
 
-	-- Track list associated controls
 	if Settings.TracksVisible then
-		self:ShowTrackListbox(true)
-		self:AdjustTracklistLeft()
-		self:AdjustTracklistWidth()
-		self.listboxSetups:SetTop(self.tracklistBox:GetTop())
-		self.listboxSetups:SetHeight(self.tracklistBox:GetHeight())
-		self.listboxSetups:SetVisible(self.bShowSetups)
+		self.trackDetailPanel:SetVisible(true)
 	else
-		self:ShowTrackListbox(false)
-		self.listboxSetups:SetVisible(false)
+		self.trackDetailPanel:SetVisible(false)
 		self.tracksMsg:SetPosition(
-			self.dirlistBox:GetLeft() + self.dirlistBox:GetWidth() - 160,
-			self.dirlistBox:GetTop() + self.dirlistBox:GetHeight())
+			0,
+			self.songFileBrowser:GetTop() + self.songFileBrowser:GetHeight())
 	end
 
 	-- Reposition instrument containers
@@ -1791,7 +1722,6 @@ function SongbookWindow:SelectDir(iDir, Directory)
 
 	self.songlistBox:ClearItems()
 	self:LoadSongs()
-	self:InitSonglist()
 end -- SelectDir
 
 
@@ -1856,7 +1786,6 @@ function SongbookWindow:SelectSong( iSong )
 	if Settings.AutoPickOnSongChange then
 			track = self:GetTrackToSelect(SongLibrary.selectedSongIndex);
 			if track == 0 then track = 1; end
-			if self.bShowReadyChars then track = track * 2; end
 	end
 			
 	if ( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[1].Name ~= "") then
@@ -1967,17 +1896,7 @@ end
 
 
 function SongbookWindow:SearchSongs()
-	self.songlistBox:ClearItems()
-	local songs = SongLibrary.SearchSongs(self.searchInput:GetText(), self:GetFilters())
-	for _, entry in ipairs(songs) do
-		local songItem = Turbine.UI.Label()
-		songItem:SetText(entry.text)
-		songItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
-		songItem:SetSize(1000, 20)
-		self.songlistBox:AddItem(songItem)
-	end
-	if #songs > 0 then self:SelectSong(1) end
-	self.separator1.heading:SetText(Strings["ui_songs"] .. " (" .. #songs .. ")")
+	self.songFileBrowser:Search(self.searchInput:GetText(), self:GetFilters())
 end
 
 -- action for toggling search function on and off
@@ -1990,108 +1909,21 @@ function SongbookWindow:ToggleSearch(mode)
 		self:SetSearch( 20, true )
 	end
 
-	self.listFrame:SetHeight(self:GetHeight() - self.lFYmod);	
-	self.listContainer:SetHeight(self:GetHeight() - self.lCYmod);		
-	if (not Settings.TracksVisible) then
-		self:ShowTrackListbox( false ) -- ?
-	end
+	self:ReflowLayout()
 end
-
--- function SongbookWindow:SetSearch( delta, bShow )
--- 	self.searchInput:SetVisible(bShow);
--- 	self.searchBtn:SetVisible(bShow);
--- 	self.clearBtn:SetVisible(bShow);		
--- 	self.lFYmod = self.lFYmod + delta;		
--- 	self.lCYmod = self.lCYmod + delta;
--- 	self.listFrame:SetTop( self.listFrame:GetTop( ) + delta);
--- 	self.listContainer:SetTop( self.listContainer:GetTop( ) + delta );
--- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);		
--- 	self:MoveTracklistTop( -delta );
-	
--- 	if not Settings.TracksVisible then
--- 		self.tracksMsg:SetTop( self.dirlistBox:GetTop()+self.dirlistBox:GetHeight() );
--- 	end
--- end
 
 -- action for toggling description on and off
 function SongbookWindow:ToggleDescription()
-	if (Settings.DescriptionVisible) then
-		Settings.DescriptionVisible = false;
-		self.songlistBox:ClearItems();
-		self:LoadSongs();
-		local found = self.songlistBox:GetItemCount();		
-		if (found > 0) then self:SelectSong(1);
-		else self:ClearSongState( ); end
-	else
-		Settings.DescriptionVisible = true;
-		self.songlistBox:ClearItems();
-		self:LoadSongs();
-		local found = self.songlistBox:GetItemCount();		
-		if (found > 0) then self:SelectSong(1);
-		else self:ClearSongState( ); end
-	end
+	Settings.DescriptionVisible = not Settings.DescriptionVisible
+	self.songFileBrowser:Populate()
 end
 
--- action for toggling description on and off
 function SongbookWindow:ToggleDescriptionFirst()
-	if (Settings.DescriptionFirst) then
-		Settings.DescriptionFirst = false;		
-		if (Settings.DescriptionVisible) then
-			self.songlistBox:ClearItems();
-			self:LoadSongs();
-			local found = self.songlistBox:GetItemCount();		
-			if (found > 0) then self:SelectSong(1);
-			else self:ClearSongState( ); end
-		end
-	else
-		Settings.DescriptionFirst = true;
-		if (Settings.DescriptionVisible) then
-			self.songlistBox:ClearItems();
-			self:LoadSongs();
-			local found = self.songlistBox:GetItemCount();		
-			if (found > 0) then self:SelectSong(1);
-			else self:ClearSongState( ); end
-		end
+	Settings.DescriptionFirst = not Settings.DescriptionFirst
+	if Settings.DescriptionVisible then
+		self.songFileBrowser:Populate()
 	end
 end
-
--- -- action for toggling tracks display on and off
--- function SongbookWindow:ToggleTracks()
--- 	if (Settings.TracksVisible) then
--- 		Settings.TracksVisible = "no";
--- 		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13);
--- 		self:ShowTrackListbox( false )
--- 		self.listboxSetups:SetVisible(false);
--- 		self.tracksMsg:SetPosition( self.dirlistBox:GetLeft()+self.dirlistBox:GetWidth()-150, self.dirlistBox:GetTop()+self.dirlistBox:GetHeight());	
--- 	else
--- 		Settings.TracksVisible = "yes";
--- 		self:ShowTrackListbox( true )
--- 		self.listboxSetups:SetVisible(self.bShowSetups)
-		
--- 		-- check if there's room for the track list and adjust
--- 		local h = self.dirlistBox:GetHeight() + Settings.TracksHeight + 26;
--- 		if (self.listContainer:GetHeight() - h < 40) then
--- 			self.listContainer:SetHeight(h + self.songlistBox:GetHeight())
--- 			self:SetHeight(self.listContainer:GetHeight() + self.lCYmod);
--- 			self.listFrame:SetHeight(self:GetHeight() - self.lFYmod);
--- 			self.resizeCtrl:SetTop(self:GetHeight() - 20); 
--- 		end
-					
--- 		self:SetTracklistTop( self.listContainer:GetHeight() - Settings.TracksHeight )
--- 		self:AdjustTracklistSize( Settings.TracksHeight )			
--- 		self:SetSonglistHeight(self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - self.tracklistBox:GetHeight() - 26);
--- 		self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );
--- 		self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );	
--- 		--self.cbFilters:SetPosition( self:GetWidth()/2 + 65, self:GetHeight() - 30 );
-		
--- 		if (CharSettings.InstrSlots[1]["visible"]) then
--- 			for j = 1, CharSettings.InstrumentSlots_Rows do
--- 				local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
--- 				self.instrContainer[j]:SetTop( self:GetHeight() - TopShift );
--- 			end
--- 		end
--- 	end
--- end
 
 -- action for toggling instrument slots on and off
 function SongbookWindow:ToggleInstrSlots()
@@ -2112,34 +1944,6 @@ function SongbookWindow:ToggleInstrSlots()
 		end
 	end
 end
-
--- function SongbookWindow:SetInstrSlots( delta )
--- 	self.lFYmod = self.lFYmod + delta;
--- 	self.lCYmod = self.lCYmod + delta;
--- 	self.listFrame:SetHeight(self.listFrame:GetHeight() - delta);
--- 	self.listContainer:SetHeight(self.listContainer:GetHeight() - delta);
--- 	self:SetSonglistHeight(self.songlistBox:GetHeight() - delta);
--- 	if (Settings.TracksVisible) then
--- 		self:MoveTracklistTop( -delta )
--- 		--self.tracklistBox:SetTop(self.tracklistBox:GetTop() - hMod);
--- 		--self.sepSongsTracks:SetTop(self.sepSongsTracks:GetTop() - hMod);		
--- 	end
-	
--- 	local height = self:GetHeight();
--- 	if height < 45 then height = 45; end
-	
--- 	local listContainerHeight = height - self.lCYmod;
--- 	local tracksHeight = 0;
--- 	if Settings.TracksVisible then tracksHeight = Settings.TracksHeight; end
--- 	if listContainerHeight < Settings.DirHeight + 13 + tracksHeight + 13 + 40 then
--- 		listContainerHeight = Settings.DirHeight + 13 + tracksHeight + 13 + 40;
--- 		height = listContainerHeight + self.lCYmod;
--- 	end
-	
--- 	self:SetHeight( height );
--- 	self:ResizeAll( );
--- 	self.resizeCtrl:SetPosition( self:GetWidth() - self.resizeCtrl:GetWidth(), self:GetHeight() - self.resizeCtrl:GetHeight() );
--- end
 
 function SongbookWindow:ClearSlots()
 	for j = 1, CharSettings.InstrumentSlots_Rows do
@@ -2380,31 +2184,14 @@ function SongbookWindow:GetFilters()
 	return filters
 end
 
--- Update the song list
-function SongbookWindow:UpdateSongs( )
-	self.songlistBox:ClearItems( );
-	
-	local sSearch = self.searchInput:GetText( );
-	if( sSearch and sSearch ~= "" ) then self:SearchSongs( );
-	else self:LoadSongs( ); end
-	
-	self:InitSonglist( );
-end -- UpdateSongs
-
--- Initialize song: List tracks, set/clear chat handler, set headings
-function SongbookWindow:InitSonglist( )
-	local nSongs = self.songlistBox:GetItemCount( );
-	if nSongs > 0 then
-		self:SelectSong( 1 );
+function SongbookWindow:UpdateSongs()
+	local sSearch = self.searchInput:GetText()
+	if sSearch and sSearch ~= "" then
+		self:SearchSongs()
 	else
-		self.tracklistBox:ClearItems( );
-		SyncInfolistbox:ClearItems( );
-		--self:ClearSongState( )
-		--Turbine.Chat.Received = nil; -- No tracks listed, so deactivate player ready indicator
-		self.sepSongsTracks.heading:SetText( Strings["ui_parts"] .. " (0)" );
+		self.songFileBrowser:Populate()
 	end
-	self.separator1.heading:SetText( Strings["ui_songs"] .. " (" .. nSongs .. ")" );
-end -- UpdateSongs
+end
 
 function SongbookWindow:ClearSongState()
 	SyncManager.ClearSongState()
@@ -2476,6 +2263,8 @@ function SongbookWindow:CreateFilterUI( args )
 
 	self:CreatePartyListbox( );
 	self:CreateSetupsListbox( );
+
+	self:CreateTreeViewPanels()
 end
 
 
@@ -2743,6 +2532,93 @@ function SongbookWindow:CreateSetupsListbox( )
 		end
 end
 
+function SongbookWindow:CreateTreeViewPanels()
+	-- Song browser tree (replaces dirlistBox + songlistBox)
+	self.songFileBrowser = SongFileBrowser()
+	self.songFileBrowser:SetParent(self.listContainer)
+	self.songFileBrowser.onSongSelected = function(songIndex)
+		self:SelectSongByIndex(songIndex)
+	end
+	self.songFileBrowser:SetVisible(true)
+	self.songFileBrowser:Populate()
+
+	-- Track detail panel (replaces tracklistBox + listboxSetups)
+	-- Pre-populate with the song that was selected during initial load.
+	self.trackDetailPanel = TrackDetailPanel()
+	self.trackDetailPanel:SetParent(self.listContainer)
+	self.trackDetailPanel.onTrackSelected = function(listIndex)
+		self:SelectTrack(listIndex)
+	end
+	self.trackDetailPanel.onSetupSelected = function(setupIndex)
+		self:SetTrackColours(SongLibrary.selectedTrack)
+		self:UpdateTrackReadyString()
+		local found = self.trackDetailPanel:GetTrackCount()
+		self.sepSongsTracks.heading:SetText(Strings["ui_parts"] .. " (" .. found .. ")")
+	end
+	self.trackDetailPanel:SetVisible(Settings.TracksVisible)
+
+	-- Show tracks for the song selected during initial constructor load.
+	if SongLibrary.selectedSongIndex and SongLibrary.selectedSongIndex > 0 and
+	   SongDB.Songs[SongLibrary.selectedSongIndex] then
+		self.trackDetailPanel:ShowSong(SongLibrary.selectedSongIndex)
+	end
+
+	-- Hide old panels — they remain populated for sync logic but are not shown.
+	self.dirlistBox:SetVisible(false)
+	self.songlistBox:SetVisible(false)
+	self.tracklistBox:SetVisible(false)
+	self.listboxSetups:SetVisible(false)
+	self.separator1:SetVisible(false)
+end
+
+-- Select a song by its SongDB index (used by tree view; bypasses filteredIndices lookup).
+function SongbookWindow:SelectSongByIndex(songIndex)
+	local track = 1
+	SongLibrary.setupTrackIndices = {}
+	SongLibrary.setupListIndices = {}
+	SongLibrary.currentSetup = nil
+
+	SongLibrary.selectedSongIndex = songIndex
+	SongLibrary.selectedSong = SongDB.Songs[songIndex].Filename
+	SongLibrary.selectedSongIndexListBox = 0
+
+	if Settings.AutoPickOnSongChange then
+		track = self:GetTrackToSelect(songIndex)
+		if track == 0 then track = 1 end
+	end
+
+	local firstTrack = SongDB.Songs[songIndex].Tracks[1]
+	if firstTrack.Name ~= "" then
+		self.songTitle:SetText(firstTrack.Name)
+	else
+		self.songTitle:SetText(SongDB.Songs[songIndex].Filename)
+	end
+	self.trackNumber:SetText(firstTrack.Id)
+	self.trackPrev:SetVisible(false)
+	if #SongDB.Songs[songIndex].Tracks > 1 then
+		self.trackNext:SetVisible(true)
+	else
+		self.trackNext:SetVisible(false)
+	end
+
+	-- Populate hidden tracklistBox for sync machinery compatibility.
+	self:ListTracks(songIndex)
+
+	-- Populate the visible track detail panel.
+	self.trackDetailPanel:ShowSong(songIndex)
+
+	self.songFileBrowser:SetSelectedSong(songIndex)
+
+	self:ClearPlayerReadyStates()
+	self:SelectTrack(track)
+	self:SetPlayerColours()
+	self:UpdateSetupColours()
+	self:SetTrackColours(SongLibrary.selectedTrack)
+
+	local found = self.trackDetailPanel:GetTrackCount()
+	self.sepSongsTracks.heading:SetText(Strings["ui_parts"] .. " (" .. found .. ")")
+end
+
 function SongbookWindow:SelectSetup( iSetup )
 	if not self.listboxSetups then return; end
 	if not iSetup or iSetup > self.listboxSetups:GetItemCount( ) then iSetup = self.listboxSetups:GetItemCount( ); end
@@ -2789,30 +2665,33 @@ function SongbookWindow:ListTracksForSetup( iSetup )
 end
 
 function SongbookWindow:UpdateSetupColours(  )
-	if not self.listboxSetups or not SongDB.Songs[SongLibrary.selectedSongIndex] or not SongDB.Songs[SongLibrary.selectedSongIndex].Setups then return; end
-	
+	local song = SongDB.Songs[SongLibrary.selectedSongIndex]
+	if not song or not song.Setups then return; end
+
 	self:UpdateTrackReadyString( );
 
-	local item;
 	local matchPattern;
 	local antiMatchPattern;
 	local matchLength = 0;
-	for i = 1, self.listboxSetups:GetItemCount( ) - 1 do
-		item = self.listboxSetups:GetItem( i );
+	local setupCount = #song.Setups
 
-		matchPattern = "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
-		antiMatchPattern = "[^" .. SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] .. "]";
+	for i = 1, setupCount do
+		matchPattern = "[" .. song.Setups[ i ] .. "]";
+		antiMatchPattern = "[^" .. song.Setups[ i ] .. "]";
 		_, matchLength = string.gsub( SyncManager.readyTracks, matchPattern, " " )
 
-		if SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] == SyncManager.readyTracks then
-			item:SetForeColor( ColorTheme.colourReady );
+		local colour
+		if song.Setups[ i ] == SyncManager.readyTracks then
+			colour = ColorTheme.colourReady;
 		elseif string.match( SyncManager.readyTracks, antiMatchPattern ) then
-			item:SetForeColor( Turbine.UI.Color( 0.7, 0, 0 ) );
-		elseif matchLength and matchLength + 1 == #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ i ] then
-			item:SetForeColor( Turbine.UI.Color( 0, 0.7, 0 ) );
+			colour = Turbine.UI.Color( 0.7, 0, 0 );
+		elseif matchLength and matchLength + 1 == #song.Setups[ i ] then
+			colour = Turbine.UI.Color( 0, 0.7, 0 );
 		else
-			item:SetForeColor( ColorTheme.colourDefault );
+			colour = ColorTheme.colourDefault;
 		end
+
+		self.trackDetailPanel:SetSetupColour( i, colour )
 	end
 end
 
@@ -2846,11 +2725,8 @@ function SongbookWindow:ListSetups( songID )
 	if not self.listboxSetups or not self.listboxPlayers then return; end
 	self.listboxSetups:ClearItems( )
 	if not SongDB or not SongDB.Songs[songID] or not SongDB.Songs[songID].Setups then
-		self:ShowSetups( false )
 		return;
 	end
-
-	self:ShowSetups( true )
 	local playerCount;
 	if not self.maxPartCount then playerCount = 1000;
 	else playerCount = self.maxPartCount; end
@@ -2870,211 +2746,6 @@ function SongbookWindow:ClearPlayerReadyStates( )
 	SyncManager.ClearPlayerReadyStates()
 end
 
--- ListBoxScrolled ----------------------------------------
--- a Listbox with child scrollbar and separator
-
-function ListBoxScrolled:New( scrollWidth, listbox )
-	listbox = listbox or ListBoxScrolled( scrollWidth );
-	setmetatable( listbox, self );
-	self.__index = self;
-	return listbox;
-end
-
-function ListBoxScrolled:Constructor( scrollWidth )
-	Turbine.UI.ListBox.Constructor( self );
-	self:SetMouseVisible( true );	
-	self.scrollWidth = scrollWidth;
-	self:CreateChildScrollbar( scrollWidth );
-	self:CreateChildSeparator( scrollWidth );
-end
-
-function ListBoxScrolled:CreateChildScrollbar( width )
-	self.scrollBar = Turbine.UI.Lotro.ScrollBar( );
-	self.scrollBar:SetParent( self:GetParent( ) );
-	self.scrollBar:SetOrientation( Turbine.UI.Orientation.Vertical );
-	self.scrollBar:SetZOrder( 320 );
-	self.scrollBar:SetWidth( width );
-	self.scrollBar:SetTop( 0 );
-	self.scrollBar:SetValue( 0 );
-	self:SetVerticalScrollBar( self.scrollBar );
-	self.scrollBar:SetVisible( false );
-end
-
-function ListBoxScrolled:CreateChildSeparator( width )
-	self.separator = Turbine.UI.Control( );
-	self.separator:SetParent( self:GetParent( ) );
-	self.separator:SetZOrder( 300 );
-	self.separator:SetWidth( width );
-	self.separator:SetTop( 0 );
-	self.separator:SetBackColor(Turbine.UI.Color(1, 0.15, 0.15, 0.15));
-	self.separator:SetVisible( false );
-end
-	
-function ListBoxScrolled:SetLeft( xPos )
-	Turbine.UI.ListBox.SetLeft( self, xPos );
-	self.scrollBar:SetLeft( xPos + self:GetWidth( ) );
-	self.separator:SetLeft( xPos + self:GetWidth( ) );
-end
-	
-function ListBoxScrolled:SetTop( yPos )
-	Turbine.UI.ListBox.SetTop( self, yPos );
-	self.scrollBar:SetTop( yPos );
-	self.separator:SetTop( yPos );
-end
-	
-function ListBoxScrolled:SetPosition( xPos, yPos )
-	self:SetLeft( xPos );
-	self:SetTop( yPos );
-end
-	
-function ListBoxScrolled:SetWidth( width )
-	Turbine.UI.ListBox.SetWidth( self, width );
-	self.scrollBar:SetLeft( self:GetLeft( ) + width );
-	self.separator:SetLeft( self:GetLeft( ) + width );
-end
-
-function ListBoxScrolled:SetHeight( height )
-	Turbine.UI.ListBox.SetHeight( self, height );
-	self.scrollBar:SetHeight( height );
-	self.separator:SetHeight( height );
-end
-
-function ListBoxScrolled:SetSize( width, height )
-	self:SetWidth( width );
-	self:SetHeight( height );
-end
-
-function ListBoxScrolled:SetVisible( bVisible )
-	Turbine.UI.ListBox.SetVisible( self, bVisible );
-	self.separator:SetVisible( bVisible );
-	self.scrollBar:SetVisible( bVisible );
-	if bVisible then self.scrollBar:SetParent( self:GetParent( ) )
-	else self.scrollBar:SetParent( self ); end
-end
-
-function ListBoxScrolled:SetParent( parent )
-	Turbine.UI.ListBox.SetParent( self, parent );
-	self.separator:SetParent( parent );
-	self.scrollBar:SetParent( parent );
-end
-
--- /ListBoxScrolled ----------------------------------------
-
-
--- ListBoxReadyIndicator ----------------------------------------
--- A scroll listbox with an optional single-char column before the main column
-
-function ListBoxCharColumn:New( scrollWidth, readyColWidth, listbox )
-	listbox = listbox or ListBoxCharColumn( scrollWidth, readyColWidth );
-	setmetatable( listbox, self );
-	self.__index = self;
-	return listbox;
-end
-
-function ListBoxCharColumn:Constructor( scrollWidth, readyColWidth )
-	ListBoxScrolled.Constructor( self, scrollWidth );
-	self.readyColWidth = readyColWidth
-	self.bShowReadyChars = true
-	self.bHighlightReadyCol = true
-end
-
-function ListBoxCharColumn:EnableCharColumn( bColumn )
-	if self.bShowReadyChars == bColumn then return; end
-
-	self.bShowReadyChars = bColumn
-	if ListBoxScrolled.GetItemCount( self ) == 0 then return; end
-
-	local iList
-	local itemCount = ListBoxScrolled.GetItemCount( self )
-	if bColumn then -- Add a char item before every item in the list
-		for iList = 1, itemCount * 2, 2 do
-			local chItem = self:CreateCharItem( )
-			ListBoxScrolled.InsertItem( self, iList, chItem )
-		end
-		self:SetMaxItemsPerLine( 2 )
-	else -- remove every item with odd index (the char items)
-		for iList = 1, itemCount / 2 do
-			ListBoxScrolled.RemoveItemAt( self, iList )
-		end
-		self:SetMaxItemsPerLine( 1 )
-	end
-end
-
-function ListBoxCharColumn:GetItem( iLine )
-	if self.bShowReadyChars then iLine = iLine * 2; end
-	return ListBoxScrolled.GetItem( self, iLine )
-end
-
-function ListBoxCharColumn:GetCharColumnItem( iLine )
-	if not self.bShowReadyChars then return nil; end
-	return ListBoxScrolled.GetItem( self, iLine * 2 - 1 )
-end
-
-function ListBoxCharColumn:SetColumnChar( iLine, ch, bHighlight )
-	local charItem = self:GetCharColumnItem( iLine )
-	if charItem then
-		self:ApplyHighlight( charItem, bHighlight )
-		charItem:SetText( ch )
-	end
-end
-
-function ListBoxCharColumn:ApplyHighlight( charItem, bHighlight )
-	if bHighlight and self.bHighlightReadyCol then
-		charItem:SetForeColor( Turbine.UI.Color( 1, 0, 0, 0 ) )
-		charItem:SetBackColor( Turbine.UI.Color( 1, 0.7, 0.7, 0.7 ) )
-	else
-		charItem:SetForeColor( Turbine.UI.Color( 1, 1, 1, 1 ) )
-		charItem:SetBackColor( Turbine.UI.Color( 1, 0, 0, 0 ) )
-	end
-end
-
-function ListBoxCharColumn:GetItemCount( )
-	if self.bShowReadyChars then return math.floor( ListBoxScrolled.GetItemCount( self ) / 2 ); end
-	return ListBoxScrolled.GetItemCount( self )
-end
-
-function ListBoxCharColumn:ClearItems( )
-	ListBoxScrolled.ClearItems( self )
-	if self.bShowReadyChars then self:SetMaxItemsPerLine( 2 )
-	else self:SetMaxItemsPerLine( 1 ); end
-	self:SetOrientation( Turbine.UI.Orientation.Horizontal )
-end
-
-function ListBoxCharColumn:CreateCharItem( )
-	local charItem = Turbine.UI.Label( )
-	charItem:SetMultiline( false )
-	charItem:SetSize( self.readyColWidth, 20 )
-	charItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleCenter )
-	self:ApplyHighlight( charItem, false )
-	return charItem
-end
-
-function ListBoxCharColumn:AddItem( item )
-	if self.bShowReadyChars then -- add ready indicator (single char in first column)
-		local charItem = self:CreateCharItem( )
-		ListBoxScrolled.AddItem( self, charItem )			
-	end
-	ListBoxScrolled.AddItem( self, item )
-end
-
-function ListBoxCharColumn:SetSelectedIndex( item )
-	-- if self.bShowReadyChars then
-	-- 	ListBoxScrolled.SetSelectedIndex(i * 2 + 1);
-	-- else
-		-- ListBoxScrolled.SetSelectedIndex(i);
-	-- end
-end
-
-function ListBoxCharColumn:RemoveItemAt( i )
-	if self.bShowReadyChars then
-		ListBoxScrolled.RemoveItemAt( self, i * 2 )
-		ListBoxScrolled.RemoveItemAt( self, i * 2 - 1 )
-	else
-		ListBoxScrolled.AddItem( self, i )
-	end
-end
-
--- /ListBoxReadyIndicator ----------------------------------------
 	
 	
 function SongbookWindow:SetListboxColours( listbox, bNoSelectionHighlight )
@@ -3184,129 +2855,6 @@ function SongbookWindow:AddScrollbar(parent,listbox,xPos,yPos)
 end
 
 
-function SongbookWindow:SetSonglistHeight( height )
-	self.songlistBox:SetHeight( height );
-	self.sepSongsTracks:SetTop(self.listContainer:GetHeight() - self.tracklistBox:GetHeight() - 13);
-	self.listboxPlayers:SetHeight( height - 20 );
-end
-
-function SongbookWindow:AdjustSonglistHeight( )
-	local height = self.listContainer:GetHeight() - self.dirlistBox:GetHeight() - 13;
-	if Settings.TracksVisible then height = height - self.tracklistBox:GetHeight() - 13; end
-	self:SetSonglistHeight( height )
-end
-
-function SongbookWindow:SetSonglistTop( top )
-	self.songlistBox:SetTop( top );
-	self.separator1:SetTop( top - 13 );
-	self.btnParty:SetTop( top );
-	self.listboxPlayers:SetTop( top + 20 );
-end
-
-function SongbookWindow:AdjustSonglistLeft( )
-	local xPos = 0;
-	if self.bFilter and self.bShowPlayers then xPos = xPos + 95; end
-	self.songlistBox:SetLeft( xPos );
-	self.songlistBox:SetWidth( self.listContainer:GetWidth( ) - xPos - 10 );
-end
-
-function SongbookWindow:AdjustSonglistPosition( )
-	self:AdjustSonglistLeft( )
-	self:SetSonglistTop( self.dirlistBox:GetHeight() + 13 )
-	self.separator1:SetWidth( self.listContainer:GetWidth() );
-	self.sArrows1:SetLeft( self.separator1:GetWidth() / 2 - 10 );
-end
-
-function SongbookWindow:AdjustDirlistSize( )
-	local width = self.listContainer:GetWidth( ) - 10;
-	local height = self.listContainer:GetHeight() - self.songlistBox:GetHeight() - 13;
-
-	if self.bFilter then width = width - 170; end
-	if Settings.TracksVisible then height = height - Settings.TracksHeight - 13; end
-
-	self.dirlistBox:SetSize( width, height );
-end
-
-function SongbookWindow:AdjustDirlistPosition( )
-	local xPos = 0;
-	if self.bFilter then xPos = xPos + 170; end
-	self.dirlistBox:SetPosition( xPos , 0 );
-	self.dirlistBox:SetWidth( self.listContainer:GetWidth( ) - xPos - 10 );
-end
-
-function SongbookWindow:ShowTrackListbox( bShow )
-	self.tracklistBox:SetVisible( bShow );
-	self.sepSongsTracks:SetVisible( bShow );
-	self.sArrows2:SetVisible( bShow );		
-end
-
-function SongbookWindow:SetTracklistTop( top )
-
-	if top < self.songlistBox:GetTop() + 13 + 40 then
-		top = self.songlistBox:GetTop() + 13 + 40;
-	end	
-		
-	self.tracklistBox:SetTop( top )
-	self.sepSongsTracks:SetTop( top - 13 )
-	self.listboxSetups:SetTop( top );
-	self.tracksMsg:SetTop( top - 15 - 3 );
-end
-
--- function SongbookWindow:MoveTracklistTop( delta )
--- 	self:SetTracklistTop( self.tracklistBox:GetTop( ) + delta )
--- end
-
-function SongbookWindow:AdjustTracklistLeft( )
-	if self.bShowSetups then self.tracklistBox:SetLeft( self.setupsWidth )
-	else self.tracklistBox:SetLeft( 0 ) end
-end
-
-function SongbookWindow:AdjustTracklistWidth( )
-	local width = self.listContainer:GetWidth( ) - 10
-	if self.bShowSetups then width = width - self.setupsWidth end
-	self.tracklistBox:SetWidth( width )
-	--if self.alignTracksRight == true then self:AdjustTracklistItemsPosition( width ) end
-	if self.alignTracksRight == true then self:RealignTracknames( ) end
-	self.sepSongsTracks:SetWidth( self.listContainer:GetWidth( ) )
-	self.sArrows2:SetLeft( self.sepSongsTracks:GetWidth() / 2 - 10 )
-	self.tracksMsg:SetLeft( self.tracklistBox:GetLeft( ) + width - self.tracksMsg:GetWidth( ) )
-end
-
-function SongbookWindow:AdjustTracklistItemsPosition( width )
-	for i = 1, self.tracklistBox:GetItemCount( ) do
-		local item = self.tracklistBox:GetItem( i )
-		item:SetLeft( width - 1000 )
-	end
-end
-
-function SongbookWindow:SetTracklistHeight( height )
-	self.tracklistBox:SetHeight( height )
-	self.listboxSetups:SetHeight( height );
-end
-
-function SongbookWindow:AdjustTracklistSize( height )
-	self:AdjustTracklistWidth( )
-	self:SetTracklistHeight( height )
-end
-
-function SongbookWindow:UpdateTracklistTop( )
-	self:SetTracklistTop( self.listContainer:GetHeight() - self.tracklistBox:GetHeight() )
-end
-
-function SongbookWindow:ShowSetups( bShow )
-	if bShow and not self.bShowSetups then 
-		self.bShowSetups = true
-		self.listboxSetups:SetVisible( true )
-		self:AdjustTracklistLeft( )
-		self:AdjustTracklistWidth( )
-	elseif not bShow and self.bShowSetups then 
-		self.bShowSetups = false
-		self.listboxSetups:ClearItems( )
-		self.listboxSetups:SetVisible( false )
-		self:AdjustTracklistLeft( )
-		self:AdjustTracklistWidth( )
-	end
-end
 
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3316,7 +2864,6 @@ end
 -- action for changing track selection (trackid is listbox index)
 function SongbookWindow:SelectTrack( trackid )
 	self.tracklistBox.SetSelectedIndex(trackid);
-	if self.bShowReadyChars then trackid = math.floor( (trackid+1) / 2 ); end
 	SongLibrary.selectedTrack = trackid;
 	local iTrack = SongLibrary.SelectedTrackIndex( trackid );
 	local trackcount = #SongDB.Songs[SongLibrary.selectedSongIndex].Tracks;
@@ -3385,18 +2932,18 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 		else
 			local iList = iTrack;
 			if SongLibrary.setupListIndices[ iTrack ] then iList = SongLibrary.setupListIndices[ iTrack ]; end
-			local item = self.tracklistBox:GetItem(iList);
 			local readyState = SyncManager.GetTrackReadyState( SongLibrary.selectedSongIndex, iTrack );
-			
-			
+
 			if readyState[0] == 10 then numberOfCorrectStates = numberOfCorrectStates + 1; end
-			
-			item:SetForeColor( ColorTheme.GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
-			item:SetBackColor( ColorTheme.GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
-			
-			
-			self:SetTrackReadyChar( iList, readyState[0] );
-			
+
+			local fgCol = ColorTheme.GetColourForTrack( readyState[0], iList == iSelectedTrack )
+			local bgCol = ColorTheme.GetBackColourForTrack( readyState[0], readyState[1], readyState[8] )
+			self.trackDetailPanel:SetTrackColour( iList, fgCol, bgCol )
+			local ch, bHL = self.chNone, false
+			if readyState[0] == 0 then ch = self.chMultiple; bHL = true
+			elseif readyState[0] then ch = self.chReady end
+			self.trackDetailPanel:SetTrackReadyChar( iList, ch, bHL )
+
 			local sTerseName = SongLibrary.TerseTrackname( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Name );
 			local Track_Instrument = InstrumentManager.FindInstrumentInTrack( sTerseName );
 			local Track_item = SyncInfolistbox:GetItem(iTrack);
@@ -3744,10 +3291,9 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 
 						SelectedMatchedSong_Index = SongIndex[i];
 
-						songbookWindow:SelectDir( nil, SongDB.Songs[SelectedMatchedSong_Index].Filepath );
-						songbookWindow:SelectSong(SelectedMatchedSong_IndexListBox);
-						local selectedItem = songbookWindow.songlistBox:GetItem( SelectedMatchedSong_IndexListBox )
-						if selectedItem then selectedItem:SetForeColor( songbookWindow.colourDefaultHighlighted ); end
+						SongLibrary.NavigateToDirectory(SongDB.Songs[SelectedMatchedSong_Index].Filepath)
+						songbookWindow.songFileBrowser:Populate()
+						songbookWindow:SelectSongByIndex(SelectedMatchedSong_Index)
 					end
 				end
 			end
@@ -3862,5 +3408,3 @@ function SongbookWindow:HelpWindow( )
 	end
 	HelpWindow_Load_Flag = 0;
 end
-
-
