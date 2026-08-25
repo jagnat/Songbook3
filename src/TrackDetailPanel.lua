@@ -53,6 +53,14 @@ function TrackDetailPanel:SetVisible(bVisible)
 	self.listbox:SetVisible(bVisible)
 end
 
+function TrackDetailPanel:Clear()
+	self.songIndex = nil
+	self.setupRowCount = 0
+	self.activeSetupIndex = nil
+	self.trackListToActual = {}
+	self.listbox:ClearItems()
+end
+
 -- Populate the panel for a song. Adds setup header rows then all track rows.
 function TrackDetailPanel:ShowSong(songIndex)
 	self.songIndex = songIndex

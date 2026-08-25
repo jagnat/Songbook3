@@ -18,7 +18,8 @@ Reference documentation is in `LOTRO-LUA-PLUGIN-API.md`.
 ### Settings
 - All settings use native Lua types (booleans, numbers, strings) — never store `"yes"`/`"no"` or `"true"`/`"false"` strings
 - Settings are managed by `src/SettingsManager.lua`. Use `SettingsManager.Save()` to persist
-- SongDB is read-only from the plugin's perspective (created by external filler applications)
+- SongDB is created by external filler applications and is never saved by the plugin
+- Runtime refreshes go through `SettingsManager.ReloadSongDatabase()`. Replace the active `SongLibrary` database only after validation succeeds
 
 ### Code style
 - When removing old code, just remove it. Don't leave comments explaining what was removed or why — that's what git history is for
@@ -27,7 +28,7 @@ Reference documentation is in `LOTRO-LUA-PLUGIN-API.md`.
 
 ### Module pattern
 - Extracted modules are global tables with functions: `ModuleName = {}` then `function ModuleName.DoThing()`. See `src/SettingsManager.lua` as the reference example
-- UI components use the `class(Turbine.UI.Control)` pattern and receive dependencies via constructor injection
+- UI components use the `class(Turbine.UI.Control)` pattern. New components receive dependencies via constructor injection; existing global dependencies are migration seams to remove
 - Modules communicate outward via callbacks/events, not by reaching into globals like `songbookWindow`
 
 ### Import order
@@ -44,8 +45,16 @@ Reference documentation is in `LOTRO-LUA-PLUGIN-API.md`.
 
 ## Testing
 
-No automated tests. Verify changes by loading the plugin in-game:
+Run pure Lua domain tests with:
+
+`luajit tests/SongLibraryTest.lua`
+
+`luajit tests/SettingsManagerTest.lua`
+
+UI and Turbine integration still require loading the plugin in-game:
 1. `/plugins load Songbook3`
 2. Check song browsing, track selection, instrument equipping, sync
 3. Check settings persist across plugin reload
-4. Test with German/French client if touching localization
+4. Regenerate `SongbookData.plugindata`, then verify both the Refresh button and `/songbook refresh`
+5. Confirm an invalid database reports an error without replacing the working library
+6. Test with German/French client if touching localization

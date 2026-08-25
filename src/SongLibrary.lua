@@ -17,9 +17,122 @@ SongLibrary.setupListIndices = {}
 SongLibrary.currentSetup = nil
 SongLibrary.selectedSetupCount = 'A'
 
+local listeners = {}
+
+local function emit(eventName, ...)
+	local callbacks = listeners[eventName]
+	if not callbacks then return end
+	for _, callback in ipairs(callbacks) do
+		callback(...)
+	end
+end
+
+local function songIdentity(song)
+	if not song then return nil end
+	return song.Filepath .. "\0" .. song.Filename
+end
+
+local function directoryExists(database, path)
+	if path == "/" then return true end
+	for _, directory in ipairs(database.Directories) do
+		if directory == path then return true end
+	end
+	return false
+end
+
+function SongLibrary.ValidateDatabase(database)
+	if type(database) ~= "table" or type(database.Directories) ~= "table" or type(database.Songs) ~= "table" then
+		return false
+	end
+	for _, directory in ipairs(database.Directories) do
+		if type(directory) ~= "string" then return false end
+	end
+	for _, song in ipairs(database.Songs) do
+		if type(song) ~= "table" or type(song.Filepath) ~= "string" or
+		   type(song.Filename) ~= "string" or type(song.Tracks) ~= "table" or
+		   type(song.Tracks[1]) ~= "table" then
+			return false
+		end
+	end
+	return true
+end
+
+function SongLibrary.On(eventName, callback)
+	if type(callback) ~= "function" then return end
+	if not listeners[eventName] then listeners[eventName] = {} end
+	table.insert(listeners[eventName], callback)
+end
+
+function SongLibrary.Off(eventName, callback)
+	local callbacks = listeners[eventName]
+	if not callbacks then return end
+	for i = #callbacks, 1, -1 do
+		if callbacks[i] == callback then table.remove(callbacks, i) end
+	end
+end
+
 function SongLibrary.Init()
+	if not SongLibrary.ValidateDatabase(SongDB) then
+		SongDB = { Directories = {}, Songs = {} }
+	end
 	SongLibrary.librarySize = #SongDB.Songs
 	table.sort(SongDB.Songs, SongLibrary.SortByName)
+	if SongLibrary.librarySize == 0 then
+		SongLibrary.selectedSong = ""
+		SongLibrary.selectedSongIndex = 0
+	end
+end
+
+-- Atomically replace the active database after validating it.  SongDB remains
+-- as a compatibility bridge for the UI modules that have not yet been migrated.
+function SongLibrary.ReplaceDatabase(database)
+	if not SongLibrary.ValidateDatabase(database) then return false, "invalid" end
+
+	local previousDirectory = SongLibrary.selectedDir
+	local previousSongId = songIdentity(SongDB and SongDB.Songs and SongDB.Songs[SongLibrary.selectedSongIndex])
+	local previousTrack = SongLibrary.selectedTrack
+
+	table.sort(database.Songs, SongLibrary.SortByName)
+	SongDB = database
+	SongLibrary.librarySize = #database.Songs
+
+	if directoryExists(database, previousDirectory) then
+		SongLibrary.NavigateToPath(previousDirectory)
+	else
+		SongLibrary.NavigateToPath("/")
+	end
+
+	local selectedIndex = 0
+	if previousSongId then
+		for i, song in ipairs(database.Songs) do
+			if songIdentity(song) == previousSongId then
+				selectedIndex = i
+				break
+			end
+		end
+	end
+	if selectedIndex == 0 and SongLibrary.librarySize > 0 then
+		for i, song in ipairs(database.Songs) do
+			if song.Filepath == SongLibrary.selectedDir then
+				selectedIndex = i
+				break
+			end
+		end
+		if selectedIndex == 0 then selectedIndex = 1 end
+	end
+
+	SongLibrary.selectedSongIndex = selectedIndex
+	SongLibrary.selectedSong = selectedIndex > 0 and database.Songs[selectedIndex].Filename or ""
+	local trackCount = selectedIndex > 0 and #database.Songs[selectedIndex].Tracks or 0
+	SongLibrary.selectedTrack = math.max(1, math.min(previousTrack or 1, trackCount > 0 and trackCount or 1))
+	SongLibrary.selectedSongIndexListBox = 0
+	SongLibrary.filteredIndices = {}
+	SongLibrary.setupTrackIndices = {}
+	SongLibrary.setupListIndices = {}
+	SongLibrary.currentSetup = nil
+
+	emit("databaseChanged", database)
+	return true, selectedIndex
 end
 
 function SongLibrary.SortByName(song1, song2)

@@ -7,6 +7,7 @@
 SettingsManager = {}
 
 local DATA_KEY = "Songbook3Settings"
+local songDatabaseReloadInProgress = false
 
 SettingsManager.AccountDefaults = {
 	WindowPosition = { Left = 300, Top = 20, Width = 700, Height = 750 },
@@ -197,4 +198,33 @@ function SettingsManager.Save()
 				Turbine.Shell.WriteLine("<rgb=#FF0000>" .. Strings["sh_notsaved"] .. " " .. message .. "</rgb>")
 			end
 		end)
+end
+
+-- Load a newly generated SongbookData value without unloading the plugin.
+-- Validation and replacement belong to SongLibrary so this module remains an
+-- asynchronous persistence boundary rather than a second database owner.
+function SettingsManager.ReloadSongDatabase(callback)
+	if songDatabaseReloadInProgress then
+		if callback then callback(false, "busy") end
+		return false
+	end
+
+	songDatabaseReloadInProgress = true
+	local ok = pcall(function()
+		Turbine.PluginData.Load(Turbine.DataScope.Account, "SongbookData", function(database)
+			songDatabaseReloadInProgress = false
+			if type(database) ~= "table" then
+				if callback then callback(false, "load") end
+				return
+			end
+			if callback then callback(true, database) end
+		end)
+	end)
+
+	if not ok then
+		songDatabaseReloadInProgress = false
+		if callback then callback(false, "load") end
+		return false
+	end
+	return true
 end

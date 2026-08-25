@@ -48,13 +48,16 @@ toggleWindow:SetVisible( Settings.ToggleVisible );
 songbookCommand = Turbine.ShellCommand();
 
 function songbookCommand:Execute(cmd, args)
+	args = string.lower((args or ""):match("^%s*(.-)%s*$"))
 	if ( args == Strings["sh_show"] ) then
 		songbookWindow:SetVisible( true );
 	elseif ( args == Strings["sh_hide"] ) then
 		songbookWindow:SetVisible( false );
 	elseif ( args == Strings["sh_toggle"] ) then
 		songbookWindow:SetVisible( not songbookWindow:IsVisible() );
-	elseif ( args ~= nil ) then
+	elseif ( args == "refresh" or args == Strings["sh_refresh"] ) then
+		songbookWindow:ReloadSongDatabase();
+	else
 		songbookCommand:GetHelp();
 	end
 end
@@ -63,7 +66,18 @@ function songbookCommand:GetHelp()
 	Turbine.Shell.WriteLine( Strings["sh_help1"] );
 	Turbine.Shell.WriteLine( Strings["sh_help2"] );
 	Turbine.Shell.WriteLine( Strings["sh_help3"] );
+	Turbine.Shell.WriteLine( Strings["sh_help4"] );
 end
 
 Turbine.Shell.AddCommand( "songbook3", songbookCommand );
+if not Turbine.Shell.IsCommand("songbook") then
+	songbookAliasCommand = Turbine.ShellCommand();
+	function songbookAliasCommand:Execute(cmd, args)
+		songbookCommand:Execute(cmd, args);
+	end
+	function songbookAliasCommand:GetHelp()
+		songbookCommand:GetHelp();
+	end
+	Turbine.Shell.AddCommand("songbook", songbookAliasCommand);
+end
 Turbine.Shell.WriteLine("Songbook 3 v".. Plugins["Songbook3"]:GetVersion() .." (Chiran + Brandy Badgers + Almiyan + Elamond)");

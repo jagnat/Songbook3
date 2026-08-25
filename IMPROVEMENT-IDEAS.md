@@ -4,28 +4,16 @@ Post-refactoring feature and UX improvements. These should be tackled after the 
 
 ## Priority Order
 
-### 1. Dynamic SongDB Reload
-**Effort: Low | Impact: High**
+### 1. Dynamic SongDB Reload — completed
 
-`PluginData.Load()` is async after startup (takes a callback), so a refresh button is trivial:
-```lua
-Turbine.PluginData.Load(Turbine.DataScope.Account, "SongbookData", function(loadedData)
-    SongDB = loadedData
-    SongLibrary.Init()
-    -- refresh UI
-end)
-```
-Periodic background refresh via the `Update` callback with a timer interval also works. Currently the plugin must be fully reloaded to pick up new songs.
+The main window now has a manual refresh button and `/songbook3 refresh` command. `SettingsManager` owns asynchronous loading, `SongLibrary` validates and atomically replaces the database, and the window refreshes the browser/detail controls. Invalid data leaves the working library untouched.
 
-### 2. Collapse Directory/Song/Track Into Fewer Panels
-**Effort: Moderate–High | Impact: High**
+Periodic background refresh remains intentionally deferred. Current filler tools do not expose a small revision key or timestamp, so polling would repeatedly load the full database.
 
-The three-panel split (directories → songs → tracks) is the biggest source of UI bloat. Options:
-- **Tree view**: Directories expand inline to show songs, songs expand to show tracks. Single listbox, hierarchical. LOTRO's listbox API doesn't have native tree support — fake it with indentation and expand/collapse icons per row.
-- **Breadcrumb + flat list**: Breadcrumb path at top, flat list shows current level contents. Click a song to expand tracks inline.
-- **Two panels max**: Directory browser on left, song+tracks on right (tracks inline under selected song).
+### 2. Finish the Two-Panel Browser Migration
+**Effort: Moderate | Impact: High**
 
-Tree view is probably the best approach despite requiring the most work.
+The visible UI now uses a breadcrumb/flat `SongFileBrowser` plus a `TrackDetailPanel`. The old directory, song, track, and setup listboxes are still maintained invisibly for compatibility with sync code. The next step is to move those remaining consumers onto explicit component/domain APIs and delete the hidden controls.
 
 ### 3. Move Instrument Slots Closer to Sync Buttons
 **Effort: Low | Impact: Medium**

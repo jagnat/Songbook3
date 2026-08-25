@@ -19,17 +19,19 @@ Features
 -Search feature
 -Custom commands for pasting song information to a chat channel *experimental*
 -Slots for instruments or other items/skills (which are saved per character)
+-Refresh the generated song library without unloading the plugin
 
 Installation
 
 -If you haven't used plugins before it's good to read this post first: http://forums.lotro.com/showthread.php?354331-Introduction-to-Lua-UI-scripts
 -Unzip the plugin to your 'Documents/The Lord of the Rings Online/Plugins' folder.
--If you have upgraded from a previous version, you probably have to run the songbook.hta file before your song library works again. See instructions below.
+-If you have upgraded from a previous version, run your Songbook filler once to generate a compatible song library. See instructions below.
 
 How to use
 
--IMPORTANT - Before loading the plugin, use the supplied songbook.hta file to build your library. Double click the file to run it, or just make a shortcut to it and place it anywhere you want. Run it whenever you have made changes to your song library. You can also use a great tool by Arnho (http://lotro.hanft.de/wansongbookfiller/), especially if you have problems with building being slow.
--To load the plugin type '/plugins load songbook'.
+-Before loading the plugin for the first time, use the supplied songbook.hta file or another Songbook filler to build your library. Double click the HTA file to run it, or make a shortcut to it and place it anywhere you want. You can also use a tool such as Songbook Filler if the HTA is slow.
+-After changing your abc collection, run your filler again and then click the Refresh button. You can also enter '/songbook refresh' or '/songbook3 refresh'. The plugin does not need to be unloaded.
+-To load the plugin type '/plugins load Songbook3'.
 -Click M button to toggle music mode (make sure you have an instrument equipped).
 -Select a song by clicking it and then press play button to start playing. There's also buttons for synced play and making a ready check.
 -Click and drag from the bottom right corner of the window to resize it.
@@ -45,7 +47,9 @@ Command line options
 -/songbook show - shows the Songbook window
 -/songbook hide - hides the Songbook window
 -/songbook toggle - toggles the Songbook window
+-/songbook refresh - reloads the generated song library from disk
 -/songbook - lists command line options
+-The same options are available through /songbook3.
 
 Known issues and comments
 
@@ -184,4 +188,3 @@ Version history
 Have fun!
 
 -Chiran, Laurelin (EU)
-

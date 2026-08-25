@@ -1248,6 +1248,13 @@ function SongbookWindow:Constructor()
 	self.tracklistBox:EnableCharColumn( self.bShowReadyChars )
 
 	-- initialize list items from song database
+	self.libraryIsEmpty = (SongLibrary.librarySize == 0)
+	self.emptyLabel = Turbine.UI.Label();
+	self.emptyLabel:SetParent( self );
+	self.emptyLabel:SetPosition( 30, 210 );
+	self.emptyLabel:SetSize(220, 240);
+	self.emptyLabel:SetText(Strings["err_nosongs"]);
+	self.emptyLabel:SetVisible(false);
 	if (SongLibrary.librarySize ~= 0 and not SongDB.Songs[1].Realnames) then
 		
 		for i = 1, #SongDB.Directories do
@@ -1307,11 +1314,7 @@ function SongbookWindow:Constructor()
 		self.separator1:SetVisible( false );
 		self.sepSongsTracks:SetVisible( false );
 		self.listFrame.heading:SetText( "" );
-		self.emptyLabel = Turbine.UI.Label();
-		self.emptyLabel:SetParent( self );
-		self.emptyLabel:SetPosition( 30, 210 );
-		self.emptyLabel:SetSize(220, 240);
-		self.emptyLabel:SetText(Strings["err_nosongs"]);
+		self.emptyLabel:SetVisible(true);
 	end
 	
 	-- window resize control
@@ -1406,6 +1409,16 @@ function SongbookWindow:Constructor()
 			settingsWindow:Activate();
 		end
 	end
+
+	self.refreshBtn = Turbine.UI.Lotro.Button();
+	self.refreshBtn:SetParent(self);
+	self.refreshBtn:SetSize(130, 20);
+	self.refreshBtn:SetText(Strings["ui_refresh"]);
+	self.refreshBtn.MouseClick = function(sender, args)
+		if args.Button == Turbine.UI.MouseButton.Left then
+			self:ReloadSongDatabase();
+		end
+	end
 	
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1431,8 +1444,8 @@ function SongbookWindow:Constructor()
 		self:SetVisible( false );
 	end
 	
-	if (Plugins ["Songbook"] ~= nil ) then
-		Plugins["Songbook"].Unload = function( sender, args )
+	if (Plugins[gPlugin] ~= nil ) then
+		Plugins[gPlugin].Unload = function( sender, args )
 			self:SaveSettings();
 			SyncManager.Shutdown();
 		end
@@ -1623,9 +1636,9 @@ function SongbookWindow:ReflowLayout()
 	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
 
 	Layout.stackVertical({
-		{ control = self.songFileBrowser,   height = "fill" },
-		{ control = self.sepSongsTracks,    height = SEPARATOR_HEIGHT,     visible = Settings.TracksVisible },
-		{ control = self.trackDetailPanel,  height = Settings.TracksHeight, visible = Settings.TracksVisible },
+		{ control = self.songFileBrowser,   height = "fill", visible = not self.libraryIsEmpty },
+		{ control = self.sepSongsTracks,    height = SEPARATOR_HEIGHT,     visible = not self.libraryIsEmpty and Settings.TracksVisible },
+		{ control = self.trackDetailPanel,  height = Settings.TracksHeight, visible = not self.libraryIsEmpty and Settings.TracksVisible },
 	}, { height = availableListHeight })
 
 	if self.sepSongsTracks.heading then
@@ -1641,7 +1654,7 @@ function SongbookWindow:ReflowLayout()
 	self.listboxPlayers:SetTop(self.songFileBrowser:GetTop() + 20)
 	self.listboxPlayers:SetHeight(self.songFileBrowser:GetHeight() - 20)
 
-	if Settings.TracksVisible then
+	if Settings.TracksVisible and not self.libraryIsEmpty then
 		self.trackDetailPanel:SetVisible(true)
 	else
 		self.trackDetailPanel:SetVisible(false)
@@ -1661,7 +1674,11 @@ function SongbookWindow:ReflowLayout()
 
 	-- Reposition bottom buttons
 	self.settingsBtn:SetPosition(width / 2 - 55, height - BOTTOM_BUTTON_HEIGHT)
+	self.refreshBtn:SetPosition(20, height - BOTTOM_BUTTON_HEIGHT)
 	self.SyncInfoBtn:SetPosition(width - 150, height - BOTTOM_BUTTON_HEIGHT)
+	self.emptyLabel:SetPosition(30, currentY + 25)
+	self.emptyLabel:SetSize(math.max(220, width - 60), math.max(40, availableListHeight - 25))
+	self.emptyLabel:SetVisible(self.libraryIsEmpty)
 
 	-- Update other width-dependent elements
 	self.songTitle:SetWidth(width - 52)
@@ -1679,6 +1696,77 @@ function SongbookWindow:ReflowLayout()
 		self.resizeCtrl:SetPosition(width - self.resizeCtrl:GetWidth(), height - self.resizeCtrl:GetHeight())
 	end
 end -- ReflowLayout
+
+function SongbookWindow:RefreshSongDatabaseView()
+	self.libraryIsEmpty = (SongLibrary.librarySize == 0)
+	self.emptyLabel:SetText(Strings["err_nosongs"])
+	local searchText = self.searchInput:GetText()
+	if searchText and searchText ~= "" then
+		self.songFileBrowser:Search(searchText, self:GetFilters())
+	else
+		self.songFileBrowser:Populate()
+	end
+
+	-- The old listboxes are still populated as a compatibility bridge for sync
+	-- code, but the browser/detail controls are the visible source of truth.
+	self.dirlistBox:ClearItems()
+	self.songlistBox:ClearItems()
+	self.tracklistBox:ClearItems()
+	self.listboxSetups:ClearItems()
+	self.trackDetailPanel:Clear()
+	SyncManager.ClearSongState()
+
+	if self.libraryIsEmpty then
+		self.listFrame.heading:SetText("")
+		self.sepSongsTracks.heading:SetText(Strings["ui_parts"] .. " (0)")
+		self.songTitle:SetText("")
+		self.trackNumber:SetText("")
+		self.trackPrev:SetVisible(false)
+		self.trackNext:SetVisible(false)
+	else
+		local selectedIndex = SongLibrary.selectedSongIndex
+		if not selectedIndex or not SongDB.Songs[selectedIndex] then selectedIndex = 1 end
+		self:SelectDir(nil, SongLibrary.selectedDir)
+		self:SelectSongByIndex(selectedIndex)
+		for listIndex, songIndex in ipairs(SongLibrary.filteredIndices) do
+			if songIndex == selectedIndex then
+				SongLibrary.selectedSongIndexListBox = listIndex
+				break
+			end
+		end
+	end
+
+	self:ReflowLayout()
+end
+
+function SongbookWindow:ReloadSongDatabase()
+	self.refreshBtn:SetEnabled(false)
+	self.refreshBtn:SetText(Strings["ui_refreshing"])
+
+	local started = SettingsManager.ReloadSongDatabase(function(success, databaseOrReason)
+		self.refreshBtn:SetEnabled(true)
+		self.refreshBtn:SetText(Strings["ui_refresh"])
+		if not success then
+			local key = databaseOrReason == "busy" and "err_refresh_busy" or "err_refresh_load"
+			Turbine.Shell.WriteLine("<rgb=#FF0000>" .. Strings[key] .. "</rgb>")
+			return
+		end
+
+		local replaced, reason = SongLibrary.ReplaceDatabase(databaseOrReason)
+		if not replaced then
+			Turbine.Shell.WriteLine("<rgb=#FF0000>" .. Strings[reason == "invalid" and "err_refresh_invalid" or "err_refresh_load"] .. "</rgb>")
+			return
+		end
+
+		self:RefreshSongDatabaseView()
+		Turbine.Shell.WriteLine("<rgb=#00FF00>" .. Strings["sh_refresh_success"] .. "</rgb>")
+	end)
+
+	if not started then
+		self.refreshBtn:SetEnabled(true)
+		self.refreshBtn:SetText(Strings["ui_refresh"])
+	end
+end
 
 
 -- action for selecting a directory
@@ -1901,14 +1989,23 @@ end
 
 -- action for toggling search function on and off
 function SongbookWindow:ToggleSearch(mode)
-	if (Settings.SearchVisible or mode == "off") then		
-		Settings.SearchVisible = false;
-		self:SetSearch( -20, false )
+	if mode == "off" then
+		Settings.SearchVisible = false
+	elseif mode == "on" then
+		Settings.SearchVisible = true
 	else
-		Settings.SearchVisible = true;
-		self:SetSearch( 20, true )
+		Settings.SearchVisible = not Settings.SearchVisible
+	end
+	if not Settings.SearchVisible and self.songFileBrowser then
+		self.searchInput:SetText("")
+		self.songFileBrowser:ClearSearch()
 	end
 
+	self:ReflowLayout()
+end
+
+function SongbookWindow:ToggleTracks()
+	Settings.TracksVisible = not Settings.TracksVisible
 	self:ReflowLayout()
 end
 
@@ -1927,22 +2024,12 @@ end
 
 -- action for toggling instrument slots on and off
 function SongbookWindow:ToggleInstrSlots()
-	local hMod = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows;
 	if (CharSettings.InstrSlots[1]["visible"]) then		
 		CharSettings.InstrSlots[1]["visible"] = false;
-		
-		self:SetInstrSlots( -hMod );
-		for j = 1, CharSettings.InstrumentSlots_Rows do
-			self.instrContainer[j]:SetVisible( false );
-		end
 	else
 		CharSettings.InstrSlots[1]["visible"] = true;
-		
-		self:SetInstrSlots( hMod );
-		for j = 1, CharSettings.InstrumentSlots_Rows do
-			self.instrContainer[j]:SetVisible( true );
-		end
 	end
+	self:ReflowLayout()
 end
 
 function SongbookWindow:ClearSlots()
@@ -2084,7 +2171,7 @@ function SongbookWindow:AddSlot_row()
 			end
 		end
 		
-		self:SetInstrSlots( InstrumentSlots_Shift );
+		self:ReflowLayout();
 	end
 end
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2107,7 +2194,7 @@ function SongbookWindow:DelSlot_row()
 			CharSettings.InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows - 1;
 			
 			
-			self:SetInstrSlots( -InstrumentSlots_Shift );
+			self:ReflowLayout();
 		end
 	end
 end

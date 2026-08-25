@@ -1,40 +1,42 @@
-Übersicht
+Ãœbersicht
 
-Songbook ist ein Plugin der Dir erlaubt, direkt im Spiel deine ABC-Sammlung anzuzeigen und Lieder per Mausklick abzuspielen. Es besteht aus zwei Teilen, dem Teil im Spiel das aus einem Fenster mit den benötigten Bedienelementen besteht und einem externem Programm das eine Liste der vorhandenen ABC-Dateien generiert die das intene Plugin lesen kann. Das externe Programm wurde als HTA-Datei erstellt (VBScript), es erlaubt auf einfache Weise die Sicherheit davon zu prüfen.
+Songbook ist ein Plugin der Dir erlaubt, direkt im Spiel deine ABC-Sammlung anzuzeigen und Lieder per Mausklick abzuspielen. Es besteht aus zwei Teilen, dem Teil im Spiel das aus einem Fenster mit den benÃ¶tigten Bedienelementen besteht und einem externem Programm das eine Liste der vorhandenen ABC-Dateien generiert die das intene Plugin lesen kann. Das externe Programm wurde als HTA-Datei erstellt (VBScript), es erlaubt auf einfache Weise die Sicherheit davon zu prÃ¼fen.
 
-Funktionalität
+FunktionalitÃ¤t
 
 -Anzeigen Deiner ABC-Dateien im Spiel
 -Musikmodus umschalten
--Auswählen und Abspielen von Liedern mit Mausklicks
--Unterstützt das /sync Befehl und auch die Bereitschaftskontrolle
+-AuswÃ¤hlen und Abspielen von Liedern mit Mausklicks
+-UnterstÃ¼tzt das /sync Befehl und auch die Bereitschaftskontrolle
 -Bewegliches und skalierbares Fenster
--Unterstützt Unterverzeichnisse des "music"-Ordners
--Unterstützt Multipart ABC´s
+-UnterstÃ¼tzt Unterverzeichnisse des "music"-Ordners
+-UnterstÃ¼tzt Multipart ABCÂ´s
 -Zeigt den aktuellen Titel des Liedes anstelle Dateinamens
--Optionale Anzeige der Teile bei Mulipart-ABC´s
--Unterstützt auch den deutschen Client (grosser Dank an Thorsongori für Übersetzung und Tests)
+-Optionale Anzeige der Teile bei Mulipart-ABCÂ´s
+-UnterstÃ¼tzt auch den deutschen Client (grosser Dank an Thorsongori fÃ¼r Ãœbersetzung und Tests)
 -Suchfunktion
 -Benutzerdefinierte Befehle um Liedinfos ans Chat zu senden *experimentel*
+-Aktualisieren der erzeugten Songbibliothek ohne das Plugin neu zu laden
 
 Installation
 
--falls Du noch keine Plugins benutzt hast gibt es hier gute Einführung: http://www.buffed.de/hdro/page/6922/Der-Herr-der-Ringe-Online-Addon-Plugins-Grundlagen-zu-DHdRO-Addon
+-falls Du noch keine Plugins benutzt hast gibt es hier gute EinfÃ¼hrung: http://www.buffed.de/hdro/page/6922/Der-Herr-der-Ringe-Online-Addon-Plugins-Grundlagen-zu-DHdRO-Addon
 -Entpacke das Plugin nach /Dokumente/The Lord of the Rings Online/Plugins
--Bei Erstinstalation oder Upgrade von älterer Version muss songbook.hta ausgeführt werden.
+-Bei Erstinstallation oder einem Upgrade von einer Ã¤lteren Version muss ein Songbook-Filler einmal ausgefÃ¼hrt werden.
 
-Einführung
+EinfÃ¼hrung
 
--WICHTIG - bevor Du das Plugin im Spiel laden kannst, ist es erforderlich zuerst die songbook.hta Datei auszuführen. Das kannst Du entweder per Doppelklick darauf oder Du kannst auf dem Desktop eine Verknüpfung damit erstellen. Nach jeder änderung Deiner ABC-Sammlung muss diese Datei ausgeführt werden.
--Um das plugin im spiel zu laden tippe '/zusatzmodule laden songbook'.
+-Vor dem ersten Laden des Plugins musst Du die Bibliothek mit songbook.hta oder einem anderen Songbook-Filler erzeugen. Die HTA-Datei kannst Du per Doppelklick oder Ã¼ber eine VerknÃ¼pfung starten.
+-FÃ¼hre den Filler nach Ã„nderungen an Deiner ABC-Sammlung erneut aus und klicke danach auf Aktualisieren. Alternativ kannst Du '/songbook refresh' oder '/songbook3 refresh' eingeben. Das Plugin muss dafÃ¼r nicht neu geladen werden.
+-Um das Plugin im Spiel zu laden tippe '/zusatzmodule laden Songbook3'.
 -Durch Klicken auf den M-Knopf wird der Musikmodus ein/ausgeschaltet
--Wähle ein Lied aus und spiele es ab mit einem Klick auf den Start-Knopf, es sind auch Knöpfe für /sync und Bereitschaftskontrolle vorhanden.
+-WÃ¤hle ein Lied aus und spiele es ab mit einem Klick auf den Start-Knopf, es sind auch KnÃ¶pfe fÃ¼r /sync und Bereitschaftskontrolle vorhanden.
 -Klicke und ziehe die rechte untere Ecke des fensters um es zu skalieren.
 -Klicke und ziehe die Titelleiste um das Fenster zu verschieben.
--Beim Schliessen wird die Position und Grösse des Fensters gespeichert.
+-Beim Schliessen wird die Position und GrÃ¶sse des Fensters gespeichert.
 -Innerhalb des Fensters lassen sich die teilenden Linien auch verschieben
--Besteht eine ABC-Datei aus mehreren Teilen, so lassen die sich mit den kleinen Pfeilen oder direkt im neuem Teil des Fensters auswählen.
--Benutzerdefinierte Befehle können mit dem Mausrad umgeschaltet werden wenn der Zeiger über dem "S" (Abkürzung für Share(eng. für Teilen)) Schalter steht. 
+-Besteht eine ABC-Datei aus mehreren Teilen, so lassen die sich mit den kleinen Pfeilen oder direkt im neuem Teil des Fensters auswÃ¤hlen.
+-Benutzerdefinierte Befehle kÃ¶nnen mit dem Mausrad umgeschaltet werden wenn der Zeiger Ã¼ber dem "S" (AbkÃ¼rzung fÃ¼r Share(eng. fÃ¼r Teilen)) Schalter steht.
 -Antworten zu den meisten Fragen findest du hier: http://chiran.lotrointerface.com/portal.php?id=32&a=faq
 
 Befehlzeilenoptionen
@@ -42,4 +44,7 @@ Befehlzeilenoptionen
 -/songbook anzeigen - zeigt das Songbook-Fenster
 -/songbook verstecken- versteckt das Songbook-Fenster
 -/songbook umschalten - schaltet ein/aus das Songbook-Fenster
+-/songbook aktualisieren - lÃ¤dt die erzeugte Songbibliothek neu
+-/songbook refresh - lÃ¤dt die erzeugte Songbibliothek neu
 -/songbook - zeigt alle Befehlzeilenoptionen
+-Die gleichen Optionen sind auch Ã¼ber /songbook3 verfÃ¼gbar.
