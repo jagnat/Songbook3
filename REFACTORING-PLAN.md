@@ -16,6 +16,7 @@ The goal is to decompose this into focused, composable modules. Bug fixes come a
 ## Completed
 
 - **SettingsManager** (`src/SettingsManager.lua`) — centralized settings with typed defaults, load/save, legacy coercion. All string-based `"yes"`/`"no"`/`"true"`/`"false"` comparisons replaced with native booleans across the codebase.
+- **Layout utility** (`src/Layout.lua`) — vertical and horizontal stacking with fixed/fill sizing, visibility-aware reflow, gaps, and per-control position/size overrides. The main song lists and settings window now use centralized reflow functions.
 - **SongLibrary** (`src/SongLibrary.lua`) — song loading, directory traversal, search/filtering, selected song/track/directory state.
 - **Utils** (`src/Utils.lua`) — shared utilities (`AddCallback`/`RemoveCallback`).
 - **SyncManager** (`src/SyncManager.lua`) — chat message parsing, player state tracking, ready-state calculation, `@SBL` protocol. Communicates with UI via callbacks. Global variables converted to proper booleans.
@@ -23,18 +24,7 @@ The goal is to decompose this into focused, composable modules. Bug fixes come a
 
 ## Work Order
 
-### 1. Layout Utility (`src/Layout.lua`)
-
-Do this early so extracted panels can use it from the start rather than carrying over pixel-math and being rewritten later.
-
-- Helper functions for vertical/horizontal stacking, padding, sizing
-- Something like: `Layout.stackVertical(parent, children, { gap = 4, padding = 8 })`
-- Each child declares its preferred height (or `"fill"` for remaining space)
-- Replaces the current approach of manually calculating pixel offsets everywhere
-- `ReflowLayout()` was a good start — this formalizes the pattern
-- **Declarative panel visibility**: panels register with the layout system; toggling visibility triggers automatic reflow
-
-### 2. SongLibrary (`src/SongLibrary.lua`)
+### 1. SongLibrary (`src/SongLibrary.lua`)
 
 The core domain model. Extract song/directory/track data management out of SongbookWindow.
 
@@ -44,7 +34,7 @@ The core domain model. Extract song/directory/track data management out of Songb
 - Emits events when selection or filter state changes
 - SongDB is read-only (created by external filler applications)
 
-### 3. SyncManager (`src/SyncManager.lua`)
+### 2. SyncManager (`src/SyncManager.lua`)
 
 The ~1,500 lines of sync logic are the second largest concern after UI.
 
@@ -53,7 +43,7 @@ The ~1,500 lines of sync logic are the second largest concern after UI.
 - Replaces the current ChatHandler stub and the inline sync methods
 - Emits events when player states change (so the UI can react)
 
-### 4. InstrumentManager (`src/InstrumentManager.lua`)
+### 3. InstrumentManager (`src/InstrumentManager.lua`)
 
 Self-contained domain module.
 
@@ -62,14 +52,14 @@ Self-contained domain module.
 - `FindInstrumentInTrack()`, `CheckInstrument()`, `CompareInstrument()` live here
 - Makes adding new instruments trivial (just add a data entry)
 
-### 5. ColorTheme (`src/ColorTheme.lua`)
+### 4. ColorTheme (`src/ColorTheme.lua`)
 
 Quick win — the 40+ color definitions from the constructor become a theme table.
 
 - Functions like `GetColourForTrack()`, `GetBackColourForTrack()` live here
 - Makes it possible to tweak the color scheme in one place
 
-### 6. Language/Localization cleanup (`src/Lang.lua`)
+### 5. Language/Localization cleanup (`src/Lang.lua`)
 
 - Fix French/German encoding issues (ensure consistent UTF-8)
 - Complete missing translations
@@ -77,7 +67,7 @@ Quick win — the 40+ color definitions from the constructor become a theme tabl
 - Add fallback-to-English for any missing key
 - Consider a simple `T("key")` function pattern instead of `Strings.key`
 
-### 7. UI Component Extraction
+### 6. UI Component Extraction
 
 With domain logic extracted, break SongbookWindow into composable panels:
 
@@ -96,7 +86,7 @@ Each panel:
 - Handles its own internal layout using the Layout utility
 - Communicates outward via events, not by reaching into globals
 
-### 8. Final SongbookWindow Slimdown
+### 7. Final SongbookWindow Slimdown
 
 SongbookWindow becomes the shell — it just:
 - Creates the panels

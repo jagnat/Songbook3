@@ -9,7 +9,7 @@ Task list:
 - [x] Refactor folder structure to separate code from resources
 - [ ] Add proper localization support for French and German, switch to always using SongbookLang.lua strings for all messages/commands
 - [ ] Refactor main window architecture, break out filters into a separate window
-- [ ] Fix settings window using a mix of relative and hardcoded positions for components
+- [x] Fix settings window using a mix of relative and hardcoded positions for components
 - [ ] Remove songbook button and update texture of the songbook song timer scroll
 - [ ] Add support for exporting/importing instrument shortcut templates, to help with onboarding new toons/accounts
 - [ ] Smarter part name / instrument detection

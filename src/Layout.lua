@@ -6,9 +6,10 @@ Layout = {}
 
 -- Stack children vertically.
 --
--- children: array of { control, height, [visible] }
+-- children: array of { control, height, [visible], [x], [width] }
 --   height  = number (fixed px) or "fill" (gets remaining space)
 --   visible = false → control is hidden and takes no space (default true)
+--   x/width override the matching option for an individual child
 --   At most one child should use height = "fill"
 --
 -- options: { x, y, width, height, gap }
@@ -71,10 +72,14 @@ function Layout.stackVertical(children, options)
 			local h = (item.height == "fill") and fillHeight or item.height
 			item.control:SetVisible(true)
 			item.control:SetTop(currentY)
-			if x then item.control:SetLeft(x) end
+			local childX = item.x
+			if childX == nil then childX = x end
+			if childX ~= nil then item.control:SetLeft(childX) end
 			item.control:SetHeight(h)
-			if width then
-				item.control:SetWidth(width)
+			local childWidth = item.width
+			if childWidth == nil then childWidth = width end
+			if childWidth ~= nil then
+				item.control:SetWidth(childWidth)
 			end
 			currentY = currentY + h
 			placed = placed + 1
@@ -89,9 +94,10 @@ end
 
 -- Stack children horizontally.
 --
--- children: array of { control, width, [visible] }
+-- children: array of { control, width, [visible], [y], [height] }
 --   width   = number (fixed px) or "fill" (gets remaining space)
 --   visible = false → control is hidden and takes no space (default true)
+--   y/height override the matching option for an individual child
 --   At most one child should use width = "fill"
 --
 -- options: { x, y, height, width, gap }
@@ -151,10 +157,14 @@ function Layout.stackHorizontal(children, options)
 			local w = (item.width == "fill") and fillWidth or item.width
 			item.control:SetVisible(true)
 			item.control:SetLeft(currentX)
-			if y then item.control:SetTop(y) end
+			local childY = item.y
+			if childY == nil then childY = y end
+			if childY ~= nil then item.control:SetTop(childY) end
 			item.control:SetWidth(w)
-			if height then
-				item.control:SetHeight(height)
+			local childHeight = item.height
+			if childHeight == nil then childHeight = height end
+			if childHeight ~= nil then
+				item.control:SetHeight(childHeight)
 			end
 			currentX = currentX + w
 			placed = placed + 1

@@ -1,12 +1,10 @@
 SettingsWindow = class( Turbine.UI.Lotro.Window );
 
 
-function SettingsWindow:CreateCheckBox( stringCode, yPos, state, func, width, xPos )
+function SettingsWindow:CreateCheckBox( stringCode, state, func, width )
 	width = width or 300
-	xPos = xPos or 25
 	local cb = Turbine.UI.Lotro.CheckBox();
 	cb:SetParent( self );
-	cb:SetPosition(xPos, yPos );
 	cb:SetSize(width,20);
 	cb:SetText(" " .. Strings[stringCode]);
 	cb:SetChecked(state);
@@ -43,19 +41,19 @@ function SettingsWindow:Constructor()
 	self.genLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.genLabel:SetText(Strings["ui_general"]);
 
-	self.trackCheck = self:CreateCheckBox( "cb_parts", 0, Settings.TracksVisible,
+	self.trackCheck = self:CreateCheckBox( "cb_parts", Settings.TracksVisible,
 		function(sender, args) songbookWindow:ToggleTracks(); end )
 
-	self.searchCheck = self:CreateCheckBox( "cb_search", 0, Settings.SearchVisible,
+	self.searchCheck = self:CreateCheckBox( "cb_search", Settings.SearchVisible,
 		function(sender, args) songbookWindow:ToggleSearch(); end )
 
-	self.descCheck = self:CreateCheckBox( "cb_desc", 0, Settings.DescriptionVisible,
+	self.descCheck = self:CreateCheckBox( "cb_desc", Settings.DescriptionVisible,
 		function(sender, args) songbookWindow:ToggleDescription(); end )
 
-	self.descFirstCheck = self:CreateCheckBox( "cb_descfirst", 0, Settings.DescriptionFirst,
+	self.descFirstCheck = self:CreateCheckBox( "cb_descfirst", Settings.DescriptionFirst,
 		function(sender, args) songbookWindow:ToggleDescriptionFirst(); end )
 
-	self.visibleCheck = self:CreateCheckBox( "cb_windowvis", 0, Settings.WindowVisible,
+	self.visibleCheck = self:CreateCheckBox( "cb_windowvis", Settings.WindowVisible,
 		function(sender, args) self:ChangeVisibility(sender:IsChecked()); end )
 
 	-- Left column — badger settings section
@@ -66,41 +64,27 @@ function SettingsWindow:Constructor()
 	self.badgerLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.badgerLabel:SetText(Strings["ui_badger"]);
 
-	self.filterCheck = self:CreateCheckBox( "filters", 0, Settings.FiltersState,
+	self.filterCheck = self:CreateCheckBox( "filters", Settings.FiltersState,
 		function(sender, args) songbookWindow:ShowFilterUI( sender:IsChecked( ) ); end, 120 )
 
-	self.chiefCheck = self:CreateCheckBox( "cb_chief", 0, Settings.ChiefMode,
-		function(sender, args) SyncManager.SetChiefMode( sender:IsChecked( ) ); end, 150, 170 )
+	self.chiefCheck = self:CreateCheckBox( "cb_chief", Settings.ChiefMode,
+		function(sender, args) SyncManager.SetChiefMode( sender:IsChecked( ) ); end, 150 )
 
-	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", 0, Settings.TimerCountdown,
-		function(sender, args) songbookWindow.bTimerCountdown = sender:IsChecked( ); end, 150, 170 )
+	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", Settings.TimerCountdown,
+		function(sender, args) songbookWindow.bTimerCountdown = sender:IsChecked( ); end, 150 )
 
-	self.timerCheck = self:CreateCheckBox( "cb_timer", 0, Settings.TimerState,
+	self.timerCheck = self:CreateCheckBox( "cb_timer", Settings.TimerState,
 		function(sender, args) self:ToggleTimer( sender:IsChecked( ) ); end, 120 )
 	if not Settings.TimerState then self.countdownCheck:SetVisible( false ); end
 
-	self.readyHighlightCheck = self:CreateCheckBox( "cb_rdyColHL", 0, Settings.ReadyColHighlight,
-		function(sender, args) songbookWindow:HightlightReadyColumns( sender:IsChecked( ) ); end, 150, 170 )
+	self.readyHighlightCheck = self:CreateCheckBox( "cb_rdyColHL", Settings.ReadyColHighlight,
+		function(sender, args) songbookWindow:HightlightReadyColumns( sender:IsChecked( ) ); end, 150 )
 
-	self.readyColumnCheck = self:CreateCheckBox( "cb_rdyCol", 0, Settings.ReadyColState,
+	self.readyColumnCheck = self:CreateCheckBox( "cb_rdyCol", Settings.ReadyColState,
 		function(sender, args) self:ToggleReadyCol( sender:IsChecked( ) ); end, 145 )
 	if not Settings.ReadyColState then self.readyHighlightCheck:SetVisible( false ); end
 
-	-- Left column positioning
-	local y = 40
-	self.genLabel:SetPosition(20, y);     y = y + 20
-	self.trackCheck:SetPosition(25, y);   y = y + 20
-	self.searchCheck:SetPosition(25, y);  y = y + 20
-	self.descCheck:SetPosition(25, y);    y = y + 20
-	self.descFirstCheck:SetPosition(25, y); y = y + 20
-	self.visibleCheck:SetPosition(25, y); y = y + 20
-
-	self.badgerLabel:SetPosition(20, y);  y = y + 20
-	self.filterCheck:SetPosition(25, y);  self.chiefCheck:SetPosition(170, y);   y = y + 20
-	self.timerCheck:SetPosition(25, y);   self.countdownCheck:SetPosition(170, y); y = y + 20
-	self.readyColumnCheck:SetPosition(25, y); self.readyHighlightCheck:SetPosition(170, y); y = y + 20
-
-	-- Right column — create controls without positions (Layout will place them)
+	-- Right column
 	self.UserChatLabel = Turbine.UI.Label();
 	self.UserChatLabel:SetParent(self);
 	self.UserChatLabel:SetWidth(200);
@@ -212,18 +196,17 @@ function SettingsWindow:Constructor()
 	self.TimerWindowLabel:SetText("Timer Window");
 	
 	--Timer Window display checkbox
-	local Timer_Window_CB = Turbine.UI.Lotro.CheckBox();
-	Timer_Window_CB:SetParent( self );
-	Timer_Window_CB:SetSize(200,20);
-	Timer_Window_CB:SetText(" Timer Window Visible");
-	Timer_Window_CB:SetChecked(Settings.TimerWindowVisible);
-	Timer_Window_CB.CheckedChanged = function(sender, args) songbookWindow:ToggleTimerWindow( sender:IsChecked( ) ); end;
+	self.TimerWindowCheck = Turbine.UI.Lotro.CheckBox();
+	self.TimerWindowCheck:SetParent( self );
+	self.TimerWindowCheck:SetSize(200,20);
+	self.TimerWindowCheck:SetText(" Timer Window Visible");
+	self.TimerWindowCheck:SetChecked(Settings.TimerWindowVisible);
+	self.TimerWindowCheck.CheckedChanged = function(sender, args) songbookWindow:ToggleTimerWindow( sender:IsChecked( ) ); end;
 	
 	
 	-- Help button
 	self.HelpBtn = Turbine.UI.Lotro.Button();
 	self.HelpBtn:SetParent(self);
-	self.HelpBtn:SetPosition(self:GetWidth()-160,self:GetHeight()-35);
 	self.HelpBtn:SetSize(100,20);
 	self.HelpBtn:SetText("Help");
 	
@@ -231,20 +214,6 @@ function SettingsWindow:Constructor()
 		songbookWindow:ShowHelpWindow();
 	end
 	
-	-- Right column section 1 — 20px steps, no extra gap, controls keep their own widths
-	Layout.stackVertical({
-		{ control = self.UserChatLabel,             height = 20 },
-		{ control = self.UCNameInput,               height = 20 },
-		{ control = self.ManualChetSelectionLabel,  height = 20 },
-		{ control = self.RaidChat_CB,               height = 20 },
-		{ control = self.FellowshipChat_CB,         height = 20 },
-		{ control = self.AutoTrackPickerLabel,      height = 20 },
-		{ control = self.AutoPickSongChange_CB,     height = 20 },
-		{ control = self.AutoPickInsChange_CB,      height = 20 },
-		{ control = self.TimerWindowLabel,          height = 20 },
-		{ control = Timer_Window_CB,                height = 20 },
-	}, { x = 300, y = 40 })
-
 	self.sbbtnLabel = Turbine.UI.Label();
 	self.sbbtnLabel:SetParent(self);
 	self.sbbtnLabel:SetWidth(300);
@@ -252,7 +221,7 @@ function SettingsWindow:Constructor()
 	self.sbbtnLabel:SetFont( Turbine.UI.Lotro.Font.TrajanPro16 );
 	self.sbbtnLabel:SetText(Strings["ui_icon"]);
 
-	self.toggleCheck = self:CreateCheckBox( "cb_iconvis", 0, Settings.ToggleVisible,
+	self.toggleCheck = self:CreateCheckBox( "cb_iconvis", Settings.ToggleVisible,
 		function(sender, args) self:ChangeToggleVisibility(sender:IsChecked()); end )
 
 	self.toggleOpacityLabel = Turbine.UI.Label();
@@ -431,13 +400,11 @@ function SettingsWindow:Constructor()
 	
 	self.listBg = Turbine.UI.Control();
 	self.listBg:SetParent(self.listFrame);
-	self.listBg:SetPosition(0,15);
 	self.listBg:SetSize(self.listFrame:GetWidth() - 19, self.listFrame:GetHeight() - 19);
 	self.listBg:SetBackColor(Turbine.UI.Color(1, 0, 0, 0));
 	
 	self.cmdlistBox = Turbine.UI.ListBox();
 	self.cmdlistBox:SetParent(self.listFrame);
-	self.cmdlistBox:SetPosition(5,15);
 	self.cmdlistBox:SetSize(self.listFrame:GetWidth() - 23,self.listFrame:GetHeight() - 19);
 	
 	self:RefreshCmds();
@@ -451,36 +418,9 @@ function SettingsWindow:Constructor()
 		Settings.hideMatchedSongsPopup = sender:IsChecked();
 	end
 
-	-- Left column continued (y carries over)
-	y = y + 5
-	self.sbbtnLabel:SetPosition(20, y);   y = y + 20
-	self.toggleCheck:SetPosition(25, y);  y = y + 30
-	self.toggleOpacityLabel:SetPosition(20, y); y = y + 15
-	self.toggleOpacityScroll:SetPosition(20, y)
-	self.toggleOpacityInd:SetPosition(250, y);  y = y + 25
-
-	self.cmdLabel:SetPosition(20, y);     y = y + 20
-	self.addBtn:SetPosition(20, y)
-	self.editBtn:SetPosition(115, y)
-	self.delBtn:SetPosition(195, y);      y = y + 25
-	self.listFrame:SetPosition(20, y)
-	self.songPopupCheck:SetPosition(20, 470)
-
-	-- Right column section 2: instrument settings (matches original y-values)
-	self.instrLabel:SetPosition(300, 240)
-	self.instrCheck:SetPosition(300, 260)
-	self.clrSlotsBtn:SetPosition(300, 285)
-	self.slotsLabel:SetPosition(300, 315)
-	self.addSlotBtn:SetPosition(350, 315)
-	self.delSlotBtn:SetPosition(410, 315)
-	self.rowsLabel:SetPosition(300, 340)
-	self.addSlotBtn_rows:SetPosition(350, 340)
-	self.delSlotBtn_rows:SetPosition(410, 340)
-
 	self.cmdScroll = Turbine.UI.Lotro.ScrollBar();
 	self.cmdScroll:SetParent(self);
 	self.cmdScroll:SetOrientation( Turbine.UI.Orientation.Vertical );
-	self.cmdScroll:SetPosition(self.listFrame:GetLeft() + self.listFrame:GetWidth() - 12, self.listFrame:GetTop() + 13);
 	self.cmdScroll:SetSize(10,self.cmdlistBox:GetHeight());
 	self.cmdScroll:SetValue(0);
 	self.cmdlistBox:SetVerticalScrollBar( self.cmdScroll );
@@ -501,12 +441,12 @@ function SettingsWindow:Constructor()
 	
 	function self:ToggleTimer( bChecked )
 		songbookWindow:ActivateTimer( bChecked )
-		self.countdownCheck:SetVisible( bChecked )
+		self:ReflowLayout()
 	end
 
 	function self:ToggleReadyCol( bChecked )
 		songbookWindow:ShowReadyColumns( bChecked )
-		self.readyHighlightCheck:SetVisible( bChecked )
+		self:ReflowLayout()
 	end
 
 	function self:ChangeCmd(cmdId)
@@ -530,7 +470,6 @@ function SettingsWindow:Constructor()
 	
 	self.saveBtn = Turbine.UI.Lotro.Button();
 	self.saveBtn:SetParent(self);
-	self.saveBtn:SetPosition(self:GetWidth()/2-50,self:GetHeight()-35);
 	self.saveBtn:SetSize(100,20);	
 	self.saveBtn:SetText(Strings["ui_save"]);
 	self.saveBtn.MouseDown = function(sender,args)
@@ -655,6 +594,138 @@ function SettingsWindow:Constructor()
 		self.addWindow.help:SetFont(Turbine.UI.Lotro.Font.Verdana14);
 		self.addWindow.help:SetText(Strings["ui_cus_help"]);
 	end
+
+	local function createLayoutControl()
+		local control = Turbine.UI.Control()
+		control:SetParent(self)
+		return control
+	end
+
+	self.filterRow = createLayoutControl()
+	self.timerRow = createLayoutControl()
+	self.readyRow = createLayoutControl()
+	self.leftSectionGap = createLayoutControl()
+	self.toggleGap = createLayoutControl()
+	self.opacityRow = createLayoutControl()
+	self.rightSectionGap = createLayoutControl()
+	self.instrumentButtonGap = createLayoutControl()
+	self.slotRowGap = createLayoutControl()
+	self.slotsRow = createLayoutControl()
+	self.slotButtonsGap = createLayoutControl()
+	self.rowsRow = createLayoutControl()
+	self.rowButtonsGap = createLayoutControl()
+	self.commandButtonsRow = createLayoutControl()
+	self.commandListGap = createLayoutControl()
+
+	self:ReflowLayout()
+	self.SizeChanged = function(sender, args)
+		self:ReflowLayout()
+	end
+end
+
+function SettingsWindow:ReflowLayout()
+	local width, height = self:GetSize()
+	local left = 20
+	local right = 300
+	local top = 40
+
+	Layout.stackVertical({
+		{ control = self.genLabel,             height = 20, x = left },
+		{ control = self.trackCheck,           height = 20, x = left + 5 },
+		{ control = self.searchCheck,          height = 20, x = left + 5 },
+		{ control = self.descCheck,            height = 20, x = left + 5 },
+		{ control = self.descFirstCheck,       height = 20, x = left + 5 },
+		{ control = self.visibleCheck,         height = 20, x = left + 5 },
+		{ control = self.badgerLabel,          height = 20, x = left },
+		{ control = self.filterRow,            height = 20 },
+		{ control = self.timerRow,             height = 20 },
+		{ control = self.readyRow,             height = 20 },
+		{ control = self.leftSectionGap,       height = 5 },
+		{ control = self.sbbtnLabel,           height = 20, x = left },
+		{ control = self.toggleCheck,          height = 20, x = left + 5 },
+		{ control = self.toggleGap,            height = 10 },
+		{ control = self.toggleOpacityLabel,   height = 15, x = left },
+		{ control = self.opacityRow,           height = 25 },
+	}, { y = top })
+
+	Layout.stackHorizontal({
+		{ control = self.filterCheck, width = 120 },
+		{ control = self.chiefCheck,  width = 150 },
+	}, { x = left + 5, y = self.filterRow:GetTop(), height = 20, gap = 25 })
+
+	Layout.stackHorizontal({
+		{ control = self.timerCheck,     width = 120 },
+		{ control = self.countdownCheck, width = 150, visible = self.timerCheck:IsChecked() },
+	}, { x = left + 5, y = self.timerRow:GetTop(), height = 20, gap = 25 })
+
+	Layout.stackHorizontal({
+		{ control = self.readyColumnCheck,    width = 145 },
+		{ control = self.readyHighlightCheck, width = 150, visible = self.readyColumnCheck:IsChecked() },
+	}, { x = left + 5, y = self.readyRow:GetTop(), height = 20 })
+
+	Layout.stackHorizontal({
+		{ control = self.toggleOpacityScroll, width = 220, height = 10 },
+		{ control = self.toggleOpacityInd,    width = 30,  height = 20 },
+	}, { x = left, y = self.opacityRow:GetTop(), gap = 10 })
+
+	Layout.stackVertical({
+		{ control = self.UserChatLabel,            height = 20 },
+		{ control = self.UCNameInput,              height = 20 },
+		{ control = self.ManualChetSelectionLabel, height = 20 },
+		{ control = self.RaidChat_CB,              height = 20 },
+		{ control = self.FellowshipChat_CB,        height = 20 },
+		{ control = self.AutoTrackPickerLabel,     height = 20 },
+		{ control = self.AutoPickSongChange_CB,    height = 20 },
+		{ control = self.AutoPickInsChange_CB,     height = 20 },
+		{ control = self.TimerWindowLabel,         height = 20 },
+		{ control = self.TimerWindowCheck,         height = 20 },
+		{ control = self.instrLabel,               height = 20 },
+		{ control = self.instrCheck,               height = 20 },
+		{ control = self.rightSectionGap,          height = 5 },
+		{ control = self.clrSlotsBtn,              height = 20 },
+		{ control = self.instrumentButtonGap,      height = 10 },
+		{ control = self.slotsRow,                 height = 20 },
+		{ control = self.slotRowGap,               height = 5 },
+		{ control = self.rowsRow,                  height = 20 },
+	}, { x = right, y = top })
+
+	Layout.stackHorizontal({
+		{ control = self.slotsLabel, width = 50 },
+		{ control = self.addSlotBtn, width = 50 },
+		{ control = self.slotButtonsGap, width = 10 },
+		{ control = self.delSlotBtn, width = 70 },
+	}, { x = right, y = self.slotsRow:GetTop(), height = 20, gap = 0 })
+
+	Layout.stackHorizontal({
+		{ control = self.rowsLabel,       width = 50 },
+		{ control = self.addSlotBtn_rows, width = 50 },
+		{ control = self.rowButtonsGap,   width = 10 },
+		{ control = self.delSlotBtn_rows, width = 70 },
+	}, { x = right, y = self.rowsRow:GetTop(), height = 20, gap = 0 })
+
+	Layout.stackVertical({
+		{ control = self.cmdLabel,          height = 20, width = 260 },
+		{ control = self.commandButtonsRow, height = 25 },
+		{ control = self.listFrame,         height = 80, width = width - 40 },
+		{ control = self.commandListGap,    height = 10 },
+		{ control = self.songPopupCheck,    height = 20 },
+	}, { x = left, y = 335 })
+
+	Layout.stackHorizontal({
+		{ control = self.addBtn,  width = 85 },
+		{ control = self.editBtn, width = 70 },
+		{ control = self.delBtn,  width = 75 },
+	}, { x = left, y = self.commandButtonsRow:GetTop(), height = 20, gap = 10 })
+
+	self.listBg:SetPosition(0, 15)
+	self.listBg:SetSize(self.listFrame:GetWidth() - 19, self.listFrame:GetHeight() - 19)
+	self.cmdlistBox:SetPosition(5, 15)
+	self.cmdlistBox:SetSize(self.listFrame:GetWidth() - 23, self.listFrame:GetHeight() - 19)
+	self.cmdScroll:SetPosition(self.listFrame:GetLeft() + self.listFrame:GetWidth() - 12, self.listFrame:GetTop() + 13)
+	self.cmdScroll:SetSize(10, self.cmdlistBox:GetHeight())
+
+	self.saveBtn:SetPosition(width / 2 - 50, height - 35)
+	self.HelpBtn:SetPosition(width - 160, height - 35)
 end
 
 function SettingsWindow:RefreshCmds()
