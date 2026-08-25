@@ -60,6 +60,9 @@ function SongFileBrowser:Constructor()
 
 	-- Whether we are currently in search mode.
 	self.searching = false
+
+	-- Callback set by the owner; called after navigation or populate.
+	self.onNavigated = nil
 end
 
 function SongFileBrowser:SetWidth(w)
@@ -107,6 +110,8 @@ function SongFileBrowser:Populate()
 		self.selectedLabel = self.songLabels[self.selectedSongIndex]
 		self.selectedLabel:SetForeColor(ColorTheme.colourSongSelected)
 	end
+
+	if self.onNavigated then self.onNavigated() end
 end
 
 -- Creates a directory row label.

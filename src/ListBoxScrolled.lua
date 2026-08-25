@@ -26,7 +26,6 @@ function ListBoxScrolled:CreateChildScrollbar( width )
 	self.scrollBar:SetTop( 0 )
 	self.scrollBar:SetValue( 0 )
 	self:SetVerticalScrollBar( self.scrollBar )
-	self.scrollBar:SetVisible( false )
 end
 
 function ListBoxScrolled:CreateChildSeparator( width )
@@ -76,7 +75,6 @@ end
 function ListBoxScrolled:SetVisible( bVisible )
 	Turbine.UI.ListBox.SetVisible( self, bVisible )
 	self.separator:SetVisible( bVisible )
-	self.scrollBar:SetVisible( bVisible )
 	if bVisible then self.scrollBar:SetParent( self:GetParent() )
 	else self.scrollBar:SetParent( self ) end
 end
