@@ -20,6 +20,8 @@ function TimerWindow:Constructor()
 	self:SetZOrder(100);
 	self:SetVisible( true );
 
+	self.onClicked = nil
+
 	self.Timer_Frame = Turbine.UI.Control();
 	self.Timer_Frame:SetParent(self);
 	self.Timer_Frame:SetPosition(0,0);
@@ -81,7 +83,7 @@ function TimerWindow:Constructor()
 				sender.dragging = false;
 			end
 			if not sender.dragged then
-				songbookWindow:SetVisible( not songbookWindow:IsVisible() );
+				if self.onClicked then self.onClicked() end
 			end
 			self:SetBackColor( Turbine.UI.Color(0,0,0,0) );
 			Settings.ToggleLeft = self:GetLeft();
@@ -115,18 +117,8 @@ function TimerWindow:Constructor()
 end
 
 function TimerWindow:AdjustTimerPosition(displayWidth, displayHeight)
-	if Settings.Timer_WindowPosition.Left + self.Width > displayWidth then
-		Settings.Timer_WindowPosition.Left = displayWidth - self.Width;
-	end
-	if Settings.Timer_WindowPosition.Top + self.Height > displayHeight then
-		Settings.Timer_WindowPosition.Top = displayHeight - self.Height;
-	end
-	if Settings.Timer_WindowPosition.Left < 0 then
-		Settings.Timer_WindowPosition.Left = 0;
-	end
-	if Settings.Timer_WindowPosition.Top < 0 then
-		Settings.Timer_WindowPosition.Top = 0;
-	end
+	local position = Settings.Timer_WindowPosition
+	position.Left, position.Top = Utils.ClampToDisplay(position.Left, position.Top, self.Width, self.Height, displayWidth, displayHeight)
 end
 
 function TimerWindow:SetTimerText(str)

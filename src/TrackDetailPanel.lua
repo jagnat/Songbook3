@@ -35,6 +35,7 @@ function TrackDetailPanel:Constructor()
 	self.songIndex = nil
 	self.setupRowCount = 0       -- number of setup header rows at the top
 	self.activeSetupIndex = nil  -- currently active setup; nil = "All"
+	self.fullSetupIndex = nil    -- setup that already contains every track, shown as the "all" row
 	self.trackListToActual = {}  -- trackListToActual[listIdx] = actual track index
 end
 
@@ -57,6 +58,7 @@ function TrackDetailPanel:Clear()
 	self.songIndex = nil
 	self.setupRowCount = 0
 	self.activeSetupIndex = nil
+	self.fullSetupIndex = nil
 	self.trackListToActual = {}
 	self.listbox:ClearItems()
 end
@@ -75,18 +77,39 @@ function TrackDetailPanel:ShowSong(songIndex)
 	self.listbox:ClearItems()
 
 	local song = SongDB.Songs[songIndex]
+	self.fullSetupIndex = nil
 	if song.Setups and #song.Setups > 0 then
 		for i = 1, #song.Setups do
-			self.listbox:AddItem(self:CreateSetupHeaderItem(i, #song.Setups[i]))
+			if #song.Setups[i] == #song.Tracks then
+				self.fullSetupIndex = i
+				break
+			end
 		end
-		self.listbox:AddItem(self:CreateAllTracksItem(#song.Tracks))
-		self.setupRowCount = #song.Setups + 1
+		self.setupRowCount = #song.Setups
+		if not self.fullSetupIndex then
+			self.setupRowCount = self.setupRowCount + 1
+		end
 	end
 
-	-- Show all tracks by default, restoring previously selected setup if any.
+	-- the remembered part count survives songs that lack a setup of that size
 	local restoreSetup = SongLibrary.SetupIndexForCount(songIndex, SongLibrary.selectedSetupCount)
+	if restoreSetup == self.fullSetupIndex then restoreSetup = nil end
 	self:RebuildTrackRows(restoreSetup)
 	self:HighlightSetupRow(restoreSetup)
+end
+
+function TrackDetailPanel:AddHeaderRows(song)
+	if self.setupRowCount == 0 then return end
+	for i = 1, #song.Setups do
+		if i == self.fullSetupIndex then
+			self.listbox:AddItem(self:CreateAllTracksItem(#song.Tracks))
+		else
+			self.listbox:AddItem(self:CreateSetupHeaderItem(i, #song.Setups[i]))
+		end
+	end
+	if not self.fullSetupIndex then
+		self.listbox:AddItem(self:CreateAllTracksItem(#song.Tracks))
+	end
 end
 
 -- Rebuild only the track rows below the setup header rows.
@@ -96,21 +119,13 @@ function TrackDetailPanel:RebuildTrackRows(setupIndex)
 	self.trackListToActual = {}
 
 	local song = SongDB.Songs[self.songIndex]
+	self:AddHeaderRows(song)
 
-	-- Re-add setup header rows.
-	if self.setupRowCount > 0 then
-		for i = 1, self.setupRowCount - 1 do
-			self.listbox:AddItem(self:CreateSetupHeaderItem(i, #song.Setups[i]))
-		end
-		self.listbox:AddItem(self:CreateAllTracksItem(#song.Tracks))
-	end
-
-	-- Reset SongLibrary setup state.
 	SongLibrary.setupTrackIndices = {}
 	SongLibrary.setupListIndices = {}
 	SongLibrary.currentSetup = nil
 
-	if setupIndex and setupIndex < self.setupRowCount then
+	if setupIndex and song.Setups and song.Setups[setupIndex] then
 		-- Filtered mode: show only the tracks in this setup.
 		SongLibrary.currentSetup = setupIndex
 		local setup = song.Setups[setupIndex]
@@ -121,10 +136,7 @@ function TrackDetailPanel:RebuildTrackRows(setupIndex)
 			self.trackListToActual[i] = iTrack
 			self.listbox:AddItem(self:CreateTrackItem(self.songIndex, iTrack, i))
 		end
-		SongLibrary.selectedSetupCount = #setup
 	else
-		-- Unfiltered: show all tracks.
-		SongLibrary.selectedSetupCount = nil
 		for i = 1, #song.Tracks do
 			self.trackListToActual[i] = i
 			self.listbox:AddItem(self:CreateTrackItem(self.songIndex, i, i))
@@ -136,6 +148,9 @@ end
 
 -- Called when the user clicks a setup header row.
 function TrackDetailPanel:SelectSetup(setupIndex)
+	local song = SongDB.Songs[self.songIndex]
+	if setupIndex == self.fullSetupIndex then setupIndex = nil end
+	SongLibrary.selectedSetupCount = setupIndex and #song.Setups[setupIndex] or nil
 	self:RebuildTrackRows(setupIndex)
 	self:HighlightSetupRow(setupIndex)
 	if self.onSetupSelected then
@@ -146,10 +161,11 @@ end
 -- Highlight the selected setup row; clear others.
 function TrackDetailPanel:HighlightSetupRow(setupIndex)
 	if self.setupRowCount == 0 then return end
+	local allRowIndex = self.fullSetupIndex or self.setupRowCount
 	for i = 1, self.setupRowCount do
 		local item = self.listbox:GetItem(i)
 		if item then
-			local isSelected = (i == setupIndex) or (setupIndex == nil and i == self.setupRowCount)
+			local isSelected = (i == setupIndex) or (setupIndex == nil and i == allRowIndex)
 			if isSelected then
 				item:SetBackColor(ColorTheme.backColourHighlight)
 			else

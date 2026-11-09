@@ -10,8 +10,6 @@ SongLibrary.selectedTrack = 1
 SongLibrary.selectedDir = "/"
 SongLibrary.dirPath = {"/"}
 SongLibrary.librarySize = 0
-SongLibrary.selectedSongIndexListBox = 0
-SongLibrary.filteredIndices = {}
 SongLibrary.setupTrackIndices = {}
 SongLibrary.setupListIndices = {}
 SongLibrary.currentSetup = nil
@@ -125,8 +123,6 @@ function SongLibrary.ReplaceDatabase(database)
 	SongLibrary.selectedSong = selectedIndex > 0 and database.Songs[selectedIndex].Filename or ""
 	local trackCount = selectedIndex > 0 and #database.Songs[selectedIndex].Tracks or 0
 	SongLibrary.selectedTrack = math.max(1, math.min(previousTrack or 1, trackCount > 0 and trackCount or 1))
-	SongLibrary.selectedSongIndexListBox = 0
-	SongLibrary.filteredIndices = {}
 	SongLibrary.setupTrackIndices = {}
 	SongLibrary.setupListIndices = {}
 	SongLibrary.currentSetup = nil
@@ -298,12 +294,10 @@ end
 
 function SongLibrary.GetSongsInDirectory(filters)
 	local result = {}
-	SongLibrary.filteredIndices = {}
 	local n = 0
 	for i = 1, SongLibrary.librarySize do
 		if SongDB.Songs[i].Filepath == SongLibrary.selectedDir and SongLibrary.ApplyFilters(SongDB.Songs[i], filters) then
 			n = n + 1
-			SongLibrary.filteredIndices[n] = i
 			result[n] = { index = i, text = SongLibrary.GetDisplayText(i) }
 		end
 	end
@@ -312,7 +306,6 @@ end
 
 function SongLibrary.SearchSongs(searchText, filters)
 	local result = {}
-	SongLibrary.filteredIndices = {}
 	local n = 0
 	local lowerSearch = string.lower(searchText)
 	for i = 1, SongLibrary.librarySize do
@@ -330,7 +323,6 @@ function SongLibrary.SearchSongs(searchText, filters)
 			end
 			if found then
 				n = n + 1
-				SongLibrary.filteredIndices[n] = i
 				result[n] = { index = i, text = SongLibrary.GetDisplayText(i) }
 			end
 		end

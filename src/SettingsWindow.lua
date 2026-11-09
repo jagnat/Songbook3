@@ -71,7 +71,7 @@ function SettingsWindow:Constructor()
 		function(sender, args) SyncManager.SetChiefMode( sender:IsChecked( ) ); end, 150 )
 
 	self.countdownCheck = self:CreateCheckBox( "cb_timerDown", Settings.TimerCountdown,
-		function(sender, args) songbookWindow.bTimerCountdown = sender:IsChecked( ); end, 150 )
+		function(sender, args) songbookWindow:SetTimerCountdown( sender:IsChecked( ) ); end, 150 )
 
 	self.timerCheck = self:CreateCheckBox( "cb_timer", Settings.TimerState,
 		function(sender, args) self:ToggleTimer( sender:IsChecked( ) ); end, 120 )
@@ -595,9 +595,11 @@ function SettingsWindow:Constructor()
 		self.addWindow.help:SetText(Strings["ui_cus_help"]);
 	end
 
+	-- spacers are created last, so they sit above the checkboxes and would eat their clicks
 	local function createLayoutControl()
 		local control = Turbine.UI.Control()
 		control:SetParent(self)
+		control:SetMouseVisible(false)
 		return control
 	end
 

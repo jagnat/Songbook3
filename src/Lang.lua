@@ -19,6 +19,7 @@ Strings = {
 	ui_settings = "Settings",
 	ui_refresh = "Refresh songs",
 	ui_refreshing = "Refreshing...",
+	ui_syncinfo = "Sync Info",
 	ui_search = "Search",
 	ui_clear = "Clear",
 	ui_general = "General settings",

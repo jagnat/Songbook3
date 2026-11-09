@@ -29,3 +29,17 @@ function RemoveCallback(object, event, callback)
         end
     end
 end
+
+Utils = {}
+
+-- shrinks to fit the display first, then moves back on screen
+function Utils.ClampToDisplay(left, top, width, height, displayWidth, displayHeight)
+	local changed = false
+	if width > displayWidth then width = displayWidth; changed = true end
+	if height > displayHeight then height = displayHeight; changed = true end
+	if left + width > displayWidth then left = displayWidth - width; changed = true end
+	if top + height > displayHeight then top = displayHeight - height; changed = true end
+	if left < 0 then left = 0; changed = true end
+	if top < 0 then top = 0; changed = true end
+	return left, top, width, height, changed
+end

@@ -9,7 +9,7 @@ SyncManager.syncedTrackName = ""
 SyncManager.otherPlayerSynced = false
 SyncManager.multipleSongsMatch = false
 SyncManager.missingMatchedSong = false
-SyncManager.otherPlayerSong = { filepath = "", filename = "", index = 1, indexListBox = 1 }
+SyncManager.otherPlayerSong = { filepath = "", filename = "", index = 1 }
 SyncManager.isRaid = false
 SyncManager.userChatBlocked = false
 SyncManager.userChatName = ""
@@ -425,7 +425,7 @@ handleChat = function(sender, args)
 
         if string.find(sMessage, "@SBL") then
 
-            local sPlayerName, Filename, TrackName, SyncStatus, CorrectSongAndTrack, NumberOfParts, SongIndexListBox, SongIndex_OtherPlayer, TrackIndex, neededInstrument, equippedInstrument_Index, CorrectInstrument = string.match(sMessage, '|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|')
+            local sPlayerName, Filename, TrackName, SyncStatus, CorrectSongAndTrack, NumberOfParts, _, SongIndex_OtherPlayer, TrackIndex, neededInstrument, equippedInstrument_Index, CorrectInstrument = string.match(sMessage, '|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|(.+)|')
 
             local PlayerIsInParty_Flag = 0
 

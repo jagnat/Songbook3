@@ -9,356 +9,20 @@ SongbookWindow = class( Turbine.UI.Window );
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-HelpWindow_Load_Flag = 1;
-SelectedMatchedSong_Index = 1;
---MatchedSongsIndex = {};
 InstrumentSlots_Shift = 45;
 ShiftTop = 50;
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Help_Window = Turbine.UI.Lotro.Window();
-Help_Window:SetZOrder(100);
-Help_Window:SetSize( 410, 500 );
-Help_Window:SetPosition( Turbine.UI.Display:GetWidth()/2-205, Turbine.UI.Display:GetHeight()/2-250 );
-Help_Window:SetText( "Help" );
-Help_Window:SetVisible( false );
-Help_Window:SetOpacity(0.9);
-
-Help_Frame = Turbine.UI.Control();
-Help_Frame:SetParent(Help_Window);
-Help_Frame:SetPosition(5,40);
-Help_Frame:SetSize(400,420);
-Help_Frame:SetBlendMode( Turbine.UI.BlendMode.AlphaBlend );
-Help_Frame:SetBackground(gDir .. "Help_window.tga");
-
---Help Window display checkbox
-Help_Window_CB = Turbine.UI.Lotro.CheckBox();
-Help_Window_CB:SetParent( Help_Window );
-Help_Window_CB:SetPosition(50, 460 );
-Help_Window_CB:SetSize(200,20);
-Help_Window_CB:SetText(" Don't Show this again.");
-Help_Window_CB:SetChecked(Settings.HelpWindowDisable );
-Help_Window_CB.CheckedChanged = function(sender, args)
-	if songbookWindow then
-		songbookWindow:SetHelpWindowDisabled( sender:IsChecked( ) );
-		songbookWindow:SaveSettings();
-	end
-end;
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-TimerWindow = Songbook3.src.TimerWindow();
-
-MatchedSongsWindow = Turbine.UI.Lotro.Window();
-MatchedSongsWindow:SetZOrder(100);
-MatchedSongsWindow:SetSize( 600, 300 );
-MatchedSongsWindow:SetPosition( Turbine.UI.Display:GetWidth()/2-300, Turbine.UI.Display:GetHeight()/2-200 );
-MatchedSongsWindow:SetText( "Matched Songs" );
-MatchedSongsWindow:SetVisible( false );
-MatchedSongsWindow:SetOpacity(0.9);
-----------------------------------------------
-MatchedSongsListbox = Turbine.UI.ListBox();
-MatchedSongsListbox:SetParent( MatchedSongsWindow );
-MatchedSongsListbox:SetPosition( 30, 50 );
-MatchedSongsListbox:SetSize( MatchedSongsWindow:GetWidth() - 60 , MatchedSongsWindow:GetHeight() - 80  );
-----------------------------------------------
-MatchedSongsScrollBarV = Turbine.UI.Lotro.ScrollBar( );
-MatchedSongsScrollBarV:SetParent( MatchedSongsWindow );
-MatchedSongsScrollBarV:SetOrientation( Turbine.UI.Orientation.Vertical );
-MatchedSongsScrollBarV:SetPosition(MatchedSongsListbox:GetLeft() + MatchedSongsListbox:GetWidth(), MatchedSongsListbox:GetTop());
-MatchedSongsScrollBarV:SetSize(10,MatchedSongsListbox:GetHeight());
-MatchedSongsScrollBarV:SetBackColor(Turbine.UI.Color(.1,.1,.1));
-MatchedSongsScrollBarV:SetZOrder( 120 );
-MatchedSongsScrollBarV:SetValue( 0 );
-MatchedSongsListbox:SetVerticalScrollBar( MatchedSongsScrollBarV );
-----------------------------------------------
-MatchedSongsScrollBarH = Turbine.UI.Lotro.ScrollBar( );
-MatchedSongsScrollBarH:SetParent( MatchedSongsWindow );
-MatchedSongsScrollBarH:SetOrientation( Turbine.UI.Orientation.Horizontal );
-MatchedSongsScrollBarH:SetPosition(MatchedSongsListbox:GetLeft(),MatchedSongsListbox:GetHeight() + MatchedSongsListbox:GetTop());
-MatchedSongsScrollBarH:SetSize(MatchedSongsListbox:GetWidth(), 10);
-MatchedSongsScrollBarH:SetBackColor(Turbine.UI.Color(.1,.1,.1));
-MatchedSongsScrollBarH:SetZOrder( 120 );
-MatchedSongsScrollBarH:SetValue( 0 );
-MatchedSongsListbox:SetHorizontalScrollBar( MatchedSongsScrollBarH );
-
-
--- window resize control
-MatchedSongsWindow.resizeCtrl = Turbine.UI.Control();
-MatchedSongsWindow.resizeCtrl:SetParent(MatchedSongsWindow);
-MatchedSongsWindow.resizeCtrl:SetSize(20,20);		
-MatchedSongsWindow.resizeCtrl:SetZOrder(200);
-MatchedSongsWindow.resizeCtrl:SetPosition(MatchedSongsWindow:GetWidth() - 20,MatchedSongsWindow:GetHeight() - 20); 
-				
-MatchedSongsWindow.resizeCtrl.MouseDown = function(sender,args)
-  sender.dragStartX = args.X;
-  sender.dragStartY = args.Y;
-  sender.dragging = true;
-end
-	
-MatchedSongsWindow.resizeCtrl.MouseUp = function(sender,args)
-  sender.dragging = false;
-  --Settings.PlayersSyncInfoWindowPosition.Width = MatchedSongsWindow:GetWidth();
-  --Settings.PlayersSyncInfoWindowPosition.Height = MatchedSongsWindow:GetHeight();
-end
-
-MatchedSongsWindow.resizeCtrl.MouseMove = function(sender,args)
-	local width, height = MatchedSongsWindow:GetSize();
-	local gameDisplayWidth, gameDisplayHeight = Turbine.UI.Display.GetSize();
-	
-	if sender.dragging then
-		
-		width = width + args.X - sender.dragStartX;
-		height = height + args.Y - sender.dragStartY;
-		local WindowLeft = MatchedSongsWindow:GetLeft();
-		local WindowTop  = MatchedSongsWindow:GetTop ();
-		
-		if width < 300 then width = 300; end
-		if height < 200 then height = 200; end
-		------------------------------------
-		if WindowLeft + width  > gameDisplayWidth  then
-		width  = gameDisplayWidth  - WindowLeft; end
-		if WindowTop  + height > gameDisplayHeight then
-		height = gameDisplayHeight - WindowTop ; end
-		------------------------------------
-		
-		MatchedSongsWindow:SetSize( width, height );
-		
-		MatchedSongsListbox:SetSize( MatchedSongsWindow:GetWidth() - 60 , MatchedSongsWindow:GetHeight() - 80  );
-		MatchedSongsScrollBarV:SetPosition(MatchedSongsListbox:GetLeft() + MatchedSongsListbox:GetWidth(), MatchedSongsListbox:GetTop());
-		MatchedSongsScrollBarV:SetSize(10,MatchedSongsListbox:GetHeight());
-		MatchedSongsScrollBarH:SetPosition(MatchedSongsListbox:GetLeft(),MatchedSongsListbox:GetHeight() + MatchedSongsListbox:GetTop());
-		MatchedSongsScrollBarH:SetSize(MatchedSongsListbox:GetWidth(), 10);
-	end
-	
-	sender:SetPosition( MatchedSongsWindow:GetWidth() - sender:GetWidth(), MatchedSongsWindow:GetHeight() - sender:GetHeight() );
-end -- resizeCtrl.MouseMove
-
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-PlayersSyncInfoWindow = Turbine.UI.Lotro.Window();
---PlayersSyncInfoWindow:SetZOrder(100);
-PlayersSyncInfoWindow:SetSize( 400, 300 );
-PlayersSyncInfoWindow:SetPosition( Turbine.UI.Display:GetWidth()/2-200, Turbine.UI.Display:GetHeight()/2-150 );
-PlayersSyncInfoWindow:SetText( "Tracks Sync Info" );
-PlayersSyncInfoWindow:SetVisible( false );
-PlayersSyncInfoWindow:SetOpacity(0.9);
-
-SyncInfolistbox = Turbine.UI.ListBox();
-SyncInfolistbox:SetParent( PlayersSyncInfoWindow );
---SyncInfolistbox:SetBackColor( Turbine.UI.Color( 0.1, 0.1, 0.1 ) );
-SyncInfolistbox:SetPosition( 30, 50 );
-SyncInfolistbox:SetSize( PlayersSyncInfoWindow:GetWidth() - 60 , PlayersSyncInfoWindow:GetHeight() - 80  );
-
-scrollBarV = Turbine.UI.Lotro.ScrollBar( );
-scrollBarV:SetParent( PlayersSyncInfoWindow );
-scrollBarV:SetOrientation( Turbine.UI.Orientation.Vertical );
-scrollBarV:SetPosition(SyncInfolistbox:GetLeft() + SyncInfolistbox:GetWidth(), SyncInfolistbox:GetTop());
-scrollBarV:SetSize(10,SyncInfolistbox:GetHeight());
-scrollBarV:SetBackColor(Turbine.UI.Color(.1,.1,.1));
-scrollBarV:SetZOrder( 120 );
-scrollBarV:SetValue( 0 );
-SyncInfolistbox:SetVerticalScrollBar( scrollBarV );
---scrollBarV:SetVisible( false );
-
-scrollBarH = Turbine.UI.Lotro.ScrollBar( );
-scrollBarH:SetParent( PlayersSyncInfoWindow );
-scrollBarH:SetOrientation( Turbine.UI.Orientation.Horizontal );
-scrollBarH:SetPosition(SyncInfolistbox:GetLeft(),SyncInfolistbox:GetHeight() + SyncInfolistbox:GetTop());
-scrollBarH:SetSize(SyncInfolistbox:GetWidth(), 10);
-scrollBarH:SetBackColor(Turbine.UI.Color(.1,.1,.1));
-scrollBarH:SetZOrder( 120 );
-scrollBarH:SetValue( 0 );
-SyncInfolistbox:SetHorizontalScrollBar( scrollBarH );
---scrollBarH:SetVisible( false );
-
--- window resize control
-PlayersSyncInfoWindow.resizeCtrl = Turbine.UI.Control();
-PlayersSyncInfoWindow.resizeCtrl:SetParent(PlayersSyncInfoWindow);
-PlayersSyncInfoWindow.resizeCtrl:SetSize(20,20);		
-PlayersSyncInfoWindow.resizeCtrl:SetZOrder(200);
-PlayersSyncInfoWindow.resizeCtrl:SetPosition(PlayersSyncInfoWindow:GetWidth() - 20,PlayersSyncInfoWindow:GetHeight() - 20); 
-				
-PlayersSyncInfoWindow.resizeCtrl.MouseDown = function(sender,args)
-  sender.dragStartX = args.X;
-  sender.dragStartY = args.Y;
-  sender.dragging = true;
-end
-	
-PlayersSyncInfoWindow.resizeCtrl.MouseUp = function(sender,args)
-  sender.dragging = false;
-  Settings.PlayersSyncInfoWindowPosition.Width = PlayersSyncInfoWindow:GetWidth();
-  Settings.PlayersSyncInfoWindowPosition.Height = PlayersSyncInfoWindow:GetHeight();
-end
-
-PlayersSyncInfoWindow.resizeCtrl.MouseMove = function(sender,args)
-	local width, height = PlayersSyncInfoWindow:GetSize();
-	local gameDisplayWidth, gameDisplayHeight = Turbine.UI.Display.GetSize();
-	
-	if sender.dragging then
-		
-		width = width + args.X - sender.dragStartX;
-		height = height + args.Y - sender.dragStartY;
-		local WindowLeft = PlayersSyncInfoWindow:GetLeft();
-		local WindowTop  = PlayersSyncInfoWindow:GetTop ();
-		
-		if width < 300 then width = 300; end
-		if height < 200 then height = 200; end
-		------------------------------------
-		if WindowLeft + width  > gameDisplayWidth  then
-		width  = gameDisplayWidth  - WindowLeft; end
-		if WindowTop  + height > gameDisplayHeight then
-		height = gameDisplayHeight - WindowTop ; end
-		------------------------------------
-		
-		PlayersSyncInfoWindow:SetSize( width, height );
-		
-		SyncInfolistbox:SetSize( PlayersSyncInfoWindow:GetWidth() - 60 , PlayersSyncInfoWindow:GetHeight() - 80  );
-		scrollBarV:SetPosition(SyncInfolistbox:GetLeft() + SyncInfolistbox:GetWidth(), SyncInfolistbox:GetTop());
-		scrollBarV:SetSize(10,SyncInfolistbox:GetHeight());
-		scrollBarH:SetPosition(SyncInfolistbox:GetLeft(),SyncInfolistbox:GetHeight() + SyncInfolistbox:GetTop());
-		scrollBarH:SetSize(SyncInfolistbox:GetWidth(), 10);
-	end
-	
-	sender:SetPosition( PlayersSyncInfoWindow:GetWidth() - sender:GetWidth(), PlayersSyncInfoWindow:GetHeight() - sender:GetHeight() );
-end -- resizeCtrl.MouseMove
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SyncStartWindow = Turbine.UI.Lotro.Window();
-SyncStartWindow:SetSize(300,185);
-SyncStartWindow:SetPosition(Turbine.UI.Display:GetWidth()/2-100,Turbine.UI.Display:GetHeight()/2-100);
-SyncStartWindow:SetText("Sync Start");
-SyncStartWindow:SetZOrder(100);
-
-SyncStartWindow.Message=Turbine.UI.Label();
-SyncStartWindow.Message:SetParent(SyncStartWindow);
-SyncStartWindow.Message:SetSize(280,50);
-SyncStartWindow.Message:SetPosition(10,50);
-SyncStartWindow.Message:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter);
-SyncStartWindow.Message:SetText("Nothing to Start");
-
-
--- Yes button
---SyncStartWindow.YesSlot = SyncStartWindow:CreateMainShortcut(100);
-SyncStartWindow.YesSlot = Turbine.UI.Lotro.Quickslot();
-SyncStartWindow.YesSlot:SetParent(SyncStartWindow);
-SyncStartWindow.YesSlot:SetPosition(80, 120);
-SyncStartWindow.YesSlot:SetSize(35, 20);
-SyncStartWindow.YesSlot:SetZOrder(100);
-SyncStartWindow.YesSlot:SetAllowDrop(false);
-SyncStartWindow.YesSlot:SetVisible( false );
-
-SyncStartWindow.YesIcon = Turbine.UI.Control();
-SyncStartWindow.YesIcon:SetParent( SyncStartWindow );
-SyncStartWindow.YesIcon:SetPosition(80, 120);
-SyncStartWindow.YesIcon:SetSize(35, 20);
-SyncStartWindow.YesIcon:SetZOrder(110);
-SyncStartWindow.YesIcon:SetMouseVisible(false);
-SyncStartWindow.YesIcon:SetBlendMode( Turbine.UI.BlendMode.AlphaBlend );
-SyncStartWindow.YesIcon:SetBackground(gDir .. "Yes.tga" );
-SyncStartWindow.YesIcon:SetVisible( false );
-
-SyncStartWindow.YesSlot.DragDrop =
-function( sender, args )
-	if( SyncStartWindow.YesSlotShortcut ) then
-		SyncStartWindow.YesSlot:SetShortcut( SyncStartWindow.YesSlotShortcut ); -- restore shortcut
-	end
-end
-
-SyncStartWindow.YesSlotShortcut = Turbine.UI.Lotro.Shortcut( Turbine.UI.Lotro.ShortcutType.Alias, Strings["cmd_start"] );
-SyncStartWindow.YesSlot:SetShortcut( SyncStartWindow.YesSlotShortcut );
---SyncStartWindow.YesSlot:SetVisible( true );
-
--- SyncStartWindow.YesSlot.MouseClick = function(sender,args)	
-	-- SyncStartWindow:SetVisible(false);
--- end
-
-SyncStartWindow.YesSlot.MouseEnter = function(sender,args)
-	SyncStartWindow.YesIcon:SetBackground(gDir .. "Yes_hover.tga");
-end
-SyncStartWindow.YesSlot.MouseLeave = function(sender,args)
-	SyncStartWindow.YesIcon:SetBackground(gDir .. "Yes.tga");
-end
-SyncStartWindow.YesSlot.MouseDown = function(sender,args)
-	SyncStartWindow.YesIcon:SetBackground(gDir .. "Yes_down.tga");
-end
-SyncStartWindow.YesSlot.MouseUp = function(sender,args)
-	SyncStartWindow.YesIcon:SetBackground(gDir .. "Yes_hover.tga");
-	SyncStartWindow:SetVisible(false);
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--- No button
---SyncStartWindow.NoSlot = SyncStartWindow:CreateMainShortcut(100);
-SyncStartWindow.NoSlot = Turbine.UI.Lotro.Quickslot();
-SyncStartWindow.NoSlot:SetParent(SyncStartWindow);
-SyncStartWindow.NoSlot:SetPosition(185, 120);
-SyncStartWindow.NoSlot:SetSize(35, 20);
-SyncStartWindow.NoSlot:SetZOrder(100);
-SyncStartWindow.NoSlot:SetAllowDrop(false);
-SyncStartWindow.NoSlot:SetVisible( false );
-
-SyncStartWindow.NoIcon = Turbine.UI.Control();
-SyncStartWindow.NoIcon:SetParent( SyncStartWindow );
-SyncStartWindow.NoIcon:SetPosition(185, 120);
-SyncStartWindow.NoIcon:SetSize(35, 20);
-SyncStartWindow.NoIcon:SetZOrder(110);
-SyncStartWindow.NoIcon:SetMouseVisible(false);
-SyncStartWindow.NoIcon:SetBlendMode( Turbine.UI.BlendMode.AlphaBlend );
-SyncStartWindow.NoIcon:SetBackground(gDir .. "No.tga" );
-SyncStartWindow.NoIcon:SetVisible( false );
-
-SyncStartWindow.NoSlot.DragDrop =
-function( sender, args )
-	if( SyncStartWindow.NoSlotShortcut ) then
-		SyncStartWindow.NoSlot:SetShortcut( SyncStartWindow.NoSlotShortcut ); -- restore shortcut
-	end
-end
-
---SyncStartWindow.NoSlot.MouseClick = function(sender,args)	
-	--SyncStartWindow:SetVisible(false);
---end
-
-SyncStartWindow.NoSlot.MouseEnter = function(sender,args)
-	SyncStartWindow.NoIcon:SetBackground(gDir .. "No_hover.tga");
-end
-SyncStartWindow.NoSlot.MouseLeave = function(sender,args)
-	SyncStartWindow.NoIcon:SetBackground(gDir .. "No.tga");
-end
-SyncStartWindow.NoSlot.MouseDown = function(sender,args)
-	SyncStartWindow.NoIcon:SetBackground(gDir .. "No_down.tga");
-end
-SyncStartWindow.NoSlot.MouseUp = function(sender,args)
-	SyncStartWindow.NoIcon:SetBackground(gDir .. "No_hover.tga");
-	SyncStartWindow:SetVisible(false);
-end
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:Constructor()
 	Turbine.UI.Lotro.Window.Constructor( self );
 	
-	self.bFilter = false -- show/hide filter UI
-	self.bShowPlayers = true -- show/hide players listbox (used to auto-hide, but disabled for now)
-	self.maxPartCount = nil -- the number of parts to use as filter (nil if not filtering, else player count)
-	self.alignTracksRight = false -- if true, track names are listed right-aligned (resize will reset to left aligned)
-	self.listboxSetupsWidth = 20 -- width of the setups listbox (to the left of the tracks list)
-	self.setupsWidth = self.listboxSetupsWidth + 10 -- total width of setup list including scrollbar
-	self.bShowSetups = false -- show/hide setups (autohide for songs with no setups defined)
-
 	self.TimerWindowVisible = true;
 	self.HelpWindowDisable = false;
 	
 	
 	
 	self.bCheckInstrument = true
-	self.bInstrumentOk = true
-	self.bTimer = true
-	self.bTimerCountdown = true
 	
 	self.bShowReadyChars = true
 	self.bHighlightReadyCol = true
@@ -367,11 +31,12 @@ function SongbookWindow:Constructor()
 	self.chWrongSong = "S"
 	self.chWrongPart = "P"
 	self.chMultiple = "M"
-	
+
+	self:CreatePopupWindows()
+
 	-- Apply settings to instance state
 	self:ToggleTimerWindow( Settings.TimerWindowVisible )
 	self:SetHelpWindowDisabled( Settings.HelpWindowDisable )
-	Help_Window_CB:SetChecked( Settings.HelpWindowDisable );
 
 	self:ValidateWindowPosition( Settings.WindowPosition )
 	
@@ -409,29 +74,8 @@ function SongbookWindow:Constructor()
 	if Settings.ToggleTop < 0 then
 		Settings.ToggleTop = 0;
 	end
-	
-  --------------------------------------------------------------------------
-	if Settings.PlayersSyncInfoWindowPosition.Width + 0 > displayWidth then
-		Settings.PlayersSyncInfoWindowPosition.Width = displayWidth - 0;
-	end
-	if Settings.PlayersSyncInfoWindowPosition.Height + 0 > displayHeight then
-		Settings.PlayersSyncInfoWindowPosition.Height = displayHeight - 0;
-	end
-	if Settings.PlayersSyncInfoWindowPosition.Left + Settings.PlayersSyncInfoWindowPosition.Width > displayWidth then
-		Settings.PlayersSyncInfoWindowPosition.Left = displayWidth - Settings.PlayersSyncInfoWindowPosition.Width;
-	end
-	if Settings.PlayersSyncInfoWindowPosition.Top + Settings.PlayersSyncInfoWindowPosition.Height > displayHeight then
-		Settings.PlayersSyncInfoWindowPosition.Top = displayHeight - Settings.PlayersSyncInfoWindowPosition.Height;
-	end
-	if Settings.PlayersSyncInfoWindowPosition.Left < 0 then
-		Settings.PlayersSyncInfoWindowPosition.Left = 0;
-	end
-	if Settings.PlayersSyncInfoWindowPosition.Top < 0 then
-		Settings.PlayersSyncInfoWindowPosition.Top = 0;
-	end
-  --------------------------------------------------------------------------
 
-	TimerWindow:AdjustTimerPosition(displayWidth, displayHeight)
+	self.timerWindow:AdjustTimerPosition(displayWidth, displayHeight)
 
 	-- Hide UI when F12 is pressed
 	local hideUI = false;
@@ -463,16 +107,16 @@ function SongbookWindow:Constructor()
 					settingsWindowWasVisible = false;
 				end
 				
-				if PlayersSyncInfoWindow:IsVisible() then
+				if self.playerSyncInfoWindow:IsVisible() then
 					PlayersSyncInfoWindowWasVisible = true;
-					PlayersSyncInfoWindow:SetVisible(false);					
+					self.playerSyncInfoWindow:SetVisible(false);					
 				else
 					PlayersSyncInfoWindowWasVisible = false;
 				end
 				
-				if TimerWindow:IsVisible() then
+				if self.timerWindow:IsVisible() then
 					Timer_WindowWasVisible = true;
-					TimerWindow:SetVisible(false);					
+					self.timerWindow:SetVisible(false);					
 				else
 					Timer_WindowWasVisible = false;
 				end
@@ -491,12 +135,12 @@ function SongbookWindow:Constructor()
 					settingsWindow:Activate();					
 				end
 				if PlayersSyncInfoWindowWasVisible then
-					PlayersSyncInfoWindow:SetVisible(true);	
-					PlayersSyncInfoWindow:Activate();
+					self.playerSyncInfoWindow:SetVisible(true);	
+					self.playerSyncInfoWindow:Activate();
 				end
 				if Timer_WindowWasVisible then
-					TimerWindow:SetVisible(true);	
-					TimerWindow:Activate();
+					self.timerWindow:SetVisible(true);	
+					self.timerWindow:Activate();
 				end
 			end
 		
@@ -511,16 +155,7 @@ function SongbookWindow:Constructor()
 	self:SetSize( Settings.WindowPosition.Width, Settings.WindowPosition.Height );
 	--self:SetZOrder(10);
 	
-	PlayersSyncInfoWindow:SetPosition( Settings.PlayersSyncInfoWindowPosition.Left, Settings.PlayersSyncInfoWindowPosition.Top );
-	PlayersSyncInfoWindow:SetSize( Settings.PlayersSyncInfoWindowPosition.Width, Settings.PlayersSyncInfoWindowPosition.Height );
-	SyncInfolistbox:SetSize( PlayersSyncInfoWindow:GetWidth() - 60 , PlayersSyncInfoWindow:GetHeight() - 80  );
-	scrollBarV:SetPosition(SyncInfolistbox:GetLeft() + SyncInfolistbox:GetWidth(), SyncInfolistbox:GetTop());
-	scrollBarV:SetSize(10,SyncInfolistbox:GetHeight());
-	scrollBarH:SetPosition(SyncInfolistbox:GetLeft(),SyncInfolistbox:GetHeight() + SyncInfolistbox:GetTop());
-	scrollBarH:SetSize(SyncInfolistbox:GetWidth(), 10);
-	PlayersSyncInfoWindow.resizeCtrl:SetPosition(PlayersSyncInfoWindow:GetWidth() - 20,PlayersSyncInfoWindow:GetHeight() - 20);
-	
-	TimerWindow:SetPosition( Settings.Timer_WindowPosition.Left, Settings.Timer_WindowPosition.Top );
+	self.timerWindow:SetPosition( Settings.Timer_WindowPosition.Left, Settings.Timer_WindowPosition.Top );
 	
 	self:SetOpacity( Settings.WindowOpacity );
 	--self:SetText("Songbook " .. Plugins[gPlugin]:GetVersion() .. Strings["title"] );
@@ -534,8 +169,6 @@ function SongbookWindow:Constructor()
 	self.Version:SetSize(50, 14);
 	self.Version:SetText("V" .. Plugins[gPlugin]:GetVersion());
 	
-	self.minWidth = 461;
-	self.minHeight = 308;
 	-- self.lFXmod = 23; -- listFrame x coord modifier
 	-- self.lCXmod = 28; -- listContainer x coord modifier (original value was 42)
 
@@ -566,14 +199,6 @@ function SongbookWindow:Constructor()
 	self.listFrame.heading:SetSize(self.listFrame:GetWidth(),13);
 	self.listFrame.heading:SetFont( Turbine.UI.Lotro.Font.TrajanPro13 );
 	self.listFrame.heading:SetText( Strings["ui_dirs"] );
-	
-	-- separator1 between dir list and song list
-	self.separator1 = self:CreateMainSeparator( Settings.DirHeight );
-	self.separator1:SetVisible(true);
-	-- separator1 title
-	self.separator1.heading = self:CreateSeparatorHeading( self.separator1, Strings["ui_songs"] );
-	-- separator1 hint arrows
-	self.sArrows1 = self:CreateSeparatorArrows( self.separator1 )
 	
 	-- separator2 between song list and track list
 	self.sepSongsTracks = self:CreateMainSeparator( self.listContainer:GetHeight() - Settings.TracksHeight - 13 );
@@ -608,8 +233,8 @@ function SongbookWindow:Constructor()
 	end
 	self.controlBar.onSyncStartClicked = function()
 		if not SyncManager.syncStartReady then
-			SyncStartWindow:SetVisible(true)
-			SyncStartWindow:Activate()
+			self.syncConfirmWindow:SetVisible(true)
+			self.syncConfirmWindow:Activate()
 		end
 	end
 	self.controlBar.onShareWheeled = function(direction)
@@ -654,7 +279,7 @@ function SongbookWindow:Constructor()
 		self:SelectSongByIndex(otherPlayerSong.index)
 	end
 	self.playerSyncPanel.onShowMatchedSongs = function()
-		MatchedSongsWindow:SetVisible(true)
+		self.songMatchesWindow:SetVisible(true)
 	end
 
 	self:UpdatePlayerTitle();
@@ -663,7 +288,7 @@ function SongbookWindow:Constructor()
 	self.playerEquipment.ItemEquipped = function(sender, args)
 		local insIndex = self:PlayerSyncInfo()
 		if insIndex == 0 then return end
-		local trackListEmpty = self.trackListPanel == nil or self.trackListPanel:GetItemCount() < 1
+		local trackListEmpty = self.trackDetailPanel == nil or self.trackDetailPanel:GetTrackCount() < 1
 		if Settings.AutoPickOnInsChange and not trackListEmpty then
 			local actualTrackIdx = SongLibrary.SelectedTrackIndex(SongLibrary.selectedTrack)
 			if self:IsAvailableTrackWithMatchingInstrument(SongLibrary.selectedSongIndex, actualTrackIdx, insIndex) then
@@ -737,126 +362,14 @@ function SongbookWindow:Constructor()
 		self.songFileBrowser:ClearSearch()
 	end
 	
-	-- hide search components if not toggled
-	if (Settings.SearchVisible) then
-		self.searchInput:SetVisible( true );
-		self.searchBtn:SetVisible( true );
-		self.clearBtn:SetVisible( true );				
-	end
+	
+	self.instrumentSlotsPanel = InstrumentSlotsPanel(CharSettings)
+	self.instrumentSlotsPanel:SetParent(self)
+	self.instrumentSlotsPanel:SetZOrder(90)
+	self.instrumentSlotsPanel:SetPosition(10, self:GetHeight() - 37 - self.instrumentSlotsPanel:GetHeight())
 
-	-- directory list box
-	self.dirlistBox = ListBoxScrolled:New( 10 );
-	self.dirlistBox:SetParent( self.listContainer );
-	self.dirlistBox:SetVisible( true );
-	
-	-- main song list box
-	self.songlistBox = ListBoxScrolled:New( 10 );
-	self.songlistBox:SetParent( self.listContainer );
-	self.songlistBox:SetVisible( true );
-	self.songlistBox:SetVisible( true );
-	
-	
-	-- instrument slot containers
-	self.instrContainer = {};
-	
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		self.instrContainer[j] = Turbine.UI.Control();
-		self.instrContainer[j]:SetParent( self );
-		local TopShift = 75 + InstrumentSlots_Shift * ( j - 1 );
-		self.instrContainer[j]:SetPosition( 10, self:GetHeight() - TopShift );
-		if (CharSettings.InstrSlots[1]["visible"]) then
-			self.instrContainer[j]:SetVisible( true );
-		else
-			self.instrContainer[j]:SetVisible( false );
-		end
-		self.instrContainer[j]:SetSize( 40*CharSettings.InstrSlots[j]["number"], 38 );
-		self.instrContainer[j]:SetZOrder(90);
-	end
-	
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	-- self.instrContainer.MouseClick = function(sender,args)
-		
-		-- local player = Turbine.Gameplay.LocalPlayer:GetInstance( );
-		-- if not player then return; end
-		-- local equip = player:GetEquipment( )
-		-- if not equip then return; end
-		-- local item = equip:GetItem( Turbine.Gameplay.Equipment.Instrument )
-		-- if not item then return; end
-		-- local equippedInstrument = item:GetName( )
-		-- if not equippedInstrument then return; end
-
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	
-	
-	-- instrument slots
-	self.instrSlot = { };
-	
-	local instrdrag = false;
-	
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		table.insert(self.instrSlot , {});
-		for i = 1, CharSettings.InstrSlots[j]["number"] do
-			self.instrSlot[j][i] = Turbine.UI.Lotro.Quickslot();
-			self.instrSlot[j][i]:SetParent( self.instrContainer[j] );
-			self.instrSlot[j][i]:SetPosition(40*(i-1), 0);
-			self.instrSlot[j][i]:SetSize(37, 37);
-			self.instrSlot[j][i]:SetZOrder(100);
-			self.instrSlot[j][i]:SetAllowDrop(true);
-			
-			if (CharSettings.InstrSlots[j][tostring(i)].data ~= "") then
-				pcall(function() 
-					local sc = Turbine.UI.Lotro.Shortcut( CharSettings.InstrSlots[j][tostring(i)].qsType, CharSettings.InstrSlots[j][tostring(i)].qsData);
-					self.instrSlot[j][i]:SetShortcut(sc);
-				end);
-			end
-			
-			self.instrSlot[j][i].ShortcutChanged = function( sender, args )
-				pcall(function() 
-					local sc = sender:GetShortcut();
-					CharSettings.InstrSlots[j][tostring(i)].qsType = tostring(sc:GetType());
-					CharSettings.InstrSlots[j][tostring(i)].qsData = sc:GetData();
-				end);
-			end
-			
-			self.instrSlot[j][i].DragLeave = function( sender, args )
-				if (instrdrag) then 
-					CharSettings.InstrSlots[j][tostring(i)].qsType ="";
-					CharSettings.InstrSlots[j][tostring(i)].qsData = "";
-					local sc = Turbine.UI.Lotro.Shortcut( "", "");
-					self.instrSlot[j][i]:SetShortcut(sc);
-					instrdrag = false;
-				end
-			end
-			
-			self.instrSlot[j][i].MouseDown = function( sender, args )
-				
-	--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		
-				-- local player = Turbine.Gameplay.LocalPlayer:GetInstance( );
-				-- if not player then return; end
-				-- local equip = player:GetEquipment( )
-				-- if not equip then return; end
-				-- local item = equip:GetItem( Turbine.Gameplay.Equipment.Instrument )
-				-- if not item then return; end
-				-- local equippedInstrument = item:GetName( )
-				-- if not equippedInstrument then return; end
-
-	--%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-				if(args.Button == Turbine.UI.MouseButton.Left) then	
-					instrdrag = true;
-				end
-			end
-		end
-	end
-	
-	self.bTimer = ( Settings.TimerState )
-	self.bTimerCountdown = ( Settings.TimerCountdown )
 	self.bShowReadyChars = ( Settings.ReadyColState )
 	self.bHighlightReadyCol = ( Settings.ReadyColHighlight )
-	self.trackListPanel:EnableCharColumn(self.bShowReadyChars)
 
 	-- initialize list items from song database
 	self.libraryIsEmpty = (SongLibrary.librarySize == 0)
@@ -866,56 +379,9 @@ function SongbookWindow:Constructor()
 	self.emptyLabel:SetSize(220, 240);
 	self.emptyLabel:SetText(Strings["err_nosongs"]);
 	self.emptyLabel:SetVisible(false);
-	if (SongLibrary.librarySize ~= 0 and not SongDB.Songs[1].Realnames) then
-		
-		for i = 1, #SongDB.Directories do
-			local dirItem = Turbine.UI.Label();
-			local _, dirLevel = string.gsub(SongDB.Directories[i], "/", "/");
-			if (dirLevel == 2) then				
-				dirItem:SetText(string.sub(SongDB.Directories[i],2));			
-				dirItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-				dirItem:SetSize( 1000, 20 );				
-				self.dirlistBox:AddItem( dirItem );
-			end
-		end
-		
-		self.listFrame.heading:SetText( Strings["ui_dirs"] .. " (" .. SongLibrary.selectedDir .. ")" );
-		
-		if (self.dirlistBox:ContainsItem(1)) then
-			local dirItem = self.dirlistBox:GetItem(1);
-			dirItem:SetForeColor( ColorTheme.colourDefaultHighlighted );
-		end
-		
-		-- load content to song list box
-		self:LoadSongs();
-		
-		-- set first item as initial selection
-		local found = self.songlistBox:GetItemCount();		
-		if (found > 0) then
-			self.songlistBox:SetSelectedIndex( 1 )
-			self:SelectSong( 1 );
-		else
-			self:ClearSongState( );
-		end
-		self.separator1.heading:SetText( Strings["ui_songs"] .. " (" .. found .. ")" );
-		
-		-- action for selecting a dir
-		self.dirlistBox.SelectedIndexChanged = function( sender, args )
-			self:SelectDir(sender:GetSelectedIndex());
-		end
-		-- action for selecting a song
-		self.songlistBox.SelectedIndexChanged = function( sender, args )
-			self:SelectSong(sender:GetSelectedIndex());
-		end
-		self.sepSongsTracks.MouseClick = function(sender, args)
-			if args.Button == Turbine.UI.MouseButton.Right then
-				self.trackListPanel:RealignTracknames()
-			end
-		end
-		
-	else
+	local hasSongs = SongLibrary.librarySize ~= 0 and not SongDB.Songs[1].Realnames
+	if not hasSongs then
 		-- show message when library is empty or database format has changed
-		self.separator1:SetVisible( false );
 		self.sepSongsTracks:SetVisible( false );
 		self.listFrame.heading:SetText( "" );
 		self.emptyLabel:SetVisible(true);
@@ -943,39 +409,22 @@ function SongbookWindow:Constructor()
 	self.resizeCtrl.MouseMove = function(sender,args)
 		if not sender.dragging then return end
 
-		local width, height = self:GetSize();
-		local gameDisplayWidth, gameDisplayHeight = Turbine.UI.Display.GetSize();
-		
-		-- Apply drag deltas
-		width = width + args.X - sender.dragStartX;
-		height = height + args.Y - sender.dragStartY;
-
-		local WindowLeft = self:GetLeft();
-		local WindowTop  = self:GetTop ();
-		
-		-- Enforce minimum size
-		if width < self.minWidth then width = self.minWidth; end
-		if height < 200 then height = 200; end
-
-		-- Clamp to lotro screen size
-		if WindowLeft + width  > gameDisplayWidth  then
-		width = gameDisplayWidth  - WindowLeft; end
-		if WindowTop  + height > gameDisplayHeight then
-		height = gameDisplayHeight - WindowTop ; end
-
-		-- Optional: enforce enough vertical room for dirlist + tracks + songlist
-		local tracksHeight = (Settings.TracksVisible) and Settings.TracksHeight or 0
-		local minContentHeight = Settings.DirHeight + tracksHeight + 80  -- fudge room for list and padding
-		if height < minContentHeight then
-			height = minContentHeight
-		end
-		
-		self:SetSize( width, height );
-
-		-- self:ResizeAll( );
+		local width, height = self:GetSize()
+		local screenWidth, screenHeight = Turbine.UI.Display.GetSize()
+		width, height = MainWindowLayout.ClampWindowSize(
+			width + args.X - sender.dragStartX,
+			height + args.Y - sender.dragStartY,
+			{
+				left = self:GetLeft(),
+				top = self:GetTop(),
+				screenWidth = screenWidth,
+				screenHeight = screenHeight,
+				dirHeight = Settings.DirHeight,
+				tracksVisible = Settings.TracksVisible,
+				tracksHeight = Settings.TracksHeight,
+			})
+		self:SetSize(width, height)
 		self:ReflowLayout()
-    	
-		sender:SetPosition( self:GetWidth() - sender:GetWidth(), self:GetHeight() - sender:GetHeight() );
 	end -- resizeCtrl.MouseMove
 	
 	-- song list, track list ratio adjust
@@ -992,55 +441,24 @@ function SongbookWindow:Constructor()
 
 	self.sepSongsTracks.MouseMove = function(sender, args)
 		if sender.dragging then
-			local newHeight = Settings.TracksHeight - args.Y + sender.dragStartY
-			if newHeight < 40 then newHeight = 40 end
-			Settings.TracksHeight = newHeight
+			Settings.TracksHeight = MainWindowLayout.ClampTracksHeight(Settings.TracksHeight - args.Y + sender.dragStartY)
 			self:ReflowLayout()
 		end
 	end
 	
-	-- Settings button	
-	self.settingsBtn = Turbine.UI.Lotro.Button();
-	self.settingsBtn:SetParent( self );
-	self.settingsBtn:SetPosition(self:GetWidth()/2 - 55, self:GetHeight() - 30 );	
-	self.settingsBtn:SetSize(110,20);
-	self.settingsBtn:SetText(Strings["ui_settings"]);
-	
-	-- actions for settings button
-	self.settingsBtn.MouseClick = function(sender, args)
-		if(args.Button == Turbine.UI.MouseButton.Left) then
-			settingsWindow:SetVisible(true);
-			settingsWindow:Activate();
-		end
+	self.footerBar = FooterBar()
+	self.footerBar:SetParent(self)
+	self.footerBar:SetSize(self:GetWidth(), 20)
+	self.footerBar:SetPosition(0, self:GetHeight() - 30)
+	self.footerBar.onRefreshClicked = function() self:ReloadSongDatabase() end
+	self.footerBar.onSettingsClicked = function()
+		settingsWindow:SetVisible(true)
+		settingsWindow:Activate()
 	end
-
-	self.refreshBtn = Turbine.UI.Lotro.Button();
-	self.refreshBtn:SetParent(self);
-	self.refreshBtn:SetSize(130, 20);
-	self.refreshBtn:SetText(Strings["ui_refresh"]);
-	self.refreshBtn.MouseClick = function(sender, args)
-		if args.Button == Turbine.UI.MouseButton.Left then
-			self:ReloadSongDatabase();
-		end
+	self.footerBar.onSyncInfoClicked = function()
+		self.playerSyncInfoWindow:SetVisible(true)
+		self.playerSyncInfoWindow:Activate()
 	end
-	
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	-- Sync Info button	
-	self.SyncInfoBtn = Turbine.UI.Lotro.Button();
-	self.SyncInfoBtn:SetParent( self );
-	self.SyncInfoBtn:SetPosition(self:GetWidth() - 150, self:GetHeight() - 30 );	
-	self.SyncInfoBtn:SetSize(110,20);
-	self.SyncInfoBtn:SetText("Sync Info");
-	
-	-- actions for Sync Info button
-	self.SyncInfoBtn.MouseClick = function(sender, args)
-		if(args.Button == Turbine.UI.MouseButton.Left) then
-			PlayersSyncInfoWindow:SetVisible(true);
-			PlayersSyncInfoWindow:Activate();
-		end
-	end	
-  --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	-- action for closing window and saving position
 	self.Closed = function( sender, args )
@@ -1056,17 +474,36 @@ function SongbookWindow:Constructor()
 	end
 
 	self:CreateTimerUI( )
-	self:CreateFilterUI( ) -- Creates the UI elements for the filters
 
-	SyncManager.onPlayerJoined = function(name) self:AddPlayerToList(name) end
-	SyncManager.onPlayerLeft = function(name) self:RemovePlayerFromList(name) end
+	self.filterPanel = FilterPanel( {
+		none = self.chNone,
+		ready = self.chReady,
+		multiple = self.chMultiple,
+		wrongPart = self.chWrongPart,
+		wrongSong = self.chWrongSong,
+	} )
+	self.filterPanel:SetParent( self.listContainer )
+	self.filterPanel.onFiltersChanged = function() self:UpdateSongs() end
+	self.filterPanel.onPlayersRefreshed = function() self:UpdateSetupColours() end
+	self:CreateTreeViewPanels()
+
+	if hasSongs then
+		local songs = SongLibrary.GetSongsInDirectory(nil)
+		if songs[1] then
+			self:SelectSongByIndex(songs[1].index)
+		else
+			self:ClearSongState()
+		end
+	end
+
+	SyncManager.onPlayerJoined = function(name) self.filterPanel:AddPlayer(name) end
+	SyncManager.onPlayerLeft = function(name) self.filterPanel:RemovePlayer(name) end
 	SyncManager.onChiefModeChanged = function(state)
 		self.controlBar:SetSyncStartVisible(state)
 	end
 	SyncManager.onPlayerStateChanged = function()
-		self:SetListboxColours(self.songlistBox)
 		self:SetTrackColours(SongLibrary.selectedTrack)
-		self:SetPlayerColours()
+		self.filterPanel:UpdatePlayerColours()
 		self:UpdateSetupColours()
 		self:PlayerSyncInfo()
 	end
@@ -1080,13 +517,13 @@ function SongbookWindow:Constructor()
 		self.playerSyncPanel:SetChannelMessage(message)
 	end
 	SyncManager.onMaxPartCountChanged = function()
-		self:UpdateMaxPartCount()
+		self.filterPanel:UpdateMaxPartCount()
 	end
 	SyncManager.onSongStateCleared = function()
 	end
 
-	self.listboxPlayers:EnableCharColumn( self.bShowReadyChars )
-	self:RefreshPlayerListbox( ) -- lists the current party members; more will be added through chat messages
+	self.filterPanel:SetReadyColumnEnabled( self.bShowReadyChars )
+	self.filterPanel:RefreshPlayers( ) -- lists the current party members; more will be added through chat messages
 
 	self:ShowFilterUI( false );
 	SyncManager.SetChiefMode( Settings.ChiefMode )
@@ -1112,210 +549,90 @@ end
 
 
 function SongbookWindow:ActivateTimer( bActivate )
-	self.bTimer = bActivate
-	if not bActivate then self:StopTimer( ); end
+	self.songTimerPanel:SetTimerEnabled( bActivate )
+end
+
+function SongbookWindow:SetTimerCountdown( bCountdown )
+	self.songTimerPanel:SetCountdown( bCountdown )
 end
 
 function SongbookWindow:CreateTimerUI( )
-	self.tracksMsg = Turbine.UI.Label( )
-	self.tracksMsg:SetParent( self.listContainer )
-	self.tracksMsg:SetMultiline( false )
-	self.tracksMsg:SetSize( 150, 22 )
-	self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold22 );
-	--self.tracksMsg:SetForeColor( ColorTheme.colourMessageTitle );
-	self.tracksMsg:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleRight )
-	self.tracksMsg:SetZOrder( 350 )
-	self.tracksMsg:SetVisible( false )
-
-	self.Update =
-		function( )
-			local previous = self.currentTime
-			self.currentTime = Turbine.Engine.GetLocalTime() - self.startTimer
-			local bKeepRunning = ( self.songDuration == 0 or self.currentTime <= self.songDuration )
-			if self.bTimerCountdown == true and self.songDuration > 0 then
-				self.currentTime = self.songDuration - self.currentTime;
-				bKeepRunning = self.currentTime >= 0
-			end
-
-			if bKeepRunning then
-				if self.currentTime ~= previous then self:SetTimer( self.currentTime ); end
-			else
-				self:StopTimer( )
-			end
-		end
+	self.songTimerPanel = SongTimerPanel()
+	self.songTimerPanel:SetParent( self.listContainer )
+	self.songTimerPanel:SetZOrder( 350 )
+	self.songTimerPanel:SetTimerEnabled( Settings.TimerState )
+	self.songTimerPanel:SetCountdown( Settings.TimerCountdown )
+	self.songTimerPanel.onTimerText = function( text ) self.timerWindow:SetTimerText( text ) end
+	self.songTimerPanel.onStopped = function() self.timerWindow:SetSongText( "" ) end
 end
 
-function SongbookWindow:SetTimer( value )
-	local mins = math.floor( value / 60 )
-	self.tracksMsg:SetText( string.format("%u:%02u", mins, value - mins * 60 ) )
-	TimerWindow:SetTimerText( string.format("%u:%02u", mins, value - mins * 60 ) )
-end
-	
-function SongbookWindow:StartTimer( )
-	self.startTimer = Turbine.Engine.GetLocalTime( )
-	self.songDuration = 0
-	--local item, songTime
-	local songTime
-	-- for i = 1, self.tracklistBox:GetItemCount( ) do
-		-- item = self.tracklistBox:GetItem( i )
-		sMinutes, sSeconds = string.match( SyncManager.syncedTrackName , ".*%((%d+):(%d+)%).*" ) -- try (mm:ss)
-		-- if not sMinutes or not sSeconds then
-			-- sMinutes, sSeconds = string.match( item:GetText( ), ".*(%d+):(%d+).*" ) -- no luck, try just mm:ss
-		-- end
-		if sMinutes and sSeconds and tonumber(sMinutes) < 60 and tonumber(sSeconds) < 60 then
-			songTime = sMinutes * 60 + sSeconds
-			if songTime > self.songDuration then self.songDuration = songTime; end -- need longest track
-		end
-	--end
-
-	if self.bTimerCountdown == true and self.songDuration > 0 then self.currentTime = self.songDuration
-	else self.currentTime = 0; end
-
-	self:SetTimer( self.currentTime )
-	self.tracksMsg:SetVisible( true )
-	self:SetWantsUpdates( true )
+local function place(control, r)
+	control:SetLeft(r.left)
+	control:SetTop(r.top)
+	control:SetWidth(r.width)
+	control:SetHeight(r.height)
 end
 
-function SongbookWindow:StopTimer( )
-	self:SetWantsUpdates( false )
-	self.tracksMsg:SetVisible( false )
-	TimerWindow:SetTimerText("0:00");
-	TimerWindow:SetSongText( "" );
+local function placeShown(control, r)
+	control:SetVisible(r.visible)
+	place(control, r)
 end
 
 function SongbookWindow:ReflowLayout()
 	local width, height = self:GetSize()
+	local layout = MainWindowLayout.Compute(width, height, {
+		searchVisible = Settings.SearchVisible,
+		tracksVisible = Settings.TracksVisible,
+		tracksHeight = Settings.TracksHeight,
+		filtersVisible = self.filterPanel:IsVisible(),
+		filterWidth = FilterPanel.WIDTH,
+		libraryEmpty = self.libraryIsEmpty,
+		instrumentHeight = self.instrumentSlotsPanel:GetPreferredHeight(),
+		instrumentPanelWidth = self.instrumentSlotsPanel:GetWidth(),
+		instrumentPanelHeight = self.instrumentSlotsPanel:GetHeight(),
+	})
 
-	local HEADER_HEIGHT = 134 + ShiftTop
-	local LIST_FRAME_MARGIN_LEFT = 12
-	local LIST_FRAME_MARGIN_RIGHT = 11
-	local LIST_CONTAINER_MARGIN_LEFT = 18
-	local LIST_CONTAINER_MARGIN_RIGHT = 10
-	local BOTTOM_BUTTON_HEIGHT = 30
-	local SEPARATOR_HEIGHT = 13
+	placeShown(self.searchInput, layout.searchInput)
+	placeShown(self.searchBtn, layout.searchButton)
+	placeShown(self.clearBtn, layout.clearButton)
 
-	local currentY = HEADER_HEIGHT
+	place(self.listFrame, layout.listFrame)
+	place(self.listFrame.heading, layout.listFrameHeading)
+	place(self.listContainer, layout.listContainer)
 
-	-- Search
-	local searchHeight = 0
-	if Settings.SearchVisible then
-		searchHeight = 20
-		self.searchInput:SetVisible(true)
-		self.searchBtn:SetVisible(true)
-		self.clearBtn:SetVisible(true)
-	else
-		self.searchInput:SetVisible(false)
-		self.searchBtn:SetVisible(false)
-		self.clearBtn:SetVisible(false)
-	end
+	placeShown(self.songFileBrowser, layout.songBrowser)
+	placeShown(self.sepSongsTracks, layout.separator)
+	place(self.sepSongsTracks.heading, layout.separatorHeading)
+	place(self.sArrows2, layout.separatorArrows)
+	placeShown(self.trackDetailPanel, layout.trackDetail)
 
-	currentY = currentY + searchHeight
-	-- Position the main list containers
-	self.listFrame:SetPosition(LIST_FRAME_MARGIN_LEFT, currentY)
-	self.listContainer:SetPosition(LIST_CONTAINER_MARGIN_LEFT, currentY + SEPARATOR_HEIGHT)
+	-- filter panel keeps its own width
+	local filter = layout.filterPanel
+	self.filterPanel:SetPosition(filter.left, filter.top)
+	self.filterPanel:SetHeight(filter.height)
 
-	-- Calculate instrument slot height
-	local instrHeight = 0
-	if CharSettings.InstrSlots[1]["visible"] then
-		instrHeight = InstrumentSlots_Shift * CharSettings.InstrumentSlots_Rows
-	end
+	self.songTimerPanel:SetPosition(layout.timer.left, layout.timer.top)
+	self.instrumentSlotsPanel:SetPosition(layout.instrumentSlots.left, layout.instrumentSlots.top)
+	place(self.footerBar, layout.footer)
+	placeShown(self.emptyLabel, layout.emptyLabel)
 
-	-- Calculate track height
-	local tracksHeight = 0
-	if Settings.TracksVisible then
-		tracksHeight = Settings.TracksHeight
-	end
-
-	-- Calculate available space for lists
-	local INSTR_PADDING = 12
-	local availableListHeight = height - currentY - instrHeight - BOTTOM_BUTTON_HEIGHT - INSTR_PADDING
-	
-	-- Size the main containers
-	local listFrameWidth = width - LIST_FRAME_MARGIN_LEFT - LIST_FRAME_MARGIN_RIGHT
-	local listContainerWidth = width - LIST_CONTAINER_MARGIN_LEFT - LIST_CONTAINER_MARGIN_RIGHT
-	
-	self.listFrame:SetSize(listFrameWidth, availableListHeight)
-	self.listContainer:SetSize(listContainerWidth, availableListHeight)
-	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
-
-	Layout.stackVertical({
-		{ control = self.songFileBrowser,   height = "fill", visible = not self.libraryIsEmpty },
-		{ control = self.sepSongsTracks,    height = SEPARATOR_HEIGHT,     visible = not self.libraryIsEmpty and Settings.TracksVisible },
-		{ control = self.trackDetailPanel,  height = Settings.TracksHeight, visible = not self.libraryIsEmpty and Settings.TracksVisible },
-	}, { height = availableListHeight })
-
-	if self.sepSongsTracks.heading then
-		self.sepSongsTracks.heading:SetTop(0)
-		self.sepSongsTracks.heading:SetWidth(listContainerWidth)
-	end
-
-	self.songFileBrowser:SetWidth(listContainerWidth)
-	self.trackDetailPanel:SetWidth(listContainerWidth)
-	self.sepSongsTracks:SetWidth(listContainerWidth)
-	self.sArrows2:SetLeft(self.sepSongsTracks:GetWidth() / 2 - 10)
-
-	self.btnParty:SetTop(self.songFileBrowser:GetTop())
-	self.listboxPlayers:SetTop(self.songFileBrowser:GetTop() + 20)
-	self.listboxPlayers:SetHeight(self.songFileBrowser:GetHeight() - 20)
-
-	if Settings.TracksVisible and not self.libraryIsEmpty then
-		self.trackDetailPanel:SetVisible(true)
-	else
-		self.trackDetailPanel:SetVisible(false)
-	end
-
-	self.tracksMsg:SetPosition(
-		listContainerWidth - 150,
-		self.songFileBrowser:GetTop() + self.songFileBrowser:GetHeight() - 22)
-
-	-- Reposition instrument containers
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		local TopShift = 75 + InstrumentSlots_Shift * (j - 1)
-		if self.instrContainer and self.instrContainer[j] then
-			self.instrContainer[j]:SetTop(height - TopShift)
-			self.instrContainer[j]:SetVisible(CharSettings.InstrSlots[1]["visible"])
-		end
-	end
-
-	-- Reposition bottom buttons
-	self.settingsBtn:SetPosition(width / 2 - 55, height - BOTTOM_BUTTON_HEIGHT)
-	self.refreshBtn:SetPosition(20, height - BOTTOM_BUTTON_HEIGHT)
-	self.SyncInfoBtn:SetPosition(width - 150, height - BOTTOM_BUTTON_HEIGHT)
-	self.emptyLabel:SetPosition(30, currentY + 25)
-	self.emptyLabel:SetSize(math.max(220, width - 60), math.max(40, availableListHeight - 25))
-	self.emptyLabel:SetVisible(self.libraryIsEmpty)
-
-	-- Update other width-dependent elements
-	self.descriptionPanel:SetWidth(width - 52)
-	self.listFrame.heading:SetSize(listFrameWidth, SEPARATOR_HEIGHT)
-	self.playerSyncPanel:SetWidth(width - 30)
-	
-	-- Update filter UI positioning
-	self:AdjustFilterUI()
-
-	-- Tooltip and resizer
-	self.tipLabel:SetLeft(width - 270)
-	if self.resizeCtrl then
-		self.resizeCtrl:SetPosition(width - self.resizeCtrl:GetWidth(), height - self.resizeCtrl:GetHeight())
-	end
-end -- ReflowLayout
+	self.descriptionPanel:SetWidth(layout.description.width)
+	self.playerSyncPanel:SetWidth(layout.playerSync.width)
+	self.tipLabel:SetLeft(layout.tooltip.left)
+	self.resizeCtrl:SetPosition(layout.resizeCtrl.left, layout.resizeCtrl.top)
+end
 
 function SongbookWindow:RefreshSongDatabaseView()
 	self.libraryIsEmpty = (SongLibrary.librarySize == 0)
 	self.emptyLabel:SetText(Strings["err_nosongs"])
 	local searchText = self.searchInput:GetText()
 	if searchText and searchText ~= "" then
-		self.songFileBrowser:Search(searchText, self:GetFilters())
+		self.songFileBrowser:Search(searchText, self.filterPanel:GetFilters())
 	else
 		self.songFileBrowser:Populate()
 	end
 
-	-- The old listboxes are still populated as a compatibility bridge for sync
-	-- code, but the browser/detail controls are the visible source of truth.
-	self.dirlistBox:ClearItems()
-	self.songlistBox:ClearItems()
 	self.trackListPanel:Clear()
-	self.listboxSetups:ClearItems()
 	self.trackDetailPanel:Clear()
 	self.descriptionPanel:Clear()
 	self.playerSyncPanel:HideSyncMessage()
@@ -1328,26 +645,17 @@ function SongbookWindow:RefreshSongDatabaseView()
 	else
 		local selectedIndex = SongLibrary.selectedSongIndex
 		if not selectedIndex or not SongDB.Songs[selectedIndex] then selectedIndex = 1 end
-		self:SelectDir(nil, SongLibrary.selectedDir)
 		self:SelectSongByIndex(selectedIndex)
-		for listIndex, songIndex in ipairs(SongLibrary.filteredIndices) do
-			if songIndex == selectedIndex then
-				SongLibrary.selectedSongIndexListBox = listIndex
-				break
-			end
-		end
 	end
 
 	self:ReflowLayout()
 end
 
 function SongbookWindow:ReloadSongDatabase()
-	self.refreshBtn:SetEnabled(false)
-	self.refreshBtn:SetText(Strings["ui_refreshing"])
+	self.footerBar:SetRefreshing(true)
 
 	local started = SettingsManager.ReloadSongDatabase(function(success, databaseOrReason)
-		self.refreshBtn:SetEnabled(true)
-		self.refreshBtn:SetText(Strings["ui_refresh"])
+		self.footerBar:SetRefreshing(false)
 		if not success then
 			local key = databaseOrReason == "busy" and "err_refresh_busy" or "err_refresh_load"
 			Turbine.Shell.WriteLine("<rgb=#FF0000>" .. Strings[key] .. "</rgb>")
@@ -1365,72 +673,10 @@ function SongbookWindow:ReloadSongDatabase()
 	end)
 
 	if not started then
-		self.refreshBtn:SetEnabled(true)
-		self.refreshBtn:SetText(Strings["ui_refresh"])
+		self.footerBar:SetRefreshing(false)
 	end
 end
 
-
--- action for selecting a directory
-function SongbookWindow:SelectDir(iDir, Directory)
-	if not Directory then
-		local selectedItem = self:SetListboxColours(self.dirlistBox)
-		if not selectedItem then return end
-		Directory = selectedItem:GetText()
-		if Directory == ".." then
-			SongLibrary.NavigateUp()
-		else
-			SongLibrary.NavigateToDirectory(Directory)
-		end
-	else
-		SongLibrary.NavigateToPath(Directory)
-	end
-
-	local dir = SongLibrary.selectedDir
-	if string.len(dir) < 31 then
-		self.listFrame.heading:SetText(Strings["ui_dirs"] .. " (" .. dir .. ")")
-	else
-		self.listFrame.heading:SetText(Strings["ui_dirs"] .. " (" .. string.sub(dir, string.len(dir)-30) .. ")")
-	end
-
-	self.dirlistBox:ClearItems()
-	if SongLibrary.selectedDir ~= "/" then
-		local dotdot = Turbine.UI.Label()
-		dotdot:SetText("..")
-		dotdot:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
-		dotdot:SetSize(1000, 20)
-		self.dirlistBox:AddItem(dotdot)
-	end
-	local subdirs = SongLibrary.GetSubdirectories()
-	for _, name in ipairs(subdirs) do
-		local dirItem = Turbine.UI.Label()
-		dirItem:SetText(name)
-		dirItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
-		dirItem:SetSize(1000, 20)
-		self.dirlistBox:AddItem(dirItem)
-	end
-
-	self.songlistBox:ClearItems()
-	self:LoadSongs()
-end -- SelectDir
-
-
-function SongbookWindow:LoadSongs()
-	local songs = SongLibrary.GetSongsInDirectory(nil)
-	for pos, entry in ipairs(songs) do
-		local songItem = Turbine.UI.Label()
-		songItem:SetText(entry.text)
-		songItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
-		songItem:SetSize(1000, 20)
-		self.songlistBox:AddItem(songItem)
-		if SelectedMatchedSong_Index == entry.index then
-			SelectedMatchedSong_IndexListBox = pos
-		end
-		if SyncManager.otherPlayerSong.index == entry.index then
-			SyncManager.otherPlayerSong.indexListBox = pos
-		end
-	end
-end
 
 function SongbookWindow:IsAvailableTrackWithMatchingInstrument(songIdx, trackIdx, equippedInstrumentIdx)
 	local readyState = SyncManager.GetTrackReadyState(songIdx, trackIdx);
@@ -1475,80 +721,39 @@ function SongbookWindow:GetTrackToSelect(songIdx)
 	return firstFreeListIdx
 end
 
--- action for selecting a song
-function SongbookWindow:SelectSong( iSong )
-	if( iSong < 1 or iSong > self.songlistBox:GetItemCount( ) ) then
-		return;
+-- SetTrackColours indexes rows by actual track index, so list every track
+function SongbookWindow:PopulateSyncInfoList(songIndex)
+	local texts = {}
+	for i = 1, #SongDB.Songs[songIndex].Tracks do
+		texts[i] = self:SyncInfoTrackText(songIndex, i)
 	end
-	local track = 1;
-	SongLibrary.setupTrackIndices = { };
-	SongLibrary.setupListIndices = { };
-	SongLibrary.currentSetup = nil
-
-	-- clear focus
-	self:SetListboxColours( self.songlistBox ) --, iSong )
-	
-	SongLibrary.selectedSongIndexListBox = iSong;
-	SongLibrary.selectedSongIndex = SongLibrary.filteredIndices[ iSong ];
-	SongLibrary.selectedSong = SongDB.Songs[SongLibrary.selectedSongIndex].Filename;
-
-	if Settings.AutoPickOnSongChange then
-			track = self:GetTrackToSelect(SongLibrary.selectedSongIndex);
-			if track == 0 then track = 1; end
-	end
-			
-	self:ListTracks(SongLibrary.selectedSongIndex);
-	
-	self:ClearPlayerReadyStates( );
-	self:SelectTrack( track );
-	self:SetPlayerColours( );
-	self:ListSetups( SongLibrary.selectedSongIndex )
-	SongLibrary.currentSetup = SongLibrary.SetupIndexForCount( SongLibrary.selectedSongIndex, SongLibrary.selectedSetupCount )
-	self:SelectSetup( SongLibrary.currentSetup )
-	self:UpdateSetupColours( );
-	
-	self:SetTrackColours( SongLibrary.selectedTrack );
-	
-	local found = self.trackListPanel:GetItemCount()
-	self.sepSongsTracks.heading:SetText( Strings["ui_parts"] .. " (" .. found .. ")" );
+	self.playerSyncInfoWindow:SetTracks(texts)
 end
 
-
--- action for repopulating the track list when song is changed
-function SongbookWindow:ListTracks( songid )
-	self.trackListPanel:Populate(songid)
-	SyncInfolistbox:ClearItems()
-	for i = 1, #SongDB.Songs[songid].Tracks do
-		self:AddSyncInfoEntry(songid, i)
-	end
+function SongbookWindow:SyncInfoTrackText(songIndex, trackIndex)
+	local track = SongDB.Songs[songIndex].Tracks[trackIndex]
+	local instrument = InstrumentManager.FindInstrumentInTrack(SongLibrary.TerseTrackname(track.Name))
+	return "[" .. track.Id .. "] " .. instrument[1]
 end
 
-function SongbookWindow:AddSyncInfoEntry( iSong, iTrack )
-	local sTerseName = SongLibrary.TerseTrackname(SongDB.Songs[iSong].Tracks[iTrack].Name)
-	local Track_Instrument = InstrumentManager.FindInstrumentInTrack(sTerseName)
-	local trackItem = Turbine.UI.Label()
-	trackItem:SetMultiline(false)
-	trackItem:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
-	trackItem:SetSize(2000, 20)
-	trackItem:SetMarkupEnabled(true)
-	trackItem:SetText("[" .. SongDB.Songs[iSong].Tracks[iTrack].Id .. "] " .. Track_Instrument[1])
-	trackItem:SetBackColor(ColorTheme.backColourDefault)
-	SyncInfolistbox:AddItem(trackItem)
+-- ready players in green, wrong ones in red, synced-only in yellow
+function SongbookWindow:SyncInfoPlayersText(readyState)
+	local text = ""
+	for i = 0, readyState[4] - 1 do
+		local instrument = tonumber(readyState[3][i]) > 0 and InstrumentManager.GetName(tonumber(readyState[3][i])) or "No Instrument"
+		text = text .. "  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>" .. instrument .. "</rgb>]"
+	end
+	for i = 0, readyState[7] - 1 do
+		local instrument = tonumber(readyState[6][i]) > 0 and InstrumentManager.GetName(tonumber(readyState[6][i])) or "No Instrument"
+		text = text .. "  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>" .. instrument .. "</rgb>]"
+	end
+	for i = 0, readyState[8] - 1 do
+		text = text .. "  - <rgb=0xFFFF00>" .. readyState[9][i] .. "</rgb>"
+	end
+	return text
 end
 
 --%%%%%%%%%%%%%%%%%%%%%
-
--- set track ready indicator
-function SongbookWindow:SetTrackReadyChar( iList, readyState )
-	if not readyState then -- track not ready
-		self.trackListPanel:SetColumnChar(iList, self.chNone, false)
-	elseif readyState == 0 then -- track is ready by more than one player
-		self.trackListPanel:SetColumnChar(iList, self.chMultiple, true)
-	else -- track ready by one player
-		self.trackListPanel:SetColumnChar(iList, self.chReady, false)
-	end
-end
-
 
 function SongbookWindow:SearchSongs()
 	self.songFileBrowser:Search(self.searchInput:GetText(), nil)
@@ -1589,183 +794,34 @@ function SongbookWindow:ToggleDescriptionFirst()
 	end
 end
 
--- action for toggling instrument slots on and off
 function SongbookWindow:ToggleInstrSlots()
-	if (CharSettings.InstrSlots[1]["visible"]) then		
-		CharSettings.InstrSlots[1]["visible"] = false;
-	else
-		CharSettings.InstrSlots[1]["visible"] = true;
-	end
+	self.instrumentSlotsPanel:SetSlotsVisible(not self.instrumentSlotsPanel:IsSlotsVisible())
 	self:ReflowLayout()
 end
 
 function SongbookWindow:ClearSlots()
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		for i=1,CharSettings.InstrSlots[j]["number"] do
-			CharSettings.InstrSlots[j][tostring(i)].qsType ="";
-			CharSettings.InstrSlots[j][tostring(i)].qsData = "";
-			local sc = Turbine.UI.Lotro.Shortcut( "", "");
-			self.instrSlot[j][i]:SetShortcut(sc);
-		end
-	end
+	self.instrumentSlotsPanel:ClearSlots()
 end
 
 function SongbookWindow:AddSlot()
-	if self:GetWidth() > 10+(CharSettings.InstrSlots[1]["number"]+1)*40 then
-		local newslot = CharSettings.InstrSlots[1]["number"]+1;
-		for j = 1, CharSettings.InstrumentSlots_Rows do
-			CharSettings.InstrSlots[j]["number"] = newslot;
-			self.instrSlot[j][newslot] = Turbine.UI.Lotro.Quickslot();
-			self.instrSlot[j][newslot]:SetParent( self.instrContainer[j] );
-			self.instrSlot[j][newslot]:SetPosition(40*(newslot-1), 0);
-			self.instrSlot[j][newslot]:SetSize(37, 37);
-			self.instrSlot[j][newslot]:SetZOrder(100);
-			self.instrSlot[j][newslot]:SetAllowDrop(true);
-			self.instrContainer[j]:SetWidth(self.instrContainer[j]:GetWidth()+40); 
-			
-			local sc = Turbine.UI.Lotro.Shortcut("","");
-			self.instrSlot[j][newslot]:SetShortcut(sc);
-			
-			CharSettings.InstrSlots[j][tostring(newslot)] = { qsType = "", qsData = "" };		
-			
-			self.instrSlot[j][newslot].ShortcutChanged = function( sender, args )
-				pcall(function() 
-					local sc = sender:GetShortcut();
-					CharSettings.InstrSlots[j][tostring(newslot)].qsType = tostring(sc:GetType());
-					CharSettings.InstrSlots[j][tostring(newslot)].qsData = sc:GetData();
-				end);
-			end
-			
-			self.instrSlot[j][newslot].DragLeave = function( sender, args )
-				if (instrdrag) then 
-					CharSettings.InstrSlots[j][tostring(newslot)].qsType ="";
-					CharSettings.InstrSlots[j][tostring(newslot)].qsData = "";
-					local sc = Turbine.UI.Lotro.Shortcut( "", "");
-					self.instrSlot[j][newslot]:SetShortcut(sc);
-					instrdrag = false;
-				end
-			end
-			
-			self.instrSlot[j][newslot].MouseDown = function( sender, args )
-				if(args.Button == Turbine.UI.MouseButton.Left) then	
-					instrdrag = true;
-				end
-			end
-		end
+	if self:GetWidth() > 10 + (CharSettings.InstrSlots[1]["number"] + 1) * 40 then
+		self.instrumentSlotsPanel:AddSlot()
 	end
 end
 
 function SongbookWindow:DelSlot()
-	for j = 1, CharSettings.InstrumentSlots_Rows do
-		if CharSettings.InstrSlots[j]["number"] > 1 then
-			local delslot = CharSettings.InstrSlots[j]["number"];
-			CharSettings.InstrSlots[j]["number"] = CharSettings.InstrSlots[j]["number"]-1;
-			self.instrContainer[j]:SetWidth(self.instrContainer[j]:GetWidth()-40); 
-			self.instrSlot[j][delslot] = nil;
-			CharSettings.InstrSlots[j][tostring(delslot)] = nil;
-		end
-	end
+	self.instrumentSlotsPanel:RemoveSlot()
 end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function SongbookWindow:AddSlot_row()
-	if (CharSettings.InstrSlots[1]["visible"]) then
-		CharSettings.InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows + 1;
-		local InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows;
-		
-		table.insert(self.instrContainer , Turbine.UI.Control);
-		
-		self.instrContainer[InstrumentSlots_Rows] = Turbine.UI.Control();
-		self.instrContainer[InstrumentSlots_Rows]:SetParent( self );
-		local TopShift = 75 + InstrumentSlots_Shift * ( InstrumentSlots_Rows - 1 );
-		self.instrContainer[InstrumentSlots_Rows]:SetPosition( 10, self:GetHeight() - TopShift );
-		if (CharSettings.InstrSlots[1]["visible"]) then
-			self.instrContainer[InstrumentSlots_Rows]:SetVisible( true );
-		else
-			self.instrContainer[InstrumentSlots_Rows]:SetVisible( false );
-		end
-		self.instrContainer[InstrumentSlots_Rows]:SetSize( 40*CharSettings.InstrSlots[1]["number"], 38 );
-		self.instrContainer[InstrumentSlots_Rows]:SetZOrder(90);
-		
-		
-		table.insert(self.instrSlot , {});
-		
-		table.insert(CharSettings.InstrSlots , {});
-		CharSettings.InstrSlots[InstrumentSlots_Rows]["visible"] = true;
-		CharSettings.InstrSlots[InstrumentSlots_Rows]["number"] = CharSettings.InstrSlots[1]["number"];
-		for i = 1, CharSettings.InstrSlots[InstrumentSlots_Rows]["number"] do
-			CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)] = { qsType = "", qsData = "" };		
-		end
-		
-		for i = 1, CharSettings.InstrSlots[1]["number"] do
-			self.instrSlot[InstrumentSlots_Rows][i] = Turbine.UI.Lotro.Quickslot();
-			self.instrSlot[InstrumentSlots_Rows][i]:SetParent( self.instrContainer[InstrumentSlots_Rows] );
-			self.instrSlot[InstrumentSlots_Rows][i]:SetPosition(40*(i-1), 0);
-			self.instrSlot[InstrumentSlots_Rows][i]:SetSize(37, 37);
-			self.instrSlot[InstrumentSlots_Rows][i]:SetZOrder(100);
-			self.instrSlot[InstrumentSlots_Rows][i]:SetAllowDrop(true);
-			
-			if (CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].data ~= "") then
-				pcall(function() 
-					local sc = Turbine.UI.Lotro.Shortcut( CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsType, CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsData);
-					self.instrSlot[InstrumentSlots_Rows][i]:SetShortcut(sc);
-				end);
-			end
-			
-			self.instrSlot[InstrumentSlots_Rows][i].ShortcutChanged = function( sender, args )
-				pcall(function() 
-					local sc = sender:GetShortcut();
-					CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsType = tostring(sc:GetType());
-					CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsData = sc:GetData();
-				end);
-			end
-			
-			self.instrSlot[InstrumentSlots_Rows][i].DragLeave = function( sender, args )
-				if (instrdrag) then 
-					CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsType ="";
-					CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)].qsData = "";
-					local sc = Turbine.UI.Lotro.Shortcut( "", "");
-					self.instrSlot[InstrumentSlots_Rows][i]:SetShortcut(sc);
-					instrdrag = false;
-				end
-			end
-			
-			self.instrSlot[InstrumentSlots_Rows][i].MouseDown = function( sender, args )
-				
-				if(args.Button == Turbine.UI.MouseButton.Left) then	
-					instrdrag = true;
-				end
-			end
-		end
-		
-		self:ReflowLayout();
-	end
+	self.instrumentSlotsPanel:AddRow()
+	self:ReflowLayout()
 end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function SongbookWindow:DelSlot_row()
-	if (CharSettings.InstrSlots[1]["visible"]) then
-		if CharSettings.InstrumentSlots_Rows > 1 then
-			local InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows;
-			
-			for i = 1, CharSettings.InstrSlots[1]["number"] do
-				self.instrSlot[InstrumentSlots_Rows][i] = nil;
-				CharSettings.InstrSlots[InstrumentSlots_Rows][tostring(i)] = nil;
-			end
-			
-			self.instrContainer[InstrumentSlots_Rows]:SetVisible( false );
-			self.instrContainer[InstrumentSlots_Rows] = nil;
-			CharSettings.InstrSlots[InstrumentSlots_Rows] = nil;
-			--table.remove(self.instrContainer);
-			--table.remove(CharSettings.InstrSlots);
-			
-			CharSettings.InstrumentSlots_Rows = CharSettings.InstrumentSlots_Rows - 1;
-			
-			
-			self:ReflowLayout();
-		end
-	end
+	self.instrumentSlotsPanel:RemoveRow()
+	self:ReflowLayout()
 end
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function SongbookWindow:ExpandCmd(cmdId)
 	local selTrack = SongLibrary.SelectedTrackIndex( );
@@ -1799,44 +855,21 @@ function SongbookWindow:SaveSettings()
 	Settings.WindowPosition.Top = self:GetTop()
 	Settings.WindowPosition.Width = self:GetWidth()
 	Settings.WindowPosition.Height = self:GetHeight()
-	Settings.FiltersState = self.bFilter
+	Settings.FiltersState = self.filterPanel:IsVisible()
 	Settings.ChiefMode = SyncManager.chiefMode
-	Settings.TimerState = self.bTimer
-	Settings.TimerCountdown = self.bTimerCountdown
+	Settings.TimerState = self.songTimerPanel:IsTimerEnabled()
+	Settings.TimerCountdown = self.songTimerPanel:IsCountdown()
 	Settings.ReadyColState = self.bShowReadyChars
 	Settings.ReadyColHighlight = self.bHighlightReadyCol
 	Settings.TimerWindowVisible = self.TimerWindowVisible
 	Settings.HelpWindowDisable = self.HelpWindowDisable
 	Settings.UseRaidChat = SyncManager.useRaidChat
 	Settings.UseFellowshipChat = SyncManager.useFellowshipChat
-	Settings.PlayersSyncInfoWindowPosition.Left = PlayersSyncInfoWindow:GetLeft()
-	Settings.PlayersSyncInfoWindowPosition.Top = PlayersSyncInfoWindow:GetTop()
-	Settings.PlayersSyncInfoWindowPosition.Width = PlayersSyncInfoWindow:GetWidth()
-	Settings.PlayersSyncInfoWindowPosition.Height = PlayersSyncInfoWindow:GetHeight()
+	self.playerSyncInfoWindow:SavePosition()
 
 	SettingsManager.Save()
 end
 
-
-function SongbookWindow:GetFilters()
-	local filters = { maxPartCount = self.maxPartCount }
-	if self.cbComposer and self.cbComposer:IsChecked() then
-		filters.composer = self.editComposer:GetText()
-	end
-	if self.cbPartcount and self.cbPartcount:IsChecked() then
-		filters.partcount = self.editPartcount:GetText()
-	end
-	if self.cbGenre and self.cbGenre:IsChecked() then
-		filters.genre = self.editGenre:GetText()
-	end
-	if self.cbMood and self.cbMood:IsChecked() then
-		filters.mood = self.editMood:GetText()
-	end
-	if self.cbAuthor and self.cbAuthor:IsChecked() then
-		filters.author = self.editAuthor:GetText()
-	end
-	return filters
-end
 
 function SongbookWindow:UpdateSongs()
 	local sSearch = self.searchInput:GetText()
@@ -1849,147 +882,29 @@ end
 
 function SongbookWindow:ClearSongState()
 	SyncManager.ClearSongState()
-	self:ClearSetups()
 	self:SetTrackColours(SongLibrary.selectedTrack)
-	self:SetPlayerColours()
-	self:SetListboxColours(self.songlistBox)
+	self.filterPanel:UpdatePlayerColours()
 end
 
 function SongbookWindow:SongStarted()
 	self:ClearSongState()
 
-	TimerWindow:SetSongText( SyncManager.syncedTrackName )
+	self.timerWindow:SetSongText( SyncManager.syncedTrackName )
 
-	songbookWindow.playerSyncPanel:HideSyncMessage()
-	MatchedSongsWindow:SetVisible( false )
+	self.playerSyncPanel:HideSyncMessage()
+	self.songMatchesWindow:SetVisible( false )
 
-	SyncStartWindow.Message:SetText("Nothing to Start")
-	SyncStartWindow.YesSlot:SetVisible( false )
-	SyncStartWindow.NoSlot:SetVisible( false )
-	SyncStartWindow.YesIcon:SetVisible( false )
-	SyncStartWindow.NoIcon:SetVisible( false )
+	self.syncConfirmWindow:SetPending( false )
 
 	self.controlBar:SetSyncStartShortcut(nil)
 
-	if self.bInstrumentOk == false then
-		self.tracksMsg:SetForeColor( ColorTheme.colourDefault )
-		self.tracksMsg:SetVisible( false )
-		self.bInstrumentOk = true
+	if self.songTimerPanel:HasInstrumentWarning() then
+		self.songTimerPanel:ClearInstrumentWarning()
 	end
-	if self.bTimer then self:StartTimer() end
+	if self.songTimerPanel:IsTimerEnabled() then self.songTimerPanel:Start( SyncManager.syncedTrackName ) end
 end
 
 --%%%%%%%%%%%%%%%%
-
--- Create the filter UI elements: Edit boxes for player count, transcriber, mood, genre
-function SongbookWindow:CreateFilterUI( args )
-	self.editPartcount = self:CreateFilterEdit( 0  );
-	self.cbPartcount = self:CreateFilterCheckbox( 0, Strings["filterParts"] );
-	self.cbPartcount.CheckedChanged =
-		function( sender, args )
-			--self:SetMaxPartCount( sender:IsChecked( ) )
-			self:UpdateSongs( )
-		end
-
-	self.editComposer = self:CreateFilterEdit( 20 );
-	self.cbComposer = self:CreateFilterCheckbox( 20, Strings["filterArtist"] );
-
-	self.editGenre = self:CreateFilterEdit( 40 ); --,
-	self.cbGenre = self:CreateFilterCheckbox( 40, Strings["filterGenre"] );
-	
-	self.editMood = self:CreateFilterEdit( 60 ); --,
-	self.cbMood = self:CreateFilterCheckbox( 60, Strings["filterMood"] );
-
-	self.editAuthor = self:CreateFilterEdit( 80 );
-	self.cbAuthor = self:CreateFilterCheckbox( 80, Strings["filterAuthor"] );
-	
-	-- Separator filters - dir listbox
-	self.separatorFilters = Turbine.UI.Control();
-	self.separatorFilters:SetParent( self.listContainer );
-	self.separatorFilters:SetZOrder( 300 );
-	self.separatorFilters:SetBackColor( Turbine.UI.Color(1, 0.15, 0.15, 0.15) );
-	self.separatorFilters:SetPosition( 156, self.dirlistBox:GetTop( ) );
-	self.separatorFilters:SetSize( 10, self.dirlistBox:GetHeight( ) );
-	self.separatorFilters:SetVisible( false );
-
-	self:CreatePartyListbox( );
-	self:CreateSetupsListbox( );
-
-	self:CreateTreeViewPanels()
-end
-
-
--- create a filter edit
-function SongbookWindow:CreateFilterEdit( par_yPos, par_fn )
-	local edit = Turbine.UI.Lotro.TextBox( );
-	edit:SetParent( self.listContainer );
-	edit:SetPosition( 0, par_yPos );
-	edit:SetSize( 80, 20 );
-	edit:SetFont( Turbine.UI.Lotro.Font.Verdana14 );
-	edit:SetMultiline( false );	
-	edit:SetVisible( false );
-	--edit.FocusLost = par_fn;
-	edit.KeyDown = function( sender, keyargs )
-		if( keyargs.Action == 162 ) then
-			--if( edit:HasFocus( ) ) then
-				self:UpdateSongs( );
-			--end
-		end
-	end
-	return edit;
-end
-
-
--- Create a filter checkbox
-function SongbookWindow:CreateFilterCheckbox( par_yPos, par_sText )
-	-- search button
-	local cb = Turbine.UI.Lotro.CheckBox();
-	cb:SetParent( self.listContainer );
-	cb:SetPosition( 82, par_yPos );
-	cb:SetSize( 80, 20 );
-	cb:SetText( par_sText );
-	cb.CheckedChanged =
-		function( sender, args )
-			self:UpdateSongs( );
-		end
-	cb:SetVisible( false );
-	return cb;
-end
-
-
--- Switch between filter UI display (true) and track listbox (false)
-function SongbookWindow:ShowFilterUI( bFilter )
-	self.bFilter = bFilter;
-	self.editPartcount:SetVisible( bFilter ); self.cbPartcount:SetVisible( bFilter );
-	self.editComposer:SetVisible( bFilter ); self.cbComposer:SetVisible( bFilter );
-	self.editGenre:SetVisible( bFilter ); self.cbGenre:SetVisible( bFilter );
-	self.editMood:SetVisible( bFilter ); self.cbMood:SetVisible( bFilter );
-	self.editAuthor:SetVisible( bFilter ); self.cbAuthor:SetVisible( bFilter );
-	self.separatorFilters:SetVisible( bFilter );
-	
-	self.btnParty:SetVisible( bFilter );
-	self.listboxPlayers:SetVisible( bFilter );
-	
-	-- self:ResizeAll( );
-	self:ReflowLayout();
-end
-
-
--- Reposition the filter UI for dir listbox size changes
-function SongbookWindow:AdjustFilterUI( )
-	if not self.bFilter then return; end
-	--if( not self.cbFilters:IsChecked( ) ) then return; end
-	
-	local dirHeight = self.dirlistBox:GetHeight( );
-	if( dirHeight < 40 ) then dirHeight = 40; end
-
-	self.editAuthor:SetVisible( dirHeight >= 100 ); self.cbAuthor:SetVisible( dirHeight >= 100 );
-	self.editMood:SetVisible( dirHeight >= 80 ); self.cbMood:SetVisible( dirHeight >= 80 );
-	self.editGenre:SetVisible( dirHeight >= 60 ); self.cbGenre:SetVisible( dirHeight >= 60 );
-
-	self.separatorFilters:SetHeight( dirHeight );
-end
-
 
 function SongbookWindow:CheckInstrument( sTrack )
 	local player = Turbine.Gameplay.LocalPlayer:GetInstance( );
@@ -1999,192 +914,50 @@ function SongbookWindow:CheckInstrument( sTrack )
 	local item = equip:GetItem( Turbine.Gameplay.Equipment.Instrument )
 	if not item then return; end
 	sTrack = sTrack:lower()
-	self.bInstrumentOk = true -- only set to false if we can successfully determine track and equipped instrument
+	local instrumentOk = true -- only set to false if we can successfully determine track and equipped instrument
 	local iName = InstrumentManager.GetInstrumentIndex( item:GetName( ):lower( ) )
 	if not iName then return; end -- can't determine equipped instrument, disable message
 
 	local iTrackInstrument, bOk = InstrumentManager.CheckTracksForInstrument( sTrack, iName, InstrumentManager.genericNames )
 	if iTrackInstrument then
-		self.bInstrumentOk = bOk
+		instrumentOk = bOk
 	else -- try localized names
 		iTrackInstrument, bOk = InstrumentManager.CheckTracksForInstrument( sTrack, iName, aInstrumentsLoc )
 		if iTrackInstrument then
-			self.bInstrumentOk = bOk
+			instrumentOk = bOk
 		end
 	end
 
 	if not iTrackInstrument then return; end -- could not determine the track instrument
-	self:SetInstrumentMessage( aInstrumentsLoc[ iTrackInstrument ] ) -- print the localized name
-end
-	
-
-function SongbookWindow:SetInstrumentMessage( sInstr )
-	if self.bInstrumentOk then
-		self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold22 );
-		self.tracksMsg:SetForeColor( ColorTheme.colourDefault )
-		self.tracksMsg:SetVisible( false )
+	if instrumentOk then
+		self.songTimerPanel:ClearInstrumentWarning()
 	else
-		self.tracksMsg:SetFont( Turbine.UI.Lotro.Font.BookAntiquaBold18 );
-		self.tracksMsg:SetForeColor( ColorTheme.colourWrongInstrument )
-		self.tracksMsg:SetText( sInstr .. Strings["instr"] )
-		self.tracksMsg:SetVisible( true )
+		self.songTimerPanel:ShowInstrumentWarning( aInstrumentsLoc[ iTrackInstrument ] .. Strings["instr"] ) -- localized name
 	end
 end
 
 
--- Add player to the fellowship list
-function SongbookWindow:AddPlayerToList( sPlayername )
-	if( self.listboxPlayers == nil ) then return; end -- Listbox not created yet
-
-	local memberItem = Turbine.UI.Label( );
-	memberItem:SetText( sPlayername );
-	memberItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-	memberItem:SetSize( 100, 20 );				
-	self.listboxPlayers:AddItem( memberItem );
-end
-
--- Remove player from the fellowship list
-function SongbookWindow:RemovePlayerFromList( sPlayername )
-	if( self.listboxPlayers == nil ) then return; end -- Listbox not created yet
-
-	local i, item = self:GetItemFromList( self.listboxPlayers, sPlayername )
-	if i then self.listboxPlayers:RemoveItemAt( i ); end
-end
-
--- Get index and item for player name from player listbox
-function SongbookWindow:GetItemFromList( listbox, sText )
-	local i, item
-	for i = 1, listbox:GetItemCount( ) do
-		item = listbox:GetItem( i )
-		if item:GetText( ) == sText then return i, item; end
-	end
-	return nil, nil
-end
-		
-
-
-function SongbookWindow:EnableReadyColumns( bOn )
-	self.listboxPlayers:EnableCharColumn( bOn )
-	self.trackListPanel:EnableCharColumn(bOn)
+function SongbookWindow:ShowFilterUI( bShow )
+	self.filterPanel:SetVisible( bShow )
+	self:ReflowLayout()
 end
 
 function SongbookWindow:ShowReadyColumns( bShow )
 	if self.bShowReadyChars == bShow then return; end
 	self.bShowReadyChars = bShow
-	self:EnableReadyColumns( bShow )
+	self.filterPanel:SetReadyColumnEnabled( bShow )
 	if SongLibrary.selectedSongIndex then
-		--self:ListTracks( SongLibrary.selectedSongIndex )
-		--self:RefreshPlayerListbox( )
 		self:SetTrackColours( SongLibrary.selectedTrack );
-		self:SetPlayerColours( );
+		self.filterPanel:UpdatePlayerColours( );
 	end
 end
 
 function SongbookWindow:HightlightReadyColumns( bOn )
-	self.listboxPlayers.bHighlightReadyCol = bOn
-	self.trackListPanel:SetHighlightReadyCol(bOn)
+	self.filterPanel:SetReadyHighlight( bOn )
 end
 
-
--- Read party member names and add them to the party members listbox
--- TODO: Party object does not seem to report party members correctly?
-function SongbookWindow:RefreshPlayerListbox( )
-	if self.listboxPlayers == nil then return end
-	self.listboxPlayers:ClearItems()
-	SyncManager.RefreshPlayers()
-	self:SetPlayerColours()
-	self:UpdateMaxPartCount()
-	if self.maxPartCount then self:UpdateSongs() end
-	self:UpdateSetupColours()
-end
-
-
--- Update item colours in party listbox to indicate ready states
-function SongbookWindow:SetPlayerColours( )
-	if not SyncManager.players or not self.listboxPlayers then return; end
-
-	local iMember;
-	for iMember=1,self.listboxPlayers:GetItemCount( ) do
-		local item = self.listboxPlayers:GetItem( iMember );
-		if( SyncManager.players[ item:GetText( ) ] == nil ) then	-- should not happen
-			item:SetForeColor( ColorTheme.colourDefault );
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
-		elseif( SyncManager.players[ item:GetText( ) ] == 0 ) then -- present, but no song ready
-			item:SetForeColor( ColorTheme.colourDefault );
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chNone, false ); end
-		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 1 then
-			item:SetForeColor( ColorTheme.colourReady ); -- Track from the currently displayed song ready
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chReady, false ); end
-		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 2 then
-			item:SetForeColor( ColorTheme.colourReadyMultiple ); -- Correct song, but same track as another player
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chMultiple, true ); end
-		elseif SyncManager.currentSongReady and SyncManager.currentSongReady[ item:GetText( ) ] == 3 then
-			item:SetForeColor( ColorTheme.colourDifferentSetup ); -- Correct song, but track not in current setup
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chWrongPart, true ); end
-		else
-			item:SetForeColor( ColorTheme.colourDifferentSong ); -- Track ready, but different song
-			if self.bShowReadyChars then self.listboxPlayers:SetColumnChar( iMember, self.chWrongSong, true ); end
-		end
-	end
-end
-
--- Create party member listbox
-function SongbookWindow:CreatePartyListbox( )
-	local songsHeight = self.songlistBox:GetHeight( );
-	local songsTop = self.songlistBox:GetTop( );
-	if( songsHeight < 40 ) then songsHeight = 40; end
-
-	-- Button to update party member list
-	self.btnParty = Turbine.UI.Lotro.Button();
-	self.btnParty:SetParent(self.listContainer);
-	self.btnParty:SetPosition( 0, songsTop );
-	self.btnParty:SetSize( 92, 20 );
-	self.btnParty:SetText( Strings["players"] );
-	self.btnParty:SetVisible( false );
-
-	self.btnParty.MouseClick =
-		function( sender, args )
-			self:RefreshPlayerListbox( );
-		end
-
-	local dirsHeight = self.dirlistBox:GetHeight( );
-	self.listboxPlayers = ListBoxCharColumn:New( 10, 20 );
-	self.listboxPlayers:SetParent( self.listContainer );
-	self.listboxPlayers:SetSize( 80, songsHeight - 20 );
-	self.listboxPlayers:SetPosition( 2 , songsTop + 20 );
-	self.listboxPlayers:SetVisible( false );
-end
-
--- Use the number of currently listed players as limit for part counts
-function SongbookWindow:SetMaxPartCount( bActivate )
-	--self:RefreshPlayerListbox( )
-	if bActivate and self.listboxPlayers then self.maxPartCount = self.listboxPlayers:GetItemCount( )
-	else self.maxPartCount = nil;
-	end
-end
-
--- Due to party object issues, we only increase partcount here
-function SongbookWindow:UpdateMaxPartCount( )
-	if self.maxPartCount and self.listboxPlayers and self.maxPartCount < self.listboxPlayers:GetItemCount( ) then
-		self.maxPartCount = self.listboxPlayers:GetItemCount( )
-	end
-end
-
--- Create listbox to show the possible setup counts
-function SongbookWindow:CreateSetupsListbox( )
-	self.listboxSetups = ListBoxScrolled:New( 10 );
-	self.listboxSetups:SetParent( self.listContainer );
-	self.listboxSetups:SetSize( self.listboxSetupsWidth - 0, 200 );
-	self.listboxSetups:SetPosition( 0, 0 );
-	self.listboxSetups:SetVisible( self.bShowSetups );
-	self.listboxSetups.SelectedIndexChanged =
-		function( sender, args )
-			self:ListTracksForSetup( sender:GetSelectedIndex( ) );
-		end
-end
 
 function SongbookWindow:CreateTreeViewPanels()
-	-- Song browser tree (replaces dirlistBox + songlistBox)
 	self.songFileBrowser = SongFileBrowser()
 	self.songFileBrowser:SetParent(self.listContainer)
 	self.songFileBrowser.onSongSelected = function(songIndex)
@@ -2200,8 +973,6 @@ function SongbookWindow:CreateTreeViewPanels()
 	self.songFileBrowser:SetVisible(true)
 	self.songFileBrowser:Populate()
 
-	-- Track detail panel (replaces tracklistBox + listboxSetups)
-	-- Pre-populate with the song that was selected during initial load.
 	self.trackDetailPanel = TrackDetailPanel()
 	self.trackDetailPanel:SetParent(self.listContainer)
 	self.trackDetailPanel.onTrackSelected = function(listIndex)
@@ -2214,35 +985,20 @@ function SongbookWindow:CreateTreeViewPanels()
 			self:SelectTrack(track)
 		end
 		self:SetTrackColours(SongLibrary.selectedTrack)
-		self:UpdateTrackReadyString()
+		self:UpdateSetupColours()
 		local found = self.trackDetailPanel:GetTrackCount()
 		self.sepSongsTracks.heading:SetText(Strings["ui_parts"] .. " (" .. found .. ")")
 	end
 	self.trackDetailPanel:SetVisible(Settings.TracksVisible)
-
-	-- Show tracks for the song selected during initial constructor load.
-	if SongLibrary.selectedSongIndex and SongLibrary.selectedSongIndex > 0 and
-	   SongDB.Songs[SongLibrary.selectedSongIndex] then
-		self.trackDetailPanel:ShowSong(SongLibrary.selectedSongIndex)
-	end
-
-	-- Hide old panels — they remain populated for sync logic but are not shown.
-	self.dirlistBox:SetVisible(false)
-	self.songlistBox:SetVisible(false)
-	self.listboxSetups:SetVisible(false)
-	self.separator1:SetVisible(false)
 end
 
--- Select a song by its SongDB index (used by tree view; bypasses filteredIndices lookup).
 function SongbookWindow:SelectSongByIndex(songIndex)
 	SongLibrary.selectedSongIndex = songIndex
 	SongLibrary.selectedSong = SongDB.Songs[songIndex].Filename
-	SongLibrary.selectedSongIndexListBox = 0
 
-	-- Populate hidden tracklistBox for sync machinery compatibility.
-	self:ListTracks(songIndex)
+	self:PopulateSyncInfoList(songIndex)
 
-	-- Populate the visible track detail panel (establishes setup filter state).
+	-- establishes the setup filter state that auto-pick reads
 	self.trackDetailPanel:ShowSong(songIndex)
 
 	self.songFileBrowser:SetSelectedSong(songIndex)
@@ -2256,58 +1012,12 @@ function SongbookWindow:SelectSongByIndex(songIndex)
 
 	self:ClearPlayerReadyStates()
 	self:SelectTrack(track)
-	self:SetPlayerColours()
+	self.filterPanel:UpdatePlayerColours()
 	self:UpdateSetupColours()
 	self:SetTrackColours(SongLibrary.selectedTrack)
 
 	local found = self.trackDetailPanel:GetTrackCount()
 	self.sepSongsTracks.heading:SetText(Strings["ui_parts"] .. " (" .. found .. ")")
-end
-
-function SongbookWindow:SelectSetup( iSetup )
-	if not self.listboxSetups then return; end
-	if not iSetup or iSetup > self.listboxSetups:GetItemCount( ) then iSetup = self.listboxSetups:GetItemCount( ); end
-	self.listboxSetups:SetSelectedIndex( iSetup )
-	self:ListTracksForSetup( iSetup )
-end
-
-function SongbookWindow:ListTracksForSetup( iSetup )
-	if not SongDB.Songs[SongLibrary.selectedSongIndex] or not SongDB.Songs[SongLibrary.selectedSongIndex].Setups then return; end
-	
-	for iItem = 1, self.listboxSetups:GetItemCount( ) do
-		self.listboxSetups:GetItem( iItem ):SetBackColor( ColorTheme.backColourDefault );
-	end
-
-	local selTrack = self.trackListPanel:GetSelectedIndex()
-
-	SongLibrary.setupTrackIndices = { };
-	SongLibrary.setupListIndices = { };
-	SongLibrary.currentSetup = nil;
-
-	if not iSetup or iSetup >= self.listboxSetups:GetItemCount( ) then
-		self:ListTracks( SongLibrary.selectedSongIndex );
-		SongLibrary.selectedSetupCount = nil
-	else
-		SongLibrary.currentSetup = iSetup;
-		self.trackListPanel:ClearItems()
-		SyncInfolistbox:ClearItems( );
-		for i = 1, #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ] do
-			local iTrack = SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ]:byte( i ) - 64;
-			SongLibrary.setupTrackIndices[ i ] = iTrack;
-			SongLibrary.setupListIndices[ iTrack ] = i;
-			self.trackListPanel:AddTrackItem(SongLibrary.selectedSongIndex, iTrack)
-			self:AddSyncInfoEntry(SongLibrary.selectedSongIndex, iTrack)
-		end
-		SongLibrary.selectedSetupCount = #SongDB.Songs[SongLibrary.selectedSongIndex].Setups[ iSetup ]
-	end
-
-	local selItem = self.listboxSetups:GetSelectedItem( );
-	if selItem then selItem:SetBackColor( ColorTheme.backColourHighlight ); end
-
-	self:SelectTrack( 1 ); --selTrack );
-	self:SetPlayerColours( );
-	local found = self.trackListPanel:GetItemCount()
-	self.sepSongsTracks.heading:SetText( Strings["ui_parts"] .. " (" .. found .. ")" );
 end
 
 function SongbookWindow:UpdateSetupColours(  )
@@ -2334,59 +1044,20 @@ function SongbookWindow:UpdateSetupColours(  )
 		elseif matchLength and matchLength + 1 == #song.Setups[ i ] then
 			colour = Turbine.UI.Color( 0, 0.7, 0 );
 		else
-			colour = ColorTheme.colourDefault;
+			colour = ColorTheme.colourMessageTitle;
 		end
 
 		self.trackDetailPanel:SetSetupColour( i, colour )
 	end
 end
 
-function SongbookWindow:ClearSetups(  )
-	if not self.listboxSetups then return; end	
-	local selItem = self:SetListboxColours( self.listboxSetups, true );
-	if selItem then selItem:SetBackColor( ColorTheme.backColourHighlight ); end
-end
-
 function SongbookWindow:UpdateTrackReadyString()
 	SyncManager.UpdateReadyTracks(
-		self.trackListPanel:GetItemCount(),
+		self.trackDetailPanel:GetTrackCount(),
 		SongLibrary.SelectedTrackIndex
 	)
 end
 		
-
--- Add an item with the given text to the given listbox
-function SongbookWindow:AddItemToList( sText, listbox, width )
-	if( listbox == nil ) then return; end -- Listbox not created yet
-
-	local item = Turbine.UI.Label( );
-	item:SetText( sText );
-	item:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleCenter );
-	item:SetSize( width, 20 );				
-	listbox:AddItem(item);
-end
-
-
-function SongbookWindow:ListSetups( songID )
-	if not self.listboxSetups or not self.listboxPlayers then return; end
-	self.listboxSetups:ClearItems( )
-	if not SongDB or not SongDB.Songs[songID] or not SongDB.Songs[songID].Setups then
-		return;
-	end
-	local playerCount;
-	if not self.maxPartCount then playerCount = 1000;
-	else playerCount = self.maxPartCount; end
-  --playerCount = 6;	
-	local countInSetup;
-	for i = 1, #SongDB.Songs[songID].Setups do
-		countInSetup = #SongDB.Songs[songID].Setups[ i ];
-		if countInSetup <= playerCount then
-			self:AddItemToList( countInSetup, self.listboxSetups, self.listboxSetupsWidth );
-		end
-	end
-	self:AddItemToList( "A", self.listboxSetups, self.listboxSetupsWidth );
-end
-
 
 function SongbookWindow:ClearPlayerReadyStates( )
 	SyncManager.ClearPlayerReadyStates()
@@ -2394,38 +1065,6 @@ end
 
 	
 	
-function SongbookWindow:SetListboxColours( listbox, bNoSelectionHighlight )
-	for i = 1,listbox:GetItemCount() do
-		local item = listbox:GetItem( i );
-		local SongIndex = SongLibrary.filteredIndices[ i ];
-		
-		local ReadyState = SyncManager.GetSongReadyState( SongIndex );
-		
-		if ReadyState[0] == nil then
-			item:SetForeColor( ColorTheme.colourDefault );
-			item:SetBackColor( ColorTheme.backColourDefault );
-		elseif ReadyState[0] == 10 then
-			item:SetForeColor( ColorTheme.colourSyncedHighlighted );
-			if ReadyState[1] == "LocalPlayer" then
-				item:SetBackColor( ColorTheme.backColourHighlight );
-			else
-				item:SetBackColor( ColorTheme.backColourDefault );
-			end
-		elseif ReadyState[0] == 0 then
-			item:SetForeColor( ColorTheme.colourReadyMultiple2 );
-			if ReadyState[1] == "LocalPlayer" then
-				item:SetBackColor( ColorTheme.backColourHighlight );
-			else
-				item:SetBackColor( ColorTheme.backColourDefault );
-			end
-		end
-	end
-	if bNoSelectionHighlight then return nil; end 
-	local selectedItem = listbox:GetSelectedItem( )
-	if selectedItem then selectedItem:SetForeColor( ColorTheme.colourDefaultHighlighted ); end
-	return selectedItem;
-end
-
 function SongbookWindow:CreateSeparator(left, top, width, height)
 	local separator = Turbine.UI.Control();
 	separator:SetParent(self.listContainer);
@@ -2511,7 +1150,7 @@ end
 function SongbookWindow:SelectTrack( trackid )
 	SongLibrary.selectedTrack = trackid;
 	local iTrack = SongLibrary.SelectedTrackIndex( trackid );
-	self.trackListPanel:SetSelectedTrack(trackid)
+	self.trackListPanel:SetSelectedTrack(trackid, self.trackDetailPanel:GetTrackCount())
 	self.descriptionPanel:SetSong(SongLibrary.selectedSongIndex)
 
 	self.controlBar:SetPlayShortcut(Strings["cmd_play"] .. " \"" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filepath .. SongLibrary.selectedSong .. "\" " .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id)
@@ -2530,7 +1169,7 @@ end
 
 -- action for setting focus on the track list
 function SongbookWindow:SetTrackColours( iSelectedTrack )
-	if not self.trackListPanel or self.trackListPanel:GetItemCount() < 1 then return; end
+	if not self.trackDetailPanel or self.trackDetailPanel:GetTrackCount() < 1 then return; end
 	self:ClearPlayerReadyStates( ); -- Clear ready states for currently displayed song
 	local trackcount = #SongDB.Songs[SongLibrary.selectedSongIndex].Tracks;
 	
@@ -2553,35 +1192,8 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 			elseif readyState[0] then ch = self.chReady end
 			self.trackDetailPanel:SetTrackReadyChar( iList, ch, bHL )
 
-			local sTerseName = SongLibrary.TerseTrackname( SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Name );
-			local Track_Instrument = InstrumentManager.FindInstrumentInTrack( sTerseName );
-			local Track_item = SyncInfolistbox:GetItem(iTrack);
-			Track_item:SetText( "[" .. SongDB.Songs[SongLibrary.selectedSongIndex].Tracks[iTrack].Id .. "] " .. Track_Instrument[1] );
-
-			Track_item:SetForeColor( ColorTheme.GetColourForTrack( readyState[0], iList == iSelectedTrack ) );
-			Track_item:SetBackColor( ColorTheme.GetBackColourForTrack( readyState[0] , readyState[1] , readyState[8] ) );
-
-			for i = 0, readyState[4]-1 do
-				if tonumber( readyState[3][i] ) > 0 then
-					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>" ..
-						InstrumentManager.GetName(tonumber( readyState[3][i] )) .. "</rgb>]" );
-				else
-					Track_item:AppendText("  - <rgb=0x00FF00>" .. readyState[2][i] .. "</rgb> [<rgb=0x00FF80>No Instrument</rgb>]" );
-				end
-			end
-
-			for i = 0, readyState[7]-1 do
-				if tonumber( readyState[6][i] ) > 0 then
-					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>" ..
-						InstrumentManager.GetName(tonumber( readyState[6][i] )) .. "</rgb>]" );
-				else
-					Track_item:AppendText("  - <rgb=0xFF0000>" .. readyState[5][i] .. "</rgb> [<rgb=0xFF0080>No Instrument</rgb>]" );
-				end
-			end
-			
-			for i = 0, readyState[8]-1 do
-				Track_item:AppendText("  - <rgb=0xFFFF00>" .. readyState[9][i] .. "</rgb>" );
-			end
+			local syncInfoText = self:SyncInfoTrackText(SongLibrary.selectedSongIndex, iTrack) .. self:SyncInfoPlayersText(readyState)
+			self.playerSyncInfoWindow:UpdateTrack(iTrack, syncInfoText, fgCol, bgCol)
 		end
 	end
 	
@@ -2590,11 +1202,7 @@ function SongbookWindow:SetTrackColours( iSelectedTrack )
 		self.controlBar:SetSyncStartShortcut(Strings["cmd_start"])
 	else
 		SyncManager.syncStartReady = false;
-		SyncStartWindow.Message:SetText("Some parts don't have correct state. Do you want to start?");
-		SyncStartWindow.YesSlot:SetVisible( true );
-		SyncStartWindow.NoSlot:SetVisible( true );
-		SyncStartWindow.YesIcon:SetVisible( true );
-		SyncStartWindow.NoIcon:SetVisible( true );
+		self.syncConfirmWindow:SetPending(true)
 
 		self.controlBar:SetSyncStartShortcut(nil)
 	end
@@ -2667,7 +1275,8 @@ function SongbookWindow:PlayerSyncInfo()
 	end
 
 	if CorrectSongAndTrack == 1 and SyncManager.localPlayerSynced then
-		self.controlBar:SetSendSyncInfoShortcut(SyncManager.chatChannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filename .. "|" .. Track_Name .. "|1|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|" .. SongLibrary.selectedSongIndexListBox .. "|" .. SongLibrary.selectedSongIndex .. "|" .. SongLibrary.selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>")
+		-- the 0 fills the retired list-index field so older clients still parse the message
+		self.controlBar:SetSendSyncInfoShortcut(SyncManager.chatChannel .. " <rgb=#211f1d>@SBL|" .. self.Player_Name .. "|" .. SongDB.Songs[SongLibrary.selectedSongIndex].Filename .. "|" .. Track_Name .. "|1|" .. CorrectSongAndTrack .. "|" .. trackcount .. "|0|" .. SongLibrary.selectedSongIndex .. "|" .. SongLibrary.selectedTrack .. "|" .. Track_Instrument_Index .. "|".. equippedInstrument_Index .. "|" .. CorrectInstrument .. "|</rgb>")
 	else
 		self.controlBar:SetSendSyncInfoShortcut("")
 	end
@@ -2680,100 +1289,20 @@ function SongbookWindow:Activated(sender, args)
 
 	self:UpdatePlayerTitle();
 	
-	local width, height = self:GetSize();
-	local left , top    = self:GetPosition();
-	local displayWidth, displayHeight = Turbine.UI.Display.GetSize();
-	
-	local changeFlag = 0;
-	-- Fix to prevent window to travel outside of the screen
-	if width + 0 > displayWidth then
-		width = displayWidth - 0;
-		changeFlag = 1;
-	end
-	if height + 0 > displayHeight then
-		height = displayHeight - 0;
-		changeFlag = 1;
-	end
-	if left + width > displayWidth then
-		left = displayWidth - width;
-		changeFlag = 1;
-	end
-	if top + height > displayHeight then
-		top = displayHeight - height;
-		changeFlag = 1;
-	end
-	if left < 0 then
-		left = 0;
-		changeFlag = 1;
-	end
-	if top < 0 then
-		top = 0;
-		changeFlag = 1;
-	end	
-	
+	local width, height = self:GetSize()
+	local displayWidth, displayHeight = Turbine.UI.Display.GetSize()
+	local left, top, changed
+	left, top, width, height, changed = Utils.ClampToDisplay(self:GetLeft(), self:GetTop(), width, height, displayWidth, displayHeight)
+
 	Settings.WindowPosition.Left = left;
 	Settings.WindowPosition.Top = top;
 	Settings.WindowPosition.Width = width;
 	Settings.WindowPosition.Height = height;
-		
-	if changeFlag == 1 then
+
+	if changed then
 		self:SetPosition( left, top );
 		self:SetSize( width, height );
-		self.resizeCtrl:SetPosition(self:GetWidth() - self.resizeCtrl:GetWidth(),self:GetHeight() - self.resizeCtrl:GetHeight()); 
-		-- self:ResizeAll( );
 		self:ReflowLayout();
-	end
-end
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function PlayersSyncInfoWindow:Activated(sender, args)
-
-	local width, height = self:GetSize();
-	local left , top    = self:GetPosition();
-	local displayWidth, displayHeight = Turbine.UI.Display.GetSize();
-	
-	local changeFlag = 0;
-	-- Fix to prevent window to travel outside of the screen
-	if width + 0 > displayWidth then
-		width = displayWidth - 0;
-		changeFlag = 1;
-	end
-	if height + 0 > displayHeight then
-		height = displayHeight - 0;
-		changeFlag = 1;
-	end
-	if left + width > displayWidth then
-		left = displayWidth - width;
-		changeFlag = 1;
-	end
-	if top + height > displayHeight then
-		top = displayHeight - height;
-		changeFlag = 1;
-	end
-	if left < 0 then
-		left = 0;
-		changeFlag = 1;
-	end
-	if top < 0 then
-		top = 0;
-		changeFlag = 1;
-	end	
-	
-	Settings.PlayersSyncInfoWindowPosition.Left = left;
-	Settings.PlayersSyncInfoWindowPosition.Top = top;
-	Settings.PlayersSyncInfoWindowPosition.Width = width;
-	Settings.PlayersSyncInfoWindowPosition.Height = height;
-		
-	if changeFlag == 1 then
-		self:SetPosition( left, top );
-		self:SetSize( width, height );
-		self.resizeCtrl:SetPosition(self:GetWidth() - self.resizeCtrl:GetWidth(),self:GetHeight() - self.resizeCtrl:GetHeight());
-		SyncInfolistbox:SetSize( self:GetWidth() - 60 , self:GetHeight() - 80  );
-		scrollBarV:SetPosition(SyncInfolistbox:GetLeft() + SyncInfolistbox:GetWidth(), SyncInfolistbox:GetTop());
-		scrollBarV:SetSize(10,SyncInfolistbox:GetHeight());
-		scrollBarH:SetPosition(SyncInfolistbox:GetLeft(),SyncInfolistbox:GetHeight() + SyncInfolistbox:GetTop());
-		scrollBarH:SetSize(SyncInfolistbox:GetWidth(), 10);
 	end
 end
 
@@ -2807,7 +1336,7 @@ end
 function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 
 	SyncManager.multipleSongsMatch = false;
-	MatchedSongsWindow:SetVisible(false);
+	self.songMatchesWindow:SetVisible(false);
 
 	if SongIndex[0] > 1 and not Settings.hideMatchedSongsPopup then
 		SyncManager.missingMatchedSong = false;
@@ -2817,65 +1346,12 @@ function SongbookWindow:Update_syncMessage (SongIndex, PlayerName, TrackName)
 			SyncManager.multipleSongsMatch = true;
 			self.playerSyncPanel:ShowSyncMessage(PlayerName .. "-> " .. TrackName .. " - Multiple songs match", SyncManager.otherPlayerSynced)
 
-			MatchedSongsListbox:ClearItems( );
+			local matches = {}
 			for i = 1, SongIndex[0] do
-				local SongItem = Turbine.UI.Label();
-				SongItem:SetMultiline( false )
-				SongItem:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleLeft );
-				SongItem:SetSize( 2000, 20 );
-				SongItem:SetMarkupEnabled(true);
-				if not SyncManager.otherPlayerSynced then
-					SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
-				else
-					SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
-				end
-				SongItem:SetBackColor( ColorTheme.backColourDefault );
-				SongItem:SetText( SongDB.Songs[SongIndex[i]].Filepath .. " " .. SongDB.Songs[SongIndex[i]].Filename );
-				MatchedSongsListbox:AddItem( SongItem );
-
-				SongItem.MouseEnter = function(sender, args)
-					if SongItem:IsVisible() then
-						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted );
-						else
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_Highlighted_OnlySynced );
-						end
-					end
-				end
-				SongItem.MouseLeave = function(sender, args)
-					if SongItem:IsVisible() then
-						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
-						else
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
-						end
-					end
-				end
-				SongItem.MouseDown = function(sender,args)
-					if SongItem:IsVisible() then
-						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown );
-						else
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_MouseDown_OnlySynced );
-						end
-					end
-				end
-				SongItem.MouseUp = function(sender,args)
-					if SongItem:IsVisible() then
-						if not SyncManager.otherPlayerSynced then
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle );
-						else
-							SongItem:SetForeColor( ColorTheme.colour_syncMessageTitle_OnlySynced );
-						end
-
-						SelectedMatchedSong_Index = SongIndex[i];
-
-						SongLibrary.NavigateToPath(SongDB.Songs[SelectedMatchedSong_Index].Filepath)
-						songbookWindow.songFileBrowser:Populate()
-						songbookWindow:SelectSongByIndex(SelectedMatchedSong_Index)
-					end
-				end
+				local song = SongDB.Songs[SongIndex[i]]
+				matches[i] = { index = SongIndex[i], text = song.Filepath .. " " .. song.Filename }
 			end
+			self.songMatchesWindow:ShowMatches(matches)
 		end
 	elseif SongIndex[0] > 1 and Settings.hideMatchedSongsPopup then
 		SyncManager.missingMatchedSong = false;
@@ -2928,7 +1404,7 @@ end
 
 function SongbookWindow:ToggleTimerWindow( State )
 	self.TimerWindowVisible = State
-	TimerWindow:SetVisible( self.TimerWindowVisible )
+	self.timerWindow:SetVisible( self.TimerWindowVisible )
 end
 
 function SongbookWindow:ToggleUseRaidChat( State )
@@ -2946,12 +1422,30 @@ function SongbookWindow:SetHelpWindowDisabled( State )
 end
 
 function SongbookWindow:ShowHelpWindow( )
-	Help_Window:SetVisible(true);
+	self.helpWindow:SetVisible(true)
 end
 
 function SongbookWindow:HelpWindow( )
-	if not Settings.HelpWindowDisable and HelpWindow_Load_Flag == 1 then
-		Help_Window:SetVisible(true);
+	self.helpWindow:ShowOnFirstLoad(Settings.HelpWindowDisable)
+end
+
+function SongbookWindow:CreatePopupWindows()
+	self.timerWindow = TimerWindow()
+	self.timerWindow.onClicked = function() self:SetVisible(not self:IsVisible()) end
+
+	self.helpWindow = HelpWindow(Settings.HelpWindowDisable)
+	self.helpWindow.onDisabledChanged = function(disabled)
+		self:SetHelpWindowDisabled(disabled)
+		self:SaveSettings()
 	end
-	HelpWindow_Load_Flag = 0;
+
+	self.songMatchesWindow = SongMatchesWindow()
+	self.songMatchesWindow.onSongChosen = function(songIndex)
+		SongLibrary.NavigateToPath(SongDB.Songs[songIndex].Filepath)
+		self.songFileBrowser:Populate()
+		self:SelectSongByIndex(songIndex)
+	end
+
+	self.playerSyncInfoWindow = PlayerSyncInfoWindow(Settings.PlayersSyncInfoWindowPosition)
+	self.syncConfirmWindow = SyncConfirmWindow()
 end

@@ -37,7 +37,17 @@ import "Songbook3.src.TrackDetailPanel";
 import "Songbook3.src.ToggleWindow";
 import "Songbook3.src.SettingsWindow";
 import "Songbook3.src.TimerWindow";
-import "Songbook3.src.InstrumentSlots";
+import "Songbook3.src.InstrumentSlotsPanel";
+import "Songbook3.src.TimerMath";
+import "Songbook3.src.SongTimerPanel";
+import "Songbook3.src.FooterBar";
+import "Songbook3.src.FilterPanel";
+import "Songbook3.src.MainWindowLayout"
+import "Songbook3.src.HelpWindow"
+import "Songbook3.src.ListWindow"
+import "Songbook3.src.SongMatchesWindow"
+import "Songbook3.src.PlayerSyncInfoWindow"
+import "Songbook3.src.SyncConfirmWindow"
 import "Songbook3.src.SongbookWindow";
 
 songbookWindow = Songbook3.src.SongbookWindow();
