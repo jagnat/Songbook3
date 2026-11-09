@@ -1,7 +1,7 @@
 dofile("src/MainWindowLayout.lua")
 
 local LIST_CHILDREN = { "songBrowser", "separator", "trackDetail", "filterPanel", "timer" }
-local HEADER = { "playerSync", "version", "tooltip", "controlBar", "trackList", "description" }
+local HEADER = { "playerSync", "version", "channelTag", "tooltip", "controlBar", "trackList", "description" }
 local SEARCH_ROW = { "searchInput", "searchButton", "clearButton" }
 
 -- mirrors InstrumentSlotsPanel geometry; 0 rows means the slots are hidden
@@ -34,70 +34,71 @@ end
 
 -- snapshot: default size, search on, tracks off, one instrument row
 local l = MainWindowLayout.Compute(342, 398, makeState({ search = true, tracks = false, filters = false }, 1))
-expectRect(l.playerSync, 15, 30, 312, 56, true, "a.playerSync")
+expectRect(l.playerSync, 15, 30, 312, 36, true, "a.playerSync")
 expectRect(l.version, 40, 25, 50, 14, true, "a.version")
-expectRect(l.tooltip, 72, 77, 245, 30, true, "a.tooltip")
-expectRect(l.controlBar, 0, 100, 450, 35, true, "a.controlBar")
-expectRect(l.trackList, 247, 101, 35, 35, true, "a.trackList")
-expectRect(l.description, 23, 140, 290, 16, true, "a.description")
-expectRect(l.searchInput, 17, 160, 150, 20, true, "a.searchInput")
-expectRect(l.searchButton, 172, 160, 80, 20, true, "a.searchButton")
-expectRect(l.clearButton, 255, 160, 70, 20, true, "a.clearButton")
-expectRect(l.listFrame, 12, 204, 319, 107, true, "a.listFrame")
+expectRect(l.channelTag, 132, 25, 170, 14, true, "a.channelTag")
+expectRect(l.tooltip, 72, 57, 245, 30, true, "a.tooltip")
+expectRect(l.controlBar, 0, 80, 450, 35, true, "a.controlBar")
+expectRect(l.trackList, 247, 81, 35, 35, true, "a.trackList")
+expectRect(l.instrumentSlots, 20, 120, 200, 38, true, "a.instrumentSlots")
+expectRect(l.description, 23, 165, 290, 16, true, "a.description")
+expectRect(l.searchInput, 17, 185, 150, 20, true, "a.searchInput")
+expectRect(l.searchButton, 172, 185, 80, 20, true, "a.searchButton")
+expectRect(l.clearButton, 255, 185, 70, 20, true, "a.clearButton")
+expectRect(l.listFrame, 12, 229, 319, 127, true, "a.listFrame")
 expectRect(l.listFrameHeading, 5, 0, 319, 13, true, "a.listFrameHeading")
-expectRect(l.listBackground, 18, 217, 314, 107, true, "a.listBackground")
-expectRect(l.songBrowser, 18, 217, 314, 107, true, "a.songBrowser")
+expectRect(l.listBackground, 18, 242, 314, 127, true, "a.listBackground")
+expectRect(l.songBrowser, 18, 242, 314, 127, true, "a.songBrowser")
 assert(not l.separator.visible and not l.trackDetail.visible and not l.filterPanel.visible)
-expectRect(l.timer, 182, 302, 150, 22, true, "a.timer")
-expectRect(l.instrumentSlots, 10, 323, 200, 38, true, "a.instrumentSlots")
+expectRect(l.timer, 182, 347, 150, 22, true, "a.timer")
 expectRect(l.footer, 0, 368, 342, 20, true, "a.footer")
-expectRect(l.emptyLabel, 30, 229, 282, 82, false, "a.emptyLabel")
+expectRect(l.emptyLabel, 30, 254, 282, 102, false, "a.emptyLabel")
 expectRect(l.resizeCtrl, 322, 378, 20, 20, true, "a.resizeCtrl")
 
 -- snapshot: search off, tracks and filters on, two instrument rows
 l = MainWindowLayout.Compute(600, 700, makeState({ search = false, tracks = true, filters = true }, 2))
-expectRect(l.playerSync, 15, 30, 570, 56, true, "b.playerSync")
-expectRect(l.tooltip, 330, 77, 245, 30, true, "b.tooltip")
-expectRect(l.controlBar, 0, 100, 450, 35, true, "b.controlBar")
-expectRect(l.description, 23, 140, 548, 16, true, "b.description")
+expectRect(l.playerSync, 15, 30, 570, 36, true, "b.playerSync")
+expectRect(l.tooltip, 330, 57, 245, 30, true, "b.tooltip")
+expectRect(l.controlBar, 0, 80, 450, 35, true, "b.controlBar")
+expectRect(l.instrumentSlots, 20, 120, 200, 83, true, "b.instrumentSlots")
+expectRect(l.description, 23, 210, 548, 16, true, "b.description")
 assert(not l.searchInput.visible and not l.searchButton.visible)
-expectRect(l.listFrame, 12, 184, 577, 384, true, "b.listFrame")
-expectRect(l.listBackground, 18, 197, 572, 384, true, "b.listBackground")
-expectRect(l.filterPanel, 18, 197, 170, 221, true, "b.filterPanel")
-expectRect(l.songBrowser, 188, 197, 402, 221, true, "b.songBrowser")
-expectRect(l.separator, 18, 418, 572, 13, true, "b.separator")
+expectRect(l.listFrame, 12, 254, 577, 404, true, "b.listFrame")
+expectRect(l.listBackground, 18, 267, 572, 404, true, "b.listBackground")
+expectRect(l.filterPanel, 18, 267, 170, 241, true, "b.filterPanel")
+expectRect(l.songBrowser, 188, 267, 402, 241, true, "b.songBrowser")
+expectRect(l.separator, 18, 508, 572, 13, true, "b.separator")
 expectRect(l.separatorHeading, 0, 0, 572, 13, true, "b.separatorHeading")
 expectRect(l.separatorArrows, 276, 1, 20, 10, true, "b.separatorArrows")
-expectRect(l.trackDetail, 18, 431, 572, 150, true, "b.trackDetail")
-expectRect(l.timer, 440, 396, 150, 22, true, "b.timer")
-expectRect(l.instrumentSlots, 10, 580, 200, 83, true, "b.instrumentSlots")
+expectRect(l.trackDetail, 18, 521, 572, 150, true, "b.trackDetail")
+expectRect(l.timer, 440, 486, 150, 22, true, "b.timer")
 expectRect(l.footer, 0, 670, 600, 20, true, "b.footer")
 expectRect(l.resizeCtrl, 580, 680, 20, 20, true, "b.resizeCtrl")
 
 -- snapshot: empty library, instrument slots hidden
 l = MainWindowLayout.Compute(500, 500, makeState({ search = true, tracks = true, filters = false, empty = true }, 0))
-expectRect(l.listFrame, 12, 204, 477, 254, true, "c.listFrame")
+expectRect(l.listFrame, 12, 184, 477, 274, true, "c.listFrame")
 assert(not l.songBrowser.visible and not l.separator.visible and not l.trackDetail.visible)
-expectRect(l.emptyLabel, 30, 229, 440, 229, true, "c.emptyLabel")
-expectRect(l.instrumentSlots, 10, 425, 200, 38, false, "c.instrumentSlots")
+expectRect(l.emptyLabel, 30, 209, 440, 249, true, "c.emptyLabel")
+expectRect(l.instrumentSlots, 20, 120, 200, 38, false, "c.instrumentSlots")
 
 -- snapshot: tracks taller than the list are cut to the list background
 l = MainWindowLayout.Compute(461, 330, makeState({ search = true, tracks = true, filters = false }, 1))
-expectRect(l.listBackground, 18, 217, 433, 39, true, "d.listBackground")
-expectRect(l.songBrowser, 18, 217, 433, 0, true, "d.songBrowser")
-expectRect(l.separator, 18, 217, 433, 13, true, "d.separator")
-expectRect(l.trackDetail, 18, 230, 433, 26, true, "d.trackDetail")
-expectRect(l.timer, 301, 217, 150, 0, true, "d.timer")
+expectRect(l.listBackground, 18, 242, 433, 59, true, "d.listBackground")
+expectRect(l.songBrowser, 18, 242, 433, 0, true, "d.songBrowser")
+expectRect(l.separator, 18, 242, 433, 13, true, "d.separator")
+expectRect(l.trackDetail, 18, 255, 433, 46, true, "d.trackDetail")
+expectRect(l.timer, 301, 242, 150, 0, true, "d.timer")
 
 -- snapshot: window too short for its content, list sizes floor at zero
 l = MainWindowLayout.Compute(461, 200, makeState({ search = true, tracks = true, filters = false }, 1))
-expectRect(l.listFrame, 12, 204, 438, 0, true, "e.listFrame")
-expectRect(l.songBrowser, 18, 217, 433, 0, true, "e.songBrowser")
-expectRect(l.trackDetail, 18, 217, 433, 0, true, "e.trackDetail")
-expectRect(l.emptyLabel, 30, 229, 401, 40, false, "e.emptyLabel")
+expectRect(l.listFrame, 12, 229, 438, 0, true, "e.listFrame")
+expectRect(l.songBrowser, 18, 242, 433, 0, true, "e.songBrowser")
+expectRect(l.trackDetail, 18, 242, 433, 0, true, "e.trackDetail")
+expectRect(l.emptyLabel, 30, 254, 401, 40, false, "e.emptyLabel")
 
 -- resize clamp
-local screen = { left = 100, top = 100, screenWidth = 1920, screenHeight = 1080, dirHeight = 100, tracksVisible = true, tracksHeight = 150 }
+local screen = { left = 100, top = 100, screenWidth = 1920, screenHeight = 1080, dirHeight = 100, tracksVisible = true, tracksHeight = 150, instrumentHeight = 0 }
 local w, h = MainWindowLayout.ClampWindowSize(300, 150, screen)
 assert(w == 461 and h == 330)
 screen.tracksVisible = false
@@ -111,6 +112,14 @@ assert(w == 220 and h == 180)
 screen.tracksVisible = true
 w, h = MainWindowLayout.ClampWindowSize(800, 600, screen)
 assert(w == 220 and h == 330)
+
+screen.left, screen.top = 100, 100
+screen.instrumentHeight = 90
+w, h = MainWindowLayout.ClampWindowSize(300, 150, screen)
+assert(w == 461 and h == 420)
+screen.tracksVisible = false
+w, h = MainWindowLayout.ClampWindowSize(300, 150, screen)
+assert(w == 461 and h == 270)
 
 assert(MainWindowLayout.ClampTracksHeight(10) == 40)
 assert(MainWindowLayout.ClampTracksHeight(40) == 40)
@@ -138,6 +147,7 @@ local HEADER_OVERLAPS = {
 	["tooltip/trackList"] = true,
 	["playerSync/tooltip"] = true,
 	["playerSync/version"] = true,
+	["playerSync/channelTag"] = true,
 }
 
 local function bottomOf(layout, names)
@@ -151,7 +161,7 @@ end
 
 -- smallest height at which the browser keeps room for the timer and the tracks keep their size
 local function requiredHeight(state)
-	local listTop = 184 + (state.searchVisible and 20 or 0)
+	local listTop = 164 + state.instrumentHeight + (state.searchVisible and 20 or 0)
 	local content
 	if state.libraryEmpty then
 		content = 65
@@ -159,7 +169,7 @@ local function requiredHeight(state)
 		content = 22
 		if state.tracksVisible then content = content + 13 + state.tracksHeight end
 	end
-	return listTop + state.instrumentHeight + 42 + content
+	return listTop + 42 + content
 end
 
 local sizes = { { 461, 200 }, { 342, 398 }, { 461, 330 }, { 1200, 900 } }
@@ -201,6 +211,37 @@ for _, size in ipairs(sizes) do
 			end
 		end
 		assert(headerBottom <= layout.listFrame.top, label .. ": header overlaps list")
+
+		local slots = layout.instrumentSlots
+		if slots.visible then
+			local barBottom = layout.controlBar.top + layout.controlBar.height
+			assert(slots.left == 20 and slots.top >= barBottom, label .. ": slots misplaced")
+			assert(slots.top + slots.height <= layout.description.top, label .. ": slots overlap description")
+			assert(layout.description.top - barBottom == state.instrumentHeight + 5, label)
+			assert(not overlaps(slots, layout.trackList), label .. ": slots overlap track button")
+			for _, name in ipairs(SEARCH_ROW) do
+				assert(not (layout[name].visible and overlaps(slots, layout[name])), label .. ": slots overlap " .. name)
+			end
+			assert(not overlaps(slots, layout.listFrame), label .. ": slots overlap list")
+		end
+
+		local base = MainWindowLayout.Compute(width, height, makeState({ search = search, tracks = tracks, filters = filters,
+			empty = empty, tracksHeight = tracksHeight }, 0))
+		local shifted = { "description", "searchInput", "searchButton", "clearButton", "listFrame", "listBackground", "emptyLabel" }
+		if height >= requiredHeight(state) then
+			shifted[#shifted + 1] = "songBrowser"
+			shifted[#shifted + 1] = "filterPanel"
+		end
+		for _, name in ipairs(shifted) do
+			assert(layout[name].top == base[name].top + state.instrumentHeight, label .. ": " .. name .. " shift")
+		end
+		if height >= requiredHeight(state) then
+			local bottom = layout.listFrame.top + layout.listFrame.height
+			assert(bottom == base.listFrame.top + base.listFrame.height, label .. ": list bottom moved")
+		end
+		for _, name in ipairs({ "playerSync", "controlBar", "trackList", "tooltip", "footer", "resizeCtrl" }) do
+			assert(layout[name].top == base[name].top, label .. ": " .. name .. " moved")
+		end
 
 		assert(layout.searchInput.visible == search and layout.clearButton.visible == search, label)
 		for _, name in ipairs(SEARCH_ROW) do
@@ -245,12 +286,10 @@ for _, size in ipairs(sizes) do
 		end
 		assert(b.left + b.width == area.left + area.width, label)
 
-		-- footer, instruments and resize grip anchor to the bottom
+		-- footer and resize grip anchor to the bottom
 		local footer = layout.footer
 		assert(footer.left == 0 and footer.width == width, label)
 		assert(footer.top + footer.height <= height and footer.top >= height - 30, label .. ": footer not at bottom")
-		local slots = layout.instrumentSlots
-		assert(slots.top + slots.height <= footer.top, label .. ": instruments overlap footer")
 		local grip = layout.resizeCtrl
 		assert(grip.left + grip.width == width and grip.top + grip.height == height, label)
 
@@ -261,7 +300,7 @@ for _, size in ipairs(sizes) do
 				assert(layout.trackDetail.height >= MainWindowLayout.MIN_TRACKS_HEIGHT, label)
 			end
 			assert(layout.timer.height == 22, label .. ": timer clipped")
-			assert(layout.listFrame.top + layout.listFrame.height <= slots.top or not slots.visible, label)
+			assert(layout.listFrame.top + layout.listFrame.height <= footer.top, label)
 			for name, r in pairs(layout) do
 				local isChild = name == "listFrameHeading" or name == "separatorHeading" or name == "separatorArrows"
 				if r.visible and not isChild and (width >= MainWindowLayout.MIN_WIDTH or name ~= "controlBar") then

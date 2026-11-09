@@ -15,6 +15,7 @@ Strings = {
 	ui_dirs = "Directories",
 	ui_songs = "Songs",
 	ui_parts = "Parts",
+	ui_part_setups = "Part Setups:",
 	ui_cmds = "Commands",
 	ui_settings = "Settings",
 	ui_refresh = "Refresh songs",
@@ -90,6 +91,11 @@ Strings = {
 	err_refresh_busy = "A song library refresh is already in progress.",
 	err_refresh_invalid = "The generated song library is invalid; the current library was kept.",
 	err_refresh_load = "The song library could not be loaded from disk.",
+	ch_fellowship = "SongBook is using Fellowship channel",
+	ch_raid = "SongBook is using Raid channel",
+	ch_user = "SongBook is using User Chat channel %s - %s",
+	ch_low_raid = "Low level to use User chat. Now using Raid channel",
+	ch_low_fellowship = "Low level to use User chat. Now using Fellowship channel",
 	err_nosongs = "The song library is empty. Make sure you have ABC files in your Music directory, run your songbook filler to build the library, then use Refresh songs or /songbook3 refresh.",
 }
 
@@ -119,6 +125,7 @@ if lang == "de" then
 		ui_dirs = "Verzeichnisse",
 		ui_songs = "Lieder",
 		ui_parts = "Teile",
+		ui_part_setups = "Stimmen-Setups:",
 		ui_cmds = "Befehle",
 		ui_settings = "Einstellungen",
 		ui_refresh = "Lieder aktualisieren",
@@ -192,6 +199,11 @@ if lang == "de" then
 		err_refresh_busy = "Die Liederdatenbank wird bereits aktualisiert.",
 		err_refresh_invalid = "Die erzeugte Liederdatenbank ist ung\195\188ltig; die aktuelle Datenbank wurde beibehalten.",
 		err_refresh_load = "Die Liederdatenbank konnte nicht geladen werden.",
+		ch_fellowship = "SongBook nutzt den Gruppenkanal",
+		ch_raid = "SongBook nutzt den Schlachtzugskanal",
+		ch_user = "SongBook nutzt den Benutzerkanal %s - %s",
+		ch_low_raid = "Level zu niedrig f9588r Benutzerkan95tle. Nutze jetzt den Schlachtzugskanal",
+		ch_low_fellowship = "Level zu niedrig f9588r Benutzerkan95tle. Nutze jetzt den Gruppenkanal",
 		err_nosongs = "Keine Lieder gefunden. Erzeuge die Liederdatenbank mit deinem Songbook-F\195\188ller und w\195\164hle dann 'Lieder aktualisieren' oder /songbook3 refresh.",
 	}
 	aInstrumentsLoc = { "dudelsack", "klarinette", "glocke", "trommel", "fl\195\182te", "harfe", "horn", "laute", "pibgorn", "theorbe" }
@@ -215,6 +227,7 @@ elseif lang == "fr" then
 		ui_dirs = "R\195\169pertoires",
 		ui_songs = "Chansons",
 		ui_parts = "Partitions",
+		ui_part_setups = "Configurations :",
 		ui_cmds = "Commandes",
 		ui_settings = "Param\195\168tres",
 		ui_refresh = "Actualiser les chansons",
@@ -287,6 +300,11 @@ elseif lang == "fr" then
 		err_refresh_busy = "Une actualisation est d\195\169j\195\160 en cours.",
 		err_refresh_invalid = "La biblioth\195\168que g\195\169n\195\169r\195\169e est invalide; la biblioth\195\168que actuelle a \195\169t\195\169 conserv\195\169e.",
 		err_refresh_load = "Impossible de charger la biblioth\195\168que depuis le disque.",
+		ch_fellowship = "SongBook utilise le canal de Compagnie",
+		ch_raid = "SongBook utilise le canal de Raid",
+		ch_user = "SongBook utilise le canal utilisateur %s - %s",
+		ch_low_raid = "Niveau trop bas pour les canaux utilisateur. Utilisation du canal de Raid",
+		ch_low_fellowship = "Niveau trop bas pour les canaux utilisateur. Utilisation du canal de Compagnie",
 		err_nosongs = "Le livre de chansons est vide. G\195\169n\195\169rez la biblioth\195\168que avec votre outil Songbook, puis choisissez 'Actualiser les chansons' ou /songbook3 refresh.",
 	}
 	aInstrumentsLoc = { "cornemuse", "clarinette", "cloche de vache", "tambour", "fl\195\187te", "harpe", "cor", "luth", "pibgorn", "th\195\169orbe" }

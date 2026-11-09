@@ -14,13 +14,12 @@ function PlayerSyncPanel:Constructor()
 	self.playerTitleLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
 	self.playerTitleLabel:SetText("")
 
-	-- Sync channel info message
-	self.messageTitleLabel = Turbine.UI.Label()
-	self.messageTitleLabel:SetParent(self)
-	self.messageTitleLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
-	self.messageTitleLabel:SetForeColor(ColorTheme.colourMessageTitle)
-	self.messageTitleLabel:SetPosition(8, 20)
-	self.messageTitleLabel:SetSize(100, 14)
+	-- the owner parents and places the tag so it can sit in the title bar
+	self.channelTagLabel = Turbine.UI.Label()
+	self.channelTagLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+	self.channelTagLabel:SetForeColor(ColorTheme.colourMessageTitle)
+	self.channelTagLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleRight)
+	self.channelMessage = ""
 
 	-- Synced song link (teal clickable label)
 	self.syncMessageLabel = Turbine.UI.Label()
@@ -28,14 +27,23 @@ function PlayerSyncPanel:Constructor()
 	self.syncMessageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana16)
 	self.syncMessageLabel:SetForeColor(ColorTheme.colour_syncMessageTitle)
 	self.syncMessageLabel:SetBackColor(ColorTheme.backColourHighlight)
-	self.syncMessageLabel:SetPosition(8, 40)
+	self.syncMessageLabel:SetPosition(8, 20)
 	self.syncMessageLabel:SetSize(100, 16)
 	self.syncMessageLabel:SetVisible(false)
 
 	self.onNavigateToSyncedSong = nil
+	self.onTooltipChanged = nil
 	self.onShowMatchedSongs = nil
 
 	local self_ref = self
+
+	self.channelTagLabel.MouseEnter = function(sender, args)
+		if self_ref.onTooltipChanged then self_ref.onTooltipChanged(self_ref.channelMessage) end
+	end
+
+	self.channelTagLabel.MouseLeave = function(sender, args)
+		if self_ref.onTooltipChanged then self_ref.onTooltipChanged("") end
+	end
 
 	self.syncMessageLabel.MouseEnter = function(sender, args)
 		if self_ref.syncMessageLabel:IsVisible() then
@@ -88,7 +96,6 @@ end
 function PlayerSyncPanel:SetWidth(w)
 	Turbine.UI.Control.SetWidth(self, w)
 	self.playerTitleLabel:SetWidth(w)
-	self.messageTitleLabel:SetWidth(w - 8)
 	self.syncMessageLabel:SetWidth(w - 8)
 end
 
@@ -99,15 +106,19 @@ end
 function PlayerSyncPanel:SetVisible(bVisible)
 	Turbine.UI.Control.SetVisible(self, bVisible)
 	self.playerTitleLabel:SetVisible(bVisible)
-	self.messageTitleLabel:SetVisible(bVisible)
 end
 
 function PlayerSyncPanel:SetPlayerText(text)
 	self.playerTitleLabel:SetText(text)
 end
 
-function PlayerSyncPanel:SetChannelMessage(message)
-	self.messageTitleLabel:SetText(message)
+function PlayerSyncPanel:GetChannelTag()
+	return self.channelTagLabel
+end
+
+function PlayerSyncPanel:SetChannel(tag, message)
+	self.channelTagLabel:SetText(tag)
+	self.channelMessage = message
 end
 
 function PlayerSyncPanel:ShowSyncMessage(text, otherPlayerSynced)

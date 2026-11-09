@@ -56,6 +56,7 @@ function SyncManager.Init()
     SyncManager.useFellowshipChat = Settings.UseFellowshipChat
     SyncManager.userChatName = string.upper(Settings.UserChatName)
     SyncManager.userChatNumber = CharSettings.UserChatNumber or 0
+    if SyncManager.userChatName == "" then SyncManager.userChatNumber = 0 end
     AddCallback(Turbine.Chat, "Received", handleChat)
     SyncManager.initialized = true
 end
@@ -172,8 +173,18 @@ function SyncManager.SetUseFellowshipChat(state)
 end
 
 function SyncManager.SetUserChatName(text)
-    SyncManager.userChatName = string.upper(text)
-    Settings.UserChatName = SyncManager.userChatName
+    local name = string.upper(text)
+    local changed = name ~= SyncManager.userChatName
+    SyncManager.userChatName = name
+    Settings.UserChatName = name
+    if not changed then return end
+    -- the old number belongs to the old room; it is relearned when the new room is joined
+    SyncManager.userChatNumber = 0
+    CharSettings.UserChatNumber = 0
+    if string.match(SyncManager.chatChannel, "^/%d+$") then
+        SyncManager.chatChannel = SyncManager.isRaid and "/ra" or "/f"
+        if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel) end
+    end
 end
 
 function SyncManager.GetTrackReadyState(sSongIndex, sTrackIndex, indicator)
@@ -543,16 +554,16 @@ handleChat = function(sender, args)
     end
 
     if string.find(sMessage, "Your Raid has been disbanded.") ~= nil then
-        if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "Your Raid has been disbanded.") end
         SyncManager.chatChannel = "/f"
+        if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "Your Raid has been disbanded.") end
         SyncManager.isRaid = false
         return
     end
 
     if string.find(sMessage, "dismiss") ~= nil then
         if string.find(sMessage, "You have been dismissed from your") ~= nil then
-            if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "You have been dismissed.") end
             SyncManager.chatChannel = "/f"
+            if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "You have been dismissed.") end
             SyncManager.isRaid = false
             return
         end
@@ -572,8 +583,8 @@ handleChat = function(sender, args)
             end
 
             if PartyMemberCount == 1 then
-                if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "You dismiss party.") end
                 SyncManager.chatChannel = "/f"
+                if SyncManager.onChatChannelChanged then SyncManager.onChatChannelChanged(SyncManager.chatChannel, "You dismiss party.") end
                 SyncManager.isRaid = false
                 return
             end

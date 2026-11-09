@@ -4,8 +4,8 @@ MainWindowLayout.MIN_WIDTH = 461
 MainWindowLayout.MIN_HEIGHT = 200
 MainWindowLayout.MIN_TRACKS_HEIGHT = 40
 
-local HEADER_HEIGHT = 184
-local SEARCH_TOP = 160
+local HEADER_HEIGHT = 164
+local SEARCH_TOP = 140
 local SEARCH_HEIGHT = 20
 local LIST_FRAME_LEFT = 12
 local LIST_FRAME_RIGHT = 11
@@ -15,8 +15,8 @@ local SEPARATOR_HEIGHT = 13
 local FOOTER_OFFSET = 30
 local FOOTER_HEIGHT = 20
 local INSTRUMENT_PADDING = 12
-local INSTRUMENT_LEFT = 10
-local INSTRUMENT_BOTTOM = 37
+local INSTRUMENT_LEFT = 20
+local INSTRUMENT_TOP = 120
 local TIMER_WIDTH = 150
 local TIMER_HEIGHT = 22
 local RESIZE_SIZE = 20
@@ -38,7 +38,7 @@ local function clip(r, area)
 end
 
 -- state: searchVisible, tracksVisible, tracksHeight, filtersVisible, filterWidth, libraryEmpty,
--- instrumentHeight (space reserved, 0 when hidden), instrumentPanelWidth, instrumentPanelHeight
+-- instrumentHeight (space reserved under the control bar, 0 when hidden), instrumentPanelWidth, instrumentPanelHeight
 -- rects are window-relative except listFrameHeading (to listFrame) and separatorHeading and
 -- separatorArrows (to separator)
 function MainWindowLayout.Compute(width, height, state)
@@ -46,20 +46,26 @@ function MainWindowLayout.Compute(width, height, state)
 	local hasSongs = not state.libraryEmpty
 	local showTracks = hasSongs and state.tracksVisible
 
-	layout.playerSync = rect(15, 30, width - 30, 56)
+	layout.playerSync = rect(15, 30, width - 30, 36)
 	layout.version = rect(40, 25, 50, 14)
-	layout.tooltip = rect(width - 270, 77, 245, 30)
-	layout.controlBar = rect(0, 100, 450, 35)
-	layout.trackList = rect(247, 101, 35, 35)
-	layout.description = rect(23, 140, width - 52, 16)
+	layout.channelTag = rect(width - 210, 25, 170, 14)
+	layout.tooltip = rect(width - 270, 57, 245, 30)
+	layout.controlBar = rect(0, 80, 450, 35)
+	layout.trackList = rect(247, 81, 35, 35)
+	layout.instrumentSlots = rect(INSTRUMENT_LEFT, INSTRUMENT_TOP, state.instrumentPanelWidth,
+		state.instrumentPanelHeight, state.instrumentHeight > 0)
 
-	layout.searchInput = rect(17, SEARCH_TOP, 150, SEARCH_HEIGHT, state.searchVisible)
-	layout.searchButton = rect(172, SEARCH_TOP, 80, SEARCH_HEIGHT, state.searchVisible)
-	layout.clearButton = rect(255, SEARCH_TOP, 70, SEARCH_HEIGHT, state.searchVisible)
+	local shift = state.instrumentHeight
+	layout.description = rect(23, 120 + shift, width - 52, 16)
 
-	local listTop = HEADER_HEIGHT
+	local searchTop = SEARCH_TOP + shift
+	layout.searchInput = rect(17, searchTop, 150, SEARCH_HEIGHT, state.searchVisible)
+	layout.searchButton = rect(172, searchTop, 80, SEARCH_HEIGHT, state.searchVisible)
+	layout.clearButton = rect(255, searchTop, 70, SEARCH_HEIGHT, state.searchVisible)
+
+	local listTop = HEADER_HEIGHT + shift
 	if state.searchVisible then listTop = listTop + SEARCH_HEIGHT end
-	local listHeight = math.max(0, height - listTop - state.instrumentHeight - FOOTER_OFFSET - INSTRUMENT_PADDING)
+	local listHeight = math.max(0, height - listTop - FOOTER_OFFSET - INSTRUMENT_PADDING)
 	local frameWidth = width - LIST_FRAME_LEFT - LIST_FRAME_RIGHT
 	local listWidth = width - LIST_LEFT - LIST_RIGHT
 	local contentTop = listTop + SEPARATOR_HEIGHT
@@ -83,8 +89,6 @@ function MainWindowLayout.Compute(width, height, state)
 	layout.trackDetail = clip(rect(LIST_LEFT, browserBottom + SEPARATOR_HEIGHT, listWidth, state.tracksHeight, showTracks), area)
 	layout.timer = clip(rect(LIST_LEFT + listWidth - TIMER_WIDTH, browserBottom - TIMER_HEIGHT, TIMER_WIDTH, TIMER_HEIGHT, hasSongs), area)
 
-	layout.instrumentSlots = rect(INSTRUMENT_LEFT, height - INSTRUMENT_BOTTOM - state.instrumentPanelHeight,
-		state.instrumentPanelWidth, state.instrumentPanelHeight, state.instrumentHeight > 0)
 	layout.footer = rect(0, height - FOOTER_OFFSET, width, FOOTER_HEIGHT)
 	layout.emptyLabel = rect(30, listTop + 25, math.max(220, width - 60), math.max(40, listHeight - 25), state.libraryEmpty)
 	layout.resizeCtrl = rect(width - RESIZE_SIZE, height - RESIZE_SIZE, RESIZE_SIZE, RESIZE_SIZE)
@@ -92,7 +96,7 @@ function MainWindowLayout.Compute(width, height, state)
 	return layout
 end
 
--- ctx: left, top, screenWidth, screenHeight, dirHeight, tracksVisible, tracksHeight
+-- ctx: left, top, screenWidth, screenHeight, dirHeight, tracksVisible, tracksHeight, instrumentHeight
 function MainWindowLayout.ClampWindowSize(width, height, ctx)
 	width = math.max(width, MainWindowLayout.MIN_WIDTH)
 	height = math.max(height, MainWindowLayout.MIN_HEIGHT)
@@ -102,7 +106,7 @@ function MainWindowLayout.ClampWindowSize(width, height, ctx)
 
 	-- content room wins over the screen bound
 	local tracksHeight = ctx.tracksVisible and ctx.tracksHeight or 0
-	local minContentHeight = ctx.dirHeight + tracksHeight + CONTENT_PADDING
+	local minContentHeight = ctx.dirHeight + tracksHeight + (ctx.instrumentHeight or 0) + CONTENT_PADDING
 	if height < minContentHeight then height = minContentHeight end
 
 	return width, height

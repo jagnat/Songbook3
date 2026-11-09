@@ -246,6 +246,8 @@ function SongbookWindow:Constructor()
 	
 	self.playerSyncPanel = PlayerSyncPanel()
 	self.playerSyncPanel:SetParent(self)
+	self.playerSyncPanel:GetChannelTag():SetParent(self)
+	self.playerSyncPanel.onTooltipChanged = function(text) self.tipLabel:SetText(text) end
 	self.playerSyncPanel.onNavigateToSyncedSong = function(otherPlayerSong)
 		SongLibrary.NavigateToPath(otherPlayerSong.filepath)
 		self.songFileBrowser:Populate()
@@ -277,9 +279,9 @@ function SongbookWindow:Constructor()
 	
 	if SyncManager.userChatNumber ~= 0 and SyncManager.userChatNumber ~= nil then
 		SyncManager.chatChannel = "/" .. SyncManager.userChatNumber;
-		self.playerSyncPanel:SetChannelMessage("SongBook is using User Chat channel " .. SyncManager.userChatNumber .. " - " .. SyncManager.userChatName)
+		self:ShowChannel(SyncManager.chatChannel)
 	else
-		self.playerSyncPanel:SetChannelMessage("SongBook is using Fellowship channel")
+		self:ShowChannel("/f")
 	end
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -385,6 +387,7 @@ function SongbookWindow:Constructor()
 				dirHeight = Settings.DirHeight,
 				tracksVisible = Settings.TracksVisible,
 				tracksHeight = Settings.TracksHeight,
+				instrumentHeight = self.instrumentSlotsPanel:GetPreferredHeight(),
 			})
 		self:SetSize(width, height)
 		self:ReflowLayout()
@@ -475,7 +478,7 @@ function SongbookWindow:Constructor()
 		self:SongStarted()
 	end
 	SyncManager.onChatChannelChanged = function(channel, message)
-		self.playerSyncPanel:SetChannelMessage(message)
+		self:ShowChannel(channel, message)
 	end
 	SyncManager.onMaxPartCountChanged = function()
 		self.filterPanel:UpdateMaxPartCount()
@@ -499,6 +502,18 @@ function SongbookWindow:Constructor()
 end -- SongbookWindow:Constructor()
 
 -- TODO: add complete set of checks
+function SongbookWindow:ShowChannel(channel, message)
+	local tag = channel
+	local userNumber = string.match(channel, "^/(%d+)$")
+	if userNumber then
+		tag = channel .. " " .. tostring(SyncManager.userChatName)
+		message = message or string.format(Strings["ch_user"], userNumber, tostring(SyncManager.userChatName))
+	elseif not message then
+		message = channel == "/ra" and Strings["ch_raid"] or Strings["ch_fellowship"]
+	end
+	self.playerSyncPanel:SetChannel("[" .. tag .. "]", message)
+end
+
 function SongbookWindow:ValidateWindowPosition( winPos )
 	if winPos.Left < 0 or winPos.Top < 0 or winPos.Width < 0 or winPos.Height < 0 then
 		winPos.Left = 700
@@ -555,6 +570,7 @@ function SongbookWindow:ReflowLayout()
 
 	place(self.Version, layout.version)
 	place(self.playerSyncPanel, layout.playerSync)
+	place(self.playerSyncPanel:GetChannelTag(), layout.channelTag)
 	place(self.tipLabel, layout.tooltip)
 	place(self.controlBar, layout.controlBar)
 	place(self.trackListPanel, layout.trackList)
@@ -1180,34 +1196,20 @@ function SongbookWindow:PlayerSyncInfo()
 
 
 	if SyncManager.useFellowshipChat then
-		SyncManager.chatChannel = "/f";
-		self.playerSyncPanel:SetChannelMessage("SongBook is using Fellowship channel");
-	else
-	if SyncManager.useRaidChat then
-		SyncManager.chatChannel = "/ra";
-		self.playerSyncPanel:SetChannelMessage("SongBook is using Raid channel");
-	else
-		if SyncManager.userChatNumber ~= 0 and SyncManager.userChatNumber ~= nil then
-			SyncManager.chatChannel = "/" .. SyncManager.userChatNumber;
-			self.playerSyncPanel:SetChannelMessage("SongBook is using User Chat channel " .. SyncManager.userChatNumber .. " - " .. SyncManager.userChatName);
-		else
-			if PartyMemberCount > 6 or SyncManager.isRaid then
-				SyncManager.chatChannel = "/ra";
-				if not SyncManager.userChatBlocked then
-					self.playerSyncPanel:SetChannelMessage("SongBook is using Raid channel");
-				else
-					self.playerSyncPanel:SetChannelMessage("Low level to use User chat. Now using Raid channel");
-				end
-			elseif PartyMemberCount > 1 then
-				SyncManager.chatChannel = "/f";
-				if not SyncManager.userChatBlocked then
-					self.playerSyncPanel:SetChannelMessage("SongBook is using Fellowship channel");
-				else
-					self.playerSyncPanel:SetChannelMessage("Low level to use User chat. Now using Fellowship channel");
-				end
-			end
-		end
-	end
+		SyncManager.chatChannel = "/f"
+		self:ShowChannel("/f")
+	elseif SyncManager.useRaidChat then
+		SyncManager.chatChannel = "/ra"
+		self:ShowChannel("/ra")
+	elseif SyncManager.userChatNumber ~= 0 and SyncManager.userChatNumber ~= nil then
+		SyncManager.chatChannel = "/" .. SyncManager.userChatNumber
+		self:ShowChannel(SyncManager.chatChannel)
+	elseif PartyMemberCount > 6 or SyncManager.isRaid then
+		SyncManager.chatChannel = "/ra"
+		self:ShowChannel("/ra", SyncManager.userChatBlocked and Strings["ch_low_raid"] or nil)
+	elseif PartyMemberCount > 1 then
+		SyncManager.chatChannel = "/f"
+		self:ShowChannel("/f", SyncManager.userChatBlocked and Strings["ch_low_fellowship"] or nil)
 	end
 
 	if CorrectSongAndTrack == 1 and SyncManager.localPlayerSynced then
