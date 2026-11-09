@@ -1,153 +1,119 @@
 # Songbook3 Refactoring Plan
 
+## Goal
+
+Make the UI easy to change.
+
+Each visible area should be a reasonably self-contained component with a small, direct API. `SongbookWindow` should compose those components, connect their callbacks, and lay them out. Domain modules should own shared data and behavior.
+
+Do not add abstraction for its own sake. Components may use domain modules directly when that keeps the code clear. If a domain-model change requires corresponding UI changes, that is acceptable and often preferable: compile failures and focused test failures make the dependency visible.
+
+The result should be simple enough that a component can be replaced, heavily modified, or removed without tracing unrelated behavior through the entire window.
+
 ## Current State
 
-`SongbookWindow.lua` has fallen from roughly 5,000 to about 3,500 lines, but it is still a transitional shell. Domain and service modules now exist, and the visible song browser uses two components. Several hidden legacy listboxes are still populated because sync and selection code reaches into their state. That compatibility bridge—not the visible panel count—is now the main architectural constraint.
+Completed:
 
-The immediate goal is to make layout experiments safe and cheap. A UI variation should be expressible by changing a pure layout policy and component composition, without editing selection, sync, persistence, or instrument logic.
+- `SettingsManager` owns settings defaults, loading, saving, and song-data reload.
+- `SongLibrary` owns database validation, navigation, filtering, and most selection state.
+- `SyncManager` owns chat parsing and synchronization state.
+- `InstrumentManager` owns instrument names, aliases, matching, and equipped-instrument detection.
+- Colors and localized strings live in `ColorTheme` and `Lang`.
+- The visible song UI uses `SongFileBrowser`, `TrackDetailPanel`, `TrackListPanel`, and `DescriptionPanel`.
+- `PlayerSyncPanel` and `ControlBar` have been extracted.
+- Runtime song-library refresh is implemented and tested.
 
-## Principles
+Still transitional:
 
-- Every commit leaves the plugin loadable and preserves existing workflows.
-- Extract around explicit contracts; do not merely move global coupling into another file.
-- Keep one owner for each kind of state. Persistence loads data, domain modules validate and own it, and UI components render it.
-- Prefer pure calculations and Lua-only tests for layout and domain behavior. Turbine integration still receives an in-game smoke test.
-- Fix defects that block an extraction or make its boundary unsafe. Keep unrelated behavior changes separate.
-- Delete a compatibility path as soon as its final consumer has migrated.
+- `SongbookWindow.lua` is about 3,000 lines and still owns filters, instrument slots, timer/header behavior, footer buttons, setup behavior, party-list coordination, and popup windows.
+- Hidden `dirlistBox`, `songlistBox`, and `listboxSetups` controls still duplicate visible component state.
+- Old and new song/setup selection paths coexist.
+- Layout calculations remain mixed into `SongbookWindow:ReflowLayout()` and some event handlers.
+- Extracted components still have uneven APIs and some rely on globals or window-owned behavior.
+- `SongDB`, settings tables, and mutable `SongLibrary` fields are still accessed directly in many places.
 
-## Completed Foundation
+## Remaining Work
 
-- **SettingsManager** (`src/SettingsManager.lua`) — typed defaults, legacy coercion, load/save, and asynchronous runtime loading of `SongbookData`.
-- **SongLibrary** (`src/SongLibrary.lua`) — database validation and atomic replacement, sorting, directory traversal, search/filtering, selection state, and database-change events. The global `SongDB` is retained temporarily as a compatibility bridge.
-- **SyncManager** (`src/SyncManager.lua`) — chat parsing, player/readiness state, protocol handling, and UI callbacks.
-- **InstrumentManager** (`src/InstrumentManager.lua`) — instrument registry, aliases, matching, and equipped-instrument detection.
-- **ColorTheme** (`src/ColorTheme.lua`) — centralized colors and track-state color selection.
-- **Lang** (`src/Lang.lua`) — English defaults with German/French overrides and fallback behavior.
-- **Utils** (`src/Utils.lua`) — shared callback helpers.
-- **Layout** (`src/Layout.lua`) — visibility-aware vertical/horizontal stacking used by the main lists and settings window.
-- **SongFileBrowser** (`src/SongFileBrowser.lua`) — breadcrumb/flat directory and song browser.
-- **TrackDetailPanel** (`src/TrackDetailPanel.lua`) — track and setup presentation.
-- **Runtime song-library refresh** — manual button and shell command; invalid data cannot replace the active library.
-- **Settings window reflow** — settings controls no longer depend on a mixture of absolute and relative positions.
+### 1. Verify the Current UI
 
-## Ownership Model
+Before removing compatibility code, smoke-test:
 
-| Concern | Owner | Transitional dependency to remove |
-|---|---|---|
-| PluginData I/O and settings persistence | `SettingsManager` | Global `Settings`/`CharSettings` access |
-| Song database validity, sorting, navigation, and selection | `SongLibrary` | Global `SongDB` access from UI/sync code |
-| Player readiness and sync protocol | `SyncManager` | Callbacks that still expect hidden listbox state |
-| Instrument identity and matching | `InstrumentManager` | Inline slot construction in `SongbookWindow` |
-| Geometry policy | future `MainWindowLayout` | Geometry mixed into event handlers and `ReflowLayout()` |
-| Rendering and user input | UI components | Direct access to domain globals |
+- empty, populated, invalid, and refreshed song libraries
+- directory browsing, search, song/track/setup selection, and auto-pick
+- resizing and all visibility toggles
+- instrument slots, readiness colors, and synchronization
+- settings persistence and English, German, and French clients
 
-Runtime refresh follows one direction:
+Fix only regressions that make the next extraction unsafe.
 
-`SettingsManager.Load from disk → SongLibrary.Validate/Replace → SongbookWindow coordinates component refresh`
+### 2. Remove Hidden Listboxes and Duplicate Selection Paths
 
-The persistence layer does not mutate the active database, and the window does not validate database structure.
+- Find every consumer of `dirlistBox`, `songlistBox`, and `listboxSetups`.
+- Move those consumers to `SongLibrary`, `SongFileBrowser`, `TrackDetailPanel`, or `TrackListPanel`.
+- Keep one song-selection path and one track/setup-selection path.
+- Use song and track database indices directly where appropriate; do not preserve UI list indices as application state.
+- Remove hidden controls and obsolete population/coloring methods as soon as their last consumers are gone.
+- Update the sync payload if removing UI indices requires it, preserving compatibility only where it is actually needed.
 
-## Remaining Work Order
+Done when the visible components are the only song, track, and setup controls.
 
-### 1. Stabilize the Current Integration
+### 3. Finish the Main UI Components
 
-- Exercise initial empty-library, empty-to-populated refresh, populated-to-empty refresh, invalid refresh, and repeated refresh flows in-game.
-- Verify selection preservation when the same song still exists and deterministic fallback when it does not.
-- Verify show/hide toggles, resizing, filters, setup selection, instrument rows, sync colors, and all three client languages.
-- Remove any remaining geometry mutation from toggle and add/remove-row handlers; `ReflowLayout()` must be the only geometry applicator.
+Extract or consolidate:
 
-Exit condition: the current two-panel UI and runtime refresh pass the smoke-test matrix without relying on a plugin reload.
+- `FilterPanel`
+- `InstrumentSlotsPanel`
+- header/status and timer controls
+- footer actions such as refresh, settings, and sync info
 
-### 2. Add a Pure Main-Window Layout Model
+Review the existing browser, detail, track, sync, description, and control-bar components while doing this.
 
-Create `src/MainWindowLayout.lua` with no Turbine dependency. It accepts window size and UI state and returns named rectangles/visibility for:
+Component rules:
 
-- header/status area
-- search row
-- browser
-- track detail
-- filter/player overlay or future side panel
-- instrument slots
-- footer actions
-- empty-library message
+- A component owns its controls and their local event handling.
+- Its public API should usually be a constructor, a few update/show methods, and semantic callbacks.
+- Do not expose child controls unless another component genuinely needs them.
+- Do not reach into sibling components or `songbookWindow`.
+- Passing a domain module or settings table directly is fine when it is simpler than wrapping it.
+- Prefer changing a small API over adding a generic event, state, or adapter framework.
 
-Include minimum sizes, clamping, and explicit compact/regular layout modes. `SongbookWindow:ReflowLayout()` should only apply these calculated regions to controls.
+Done when a component can be removed or replaced by changing its construction, callback wiring, and layout entry rather than unrelated window logic.
 
-Add Lua-only table-driven tests for representative window sizes and combinations of search, tracks, filters, and instrument rows. These tests are the infrastructure that makes alternate layouts inexpensive to prototype.
+### 4. Extract Main-Window Layout
 
-Exit condition: experimenting with panel order, ratios, or compact mode requires changing the layout model and tests, not event handlers.
+Create a Turbine-free `MainWindowLayout` module that takes the window size and relevant visibility/state flags and returns named rectangles for the components.
 
-### 3. Retire the Hidden Browser/Listbox Compatibility Path
+- `SongbookWindow:ReflowLayout()` should only apply those rectangles.
+- Toggle, resize, and instrument-row handlers should update state and call `ReflowLayout()` rather than adjust other controls themselves.
+- Include compact and regular arrangements if useful.
+- Add table-driven Lua tests for representative sizes, visibility combinations, empty state, long localized labels, and different instrument-row counts.
+- Test useful constraints such as minimum sizes and containment without locking every pixel unnecessarily.
 
-Map every consumer of `dirlistBox`, `songlistBox`, `tracklistBox`, and `listboxSetups`. Move each consumer to one of:
+Done when trying a different panel order or proportion mainly means editing `MainWindowLayout` and its tests.
 
-- `SongLibrary` query/selection methods
-- `SongFileBrowser` display APIs
-- `TrackDetailPanel` display/readiness APIs
-- an explicit callback between a component and the shell
+### 5. Clean Up Ownership While Touching Each Area
 
-Then delete the four hidden controls and the duplicate `SelectSong`/`SelectSongByIndex`, `ListTracks`, and setup-population paths. Preserve a single selection representation: database song index plus actual track index.
+Do this incrementally rather than as a separate architecture project:
 
-Exit condition: the visible browser/detail components are the only song-list UI, and sync behavior does not depend on invisible controls.
+- Replace direct `SongDB` access with a `SongLibrary` function when it clarifies ownership or avoids duplicated logic.
+- Move mutable selection fields behind `SongLibrary` functions when their current use causes multiple update paths.
+- Replace direct settings mutation where a focused settings function makes the lifecycle clearer.
+- Give popup windows a clear owner instead of module-level globals.
+- Remove callbacks when their owner is destroyed or unloaded.
+- Delete unused `InstrumentSlots.lua`, or replace the inline implementation with a corrected version of it.
 
-### 4. Complete UI Component Boundaries
+Do not create broad wrapper layers. Add the smallest API that makes the current component understandable.
 
-Extract components in dependency order:
+### 6. Slim `SongbookWindow`
 
-| Component | Responsibility |
-|---|---|
-| `FilterPanel` | Filter values, visibility, and change events |
-| `InstrumentSlotsPanel` | Row/slot construction and drag/drop persistence |
-| `PlayerSyncPanel` | Party members and readiness presentation |
-| `HeaderStatusPanel` | Current song/track, timer, and sync status messages |
-| `ControlBar` | Music/play/ready/sync/share actions |
-| `FooterBar` | Refresh, settings, and sync-info actions |
-
-Each component receives dependencies or data in its constructor/method calls and exposes callbacks. It must not reach into `songbookWindow` or sibling controls.
-
-Move popup/window ownership (`MatchedSongsWindow`, sync-start confirmation, help, timer, player sync info) out of module-level globals and give each a clear lifecycle owner.
-
-Exit condition: components can be reordered or omitted without changing their internal behavior.
-
-### 5. Tighten Domain Contracts
-
-- Replace direct `SongDB` reads with `SongLibrary` query methods, then make the database private to the module.
-- Replace mutable public selection fields with selection methods/events.
-- Define one callback/event convention and unsubscribe during teardown where necessary.
-- Replace direct global settings mutation with explicit settings APIs or injected settings tables.
-- Version the `@SBL` sync payload before removing or reordering protocol fields.
-
-Exit condition: domain modules can be tested without creating UI controls, and UI components do not mutate domain tables directly.
-
-### 6. Slim the Window Shell
-
-`SongbookWindow` should ultimately:
+The final window should:
 
 - create top-level components and auxiliary windows
-- wire component callbacks to domain operations
-- request and apply the main-window layout
-- own resize, drag, close, save, and unload lifecycle
+- connect component callbacks to domain operations
+- apply layout results
+- own resize, drag, close, save, and unload behavior
 
-Target roughly 300–600 lines. The exact count matters less than eliminating duplicated behavior and cross-component reach-through.
-
-## Infrastructure Missing From the Original Plan
-
-These items are required even though the earlier roadmap did not name them:
-
-- **A pure, named-region layout policy with table-driven tests.** The generic stacking helper alone cannot make multi-layout experiments safe.
-- **An explicit migration seam and deletion criteria for legacy hidden controls.** Extracting new panels without retiring the old state path leaves two UI models to maintain.
-- **A single ownership/transaction model for runtime database replacement.** Validation must occur before mutation, and failed refreshes must roll back by doing nothing.
-- **Component contracts and dependency direction.** File extraction is insufficient if components continue to share globals and manipulate siblings.
-- **Lifecycle ownership for callbacks, popup windows, and unload behavior.** Module-level windows and never-removed callbacks make future composition brittle.
-- **Automated tests at domain and layout boundaries.** In-game testing remains essential, but it is too slow to support rapid ergonomic iteration by itself.
-- **A verification matrix for empty, refreshed, localized, compact, and sync states.** Layouts must be tested across state combinations, not only at one default size.
-
-## Known Issues and Cleanup
-
-- `InstrumentSlots.lua` is currently unused and contains the `self.slots[i][i]` indexing bug. Either replace inline slot code with a corrected component or delete the file.
-- French/German coverage is incomplete and some strings still use escaped byte sequences; remaining hard-coded UI strings must move into `Lang.lua`.
-- Auto-part selection across different setups still needs focused verification after the selection paths are unified.
-- Sync payload fields include UI indices that are not meaningful between clients; address this with protocol versioning.
+Aim for roughly 300-600 lines, but favor clear code over a line-count target. Delete old paths immediately after migration rather than leaving compatibility code without a consumer.
 
 ## Verification
 
@@ -155,15 +121,14 @@ Automated checks:
 
 1. `luajit tests/SongLibraryTest.lua`
 2. `luajit tests/SettingsManagerTest.lua`
-3. Compile every `src/*.lua` file with LuaJIT bytecode compilation.
-4. Run future `MainWindowLayout` table-driven tests for all supported modes.
+3. Compile every `src/*.lua` file with LuaJIT.
+4. Run `MainWindowLayout` tests once that module exists.
 
-In-game smoke test after each architectural step:
+After each component or selection change, load the plugin in-game and test the affected workflow. After layout changes, test minimum and large window sizes, visibility combinations, empty data, instrument rows, and localized clients.
 
-1. Load with `/plugins load Songbook3` using populated and empty libraries.
-2. Browse directories, search/filter, choose setups/tracks, and resize at minimum and large sizes.
-3. Toggle search, tracks, filters, instrument rows, timer, and sync controls.
-4. Regenerate the filler output and refresh using both the button and shell command.
-5. Confirm invalid refresh data leaves the active library untouched.
-6. Verify instrument equipping, party readiness, sync matching, and settings persistence.
-7. Repeat localization-sensitive changes on English, German, and French clients.
+## Known Cleanup
+
+- `InstrumentSlots.lua` is unused and contains a `self.slots[i][i]` indexing bug.
+- French and German localization coverage is incomplete.
+- Auto-part selection across setups needs verification after selection paths are unified.
+- The sync payload contains UI indices that may no longer be useful after hidden controls are removed.

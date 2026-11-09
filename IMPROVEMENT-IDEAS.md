@@ -73,6 +73,12 @@ Compact grid showing player × instrument status at a glance instead of text-hea
 ### Search-as-you-type
 The search input exists but could filter the listbox live while typing rather than requiring a button click.
 
+### Proportional Browser/Tracks Split on Resize
+When the window is resized vertically, keep the songs/tracks split at the same ratio it had when the drag started instead of keeping a fixed tracks height. Belongs in `MainWindowLayout` (store a ratio alongside or instead of `Settings.TracksHeight`).
+
+### Confirm Removing Non-Empty Slots
+Removing an instrument slot column or row silently drops any shortcuts in it. Warn (or refuse) when the removed slots are non-empty.
+
 ## API Constraints to Keep in Mind
 
 - **No filesystem access**: Sandboxed Lua, no `io.open`/`dofile`/`os.*`. SongDB only via `PluginData.Load()`.

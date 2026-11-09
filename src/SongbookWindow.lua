@@ -7,10 +7,11 @@
 
 SongbookWindow = class( Turbine.UI.Window );
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-InstrumentSlots_Shift = 45;
-ShiftTop = 50;
+-- list components stay below the footer, empty label, slots (90) and resize grip (200)
+-- where their edges touch
+local SEPARATOR_ZORDER = 10
+local TIMER_ZORDER = 20
+local LIST_OVERLAY_ZORDER = 30
 
 --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -165,43 +166,25 @@ function SongbookWindow:Constructor()
 	self.Version:SetParent( self );
 	self.Version:SetFont(Turbine.UI.Lotro.Font.Verdana12);
 	self.Version:SetForeColor( ColorTheme.colourMessageTitle );
-	self.Version:SetPosition( 40, 25 );
-	self.Version:SetSize(50, 14);
 	self.Version:SetText("V" .. Plugins[gPlugin]:GetVersion());
-	
-	-- self.lFXmod = 23; -- listFrame x coord modifier
-	-- self.lCXmod = 28; -- listContainer x coord modifier (original value was 42)
 
-	-- if (CharSettings.InstrSlots[1]["visible"]) then
-	-- 	self.lFYmod = 214 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listFrame     y coord modifier = difference between bottom pixels and window bottom
-	-- 	self.lCYmod = 233 + ShiftTop + InstrumentSlots_Shift * ( CharSettings.InstrumentSlots_Rows - 1 ); -- listContainer y coord modifier = difference between bottom pixels and window bottom
-	-- else
-	-- 	self.lFYmod = 169 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listFrame     y coord modifier = difference between bottom pixels and window bottom
-	-- 	self.lCYmod = 188 + ShiftTop + 0 * ( CharSettings.InstrumentSlots_Rows - 1 ) ; -- listContainer y coord modifier = difference between bottom pixels and window bottom
-	-- end
-	
 	-- Frame for the song list
 	self.listFrame = Turbine.UI.Control();
 	self.listFrame:SetParent( self );
 	self.listFrame:SetBackColor( Turbine.UI.Color(1, 0.15, 0.15, 0.15) );
-	self.listFrame:SetPosition(12, 134 + ShiftTop);
-	-- self.listFrame:SetSize(self:GetWidth() - self.lFXmod, self:GetHeight() - self.lFYmod);
-	self.listContainer = Turbine.UI.Control();
-	self.listContainer:SetParent( self );
-	self.listContainer:SetBackColor( Turbine.UI.Color(1,0,0,0) );
-	self.listContainer:SetPosition(18, 147 + ShiftTop);
-	-- self.listContainer:SetSize(self:GetWidth() - self.lCXmod, self:GetHeight() - self.lCYmod);
+	-- created before the list components so they draw above it
+	self.listBackground = Turbine.UI.Control()
+	self.listBackground:SetParent(self)
+	self.listBackground:SetBackColor(Turbine.UI.Color(1, 0, 0, 0))
 
 	-- outer frame title
 	self.listFrame.heading = Turbine.UI.Label();
 	self.listFrame.heading:SetParent( self.listFrame );
-	self.listFrame.heading:SetLeft(5);
-	self.listFrame.heading:SetSize(self.listFrame:GetWidth(),13);
 	self.listFrame.heading:SetFont( Turbine.UI.Lotro.Font.TrajanPro13 );
 	self.listFrame.heading:SetText( Strings["ui_dirs"] );
-	
+
 	-- separator2 between song list and track list
-	self.sepSongsTracks = self:CreateMainSeparator( self.listContainer:GetHeight() - Settings.TracksHeight - 13 );
+	self.sepSongsTracks = self:CreateSeparator()
 	-- separator2 title
 	self.sepSongsTracks.heading = self:CreateSeparatorHeading( self.sepSongsTracks, Strings["ui_parts"] );
 	-- separator2 hint arrows
@@ -210,15 +193,11 @@ function SongbookWindow:Constructor()
 	-- Tooltip
 	self.tipLabel = Turbine.UI.Label();
 	self.tipLabel:SetParent( self );
-	self.tipLabel:SetPosition( self:GetWidth() - 270, 27 + ShiftTop);
-	self.tipLabel:SetSize(245, 30);
 	self.tipLabel:SetTextAlignment( Turbine.UI.ContentAlignment.MiddleRight );
 	self.tipLabel:SetText("");
 	
 	self.controlBar = ControlBar()
 	self.controlBar:SetParent(self)
-	self.controlBar:SetPosition(0, 50 + ShiftTop)
-	self.controlBar:SetSize(450, 35)
 	self.controlBar.onTooltipChanged = function(text) self.tipLabel:SetText(text) end
 	self.controlBar.onSyncClicked = function()
 		SyncManager.userChatBlocked = false
@@ -255,24 +234,18 @@ function SongbookWindow:Constructor()
 
 	self.trackListPanel = TrackListPanel()
 	self.trackListPanel:SetParent(self)
-	self.trackListPanel:SetPosition(247, 51 + ShiftTop)
-	self.trackListPanel:SetSize(35, 35)
 
 	self.trackListPanel.onTrackSelected = function(trackIndex) self:SelectTrack(trackIndex) end
 	self.trackListPanel.onToggleTracks = function() self:ToggleTracks() end
 	
 	self.descriptionPanel = DescriptionPanel()
 	self.descriptionPanel:SetParent(self)
-	self.descriptionPanel:SetPosition(23, 90 + ShiftTop)
-	self.descriptionPanel:SetSize(self:GetWidth() - 52, 16)
 	
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   --%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	self.playerSyncPanel = PlayerSyncPanel()
 	self.playerSyncPanel:SetParent(self)
-	self.playerSyncPanel:SetPosition(15, 30)
-	self.playerSyncPanel:SetSize(self:GetWidth() - 30, 56)
 	self.playerSyncPanel.onNavigateToSyncedSong = function(otherPlayerSong)
 		SongLibrary.NavigateToPath(otherPlayerSong.filepath)
 		self.songFileBrowser:Populate()
@@ -314,8 +287,6 @@ function SongbookWindow:Constructor()
 	-- search field
 	self.searchInput = Turbine.UI.Lotro.TextBox();
 	self.searchInput:SetParent(self);
-	self.searchInput:SetPosition(17, 110 + ShiftTop);
-	self.searchInput:SetSize(150, 20);
 	self.searchInput:SetFont(Turbine.UI.Lotro.Font.Verdana14);
 	self.searchInput:SetMultiline(false);	
 	self.searchInput:SetVisible( false );
@@ -340,8 +311,6 @@ function SongbookWindow:Constructor()
 	-- search button
 	self.searchBtn = Turbine.UI.Lotro.Button();
 	self.searchBtn:SetParent(self);
-	self.searchBtn:SetPosition(172, 110 + ShiftTop);
-	self.searchBtn:SetSize(80, 20);
 	self.searchBtn:SetText(Strings["ui_search"]);
 	self.searchBtn:SetVisible( false );
 
@@ -352,8 +321,6 @@ function SongbookWindow:Constructor()
 	-- clear search button
 	self.clearBtn = Turbine.UI.Lotro.Button();
 	self.clearBtn:SetParent(self);
-	self.clearBtn:SetPosition(255, 110 + ShiftTop);
-	self.clearBtn:SetSize(70, 20);
 	self.clearBtn:SetText(Strings["ui_clear"]);
 	self.clearBtn:SetVisible( false );
 	
@@ -366,7 +333,6 @@ function SongbookWindow:Constructor()
 	self.instrumentSlotsPanel = InstrumentSlotsPanel(CharSettings)
 	self.instrumentSlotsPanel:SetParent(self)
 	self.instrumentSlotsPanel:SetZOrder(90)
-	self.instrumentSlotsPanel:SetPosition(10, self:GetHeight() - 37 - self.instrumentSlotsPanel:GetHeight())
 
 	self.bShowReadyChars = ( Settings.ReadyColState )
 	self.bHighlightReadyCol = ( Settings.ReadyColHighlight )
@@ -375,8 +341,7 @@ function SongbookWindow:Constructor()
 	self.libraryIsEmpty = (SongLibrary.librarySize == 0)
 	self.emptyLabel = Turbine.UI.Label();
 	self.emptyLabel:SetParent( self );
-	self.emptyLabel:SetPosition( 30, 210 );
-	self.emptyLabel:SetSize(220, 240);
+	self.emptyLabel:SetZOrder(LIST_OVERLAY_ZORDER)
 	self.emptyLabel:SetText(Strings["err_nosongs"]);
 	self.emptyLabel:SetVisible(false);
 	local hasSongs = SongLibrary.librarySize ~= 0 and not SongDB.Songs[1].Realnames
@@ -390,9 +355,7 @@ function SongbookWindow:Constructor()
 	-- window resize control
 	self.resizeCtrl = Turbine.UI.Control();
 	self.resizeCtrl:SetParent(self);
-	self.resizeCtrl:SetSize(20,20);		
 	self.resizeCtrl:SetZOrder(200);
-	self.resizeCtrl:SetPosition(self:GetWidth() - 20,self:GetHeight() - 20); 
                     
 	self.resizeCtrl.MouseDown = function(sender,args)
 	  sender.dragStartX = args.X;
@@ -436,7 +399,6 @@ function SongbookWindow:Constructor()
 	
 	self.sepSongsTracks.MouseUp = function(sender, args)
 		sender.dragging = false
-		Settings.TracksHeight = self.trackDetailPanel:GetHeight()
 	end
 
 	self.sepSongsTracks.MouseMove = function(sender, args)
@@ -448,8 +410,7 @@ function SongbookWindow:Constructor()
 	
 	self.footerBar = FooterBar()
 	self.footerBar:SetParent(self)
-	self.footerBar:SetSize(self:GetWidth(), 20)
-	self.footerBar:SetPosition(0, self:GetHeight() - 30)
+	self.footerBar:SetZOrder(LIST_OVERLAY_ZORDER)
 	self.footerBar.onRefreshClicked = function() self:ReloadSongDatabase() end
 	self.footerBar.onSettingsClicked = function()
 		settingsWindow:SetVisible(true)
@@ -482,7 +443,7 @@ function SongbookWindow:Constructor()
 		wrongPart = self.chWrongPart,
 		wrongSong = self.chWrongSong,
 	} )
-	self.filterPanel:SetParent( self.listContainer )
+	self.filterPanel:SetParent(self)
 	self.filterPanel.onFiltersChanged = function() self:UpdateSongs() end
 	self.filterPanel.onPlayersRefreshed = function() self:UpdateSetupColours() end
 	self:CreateTreeViewPanels()
@@ -558,8 +519,8 @@ end
 
 function SongbookWindow:CreateTimerUI( )
 	self.songTimerPanel = SongTimerPanel()
-	self.songTimerPanel:SetParent( self.listContainer )
-	self.songTimerPanel:SetZOrder( 350 )
+	self.songTimerPanel:SetParent(self)
+	self.songTimerPanel:SetZOrder(TIMER_ZORDER)
 	self.songTimerPanel:SetTimerEnabled( Settings.TimerState )
 	self.songTimerPanel:SetCountdown( Settings.TimerCountdown )
 	self.songTimerPanel.onTimerText = function( text ) self.timerWindow:SetTimerText( text ) end
@@ -592,13 +553,20 @@ function SongbookWindow:ReflowLayout()
 		instrumentPanelHeight = self.instrumentSlotsPanel:GetHeight(),
 	})
 
+	place(self.Version, layout.version)
+	place(self.playerSyncPanel, layout.playerSync)
+	place(self.tipLabel, layout.tooltip)
+	place(self.controlBar, layout.controlBar)
+	place(self.trackListPanel, layout.trackList)
+	place(self.descriptionPanel, layout.description)
+
 	placeShown(self.searchInput, layout.searchInput)
 	placeShown(self.searchBtn, layout.searchButton)
 	placeShown(self.clearBtn, layout.clearButton)
 
 	place(self.listFrame, layout.listFrame)
 	place(self.listFrame.heading, layout.listFrameHeading)
-	place(self.listContainer, layout.listContainer)
+	place(self.listBackground, layout.listBackground)
 
 	placeShown(self.songFileBrowser, layout.songBrowser)
 	placeShown(self.sepSongsTracks, layout.separator)
@@ -611,15 +579,12 @@ function SongbookWindow:ReflowLayout()
 	self.filterPanel:SetPosition(filter.left, filter.top)
 	self.filterPanel:SetHeight(filter.height)
 
-	self.songTimerPanel:SetPosition(layout.timer.left, layout.timer.top)
+	-- the timer shows itself while a song plays
+	place(self.songTimerPanel, layout.timer)
 	self.instrumentSlotsPanel:SetPosition(layout.instrumentSlots.left, layout.instrumentSlots.top)
 	place(self.footerBar, layout.footer)
 	placeShown(self.emptyLabel, layout.emptyLabel)
-
-	self.descriptionPanel:SetWidth(layout.description.width)
-	self.playerSyncPanel:SetWidth(layout.playerSync.width)
-	self.tipLabel:SetLeft(layout.tooltip.left)
-	self.resizeCtrl:SetPosition(layout.resizeCtrl.left, layout.resizeCtrl.top)
+	place(self.resizeCtrl, layout.resizeCtrl)
 end
 
 function SongbookWindow:RefreshSongDatabaseView()
@@ -959,7 +924,7 @@ end
 
 function SongbookWindow:CreateTreeViewPanels()
 	self.songFileBrowser = SongFileBrowser()
-	self.songFileBrowser:SetParent(self.listContainer)
+	self.songFileBrowser:SetParent(self)
 	self.songFileBrowser.onSongSelected = function(songIndex)
 		self:SelectSongByIndex(songIndex)
 	end
@@ -974,7 +939,7 @@ function SongbookWindow:CreateTreeViewPanels()
 	self.songFileBrowser:Populate()
 
 	self.trackDetailPanel = TrackDetailPanel()
-	self.trackDetailPanel:SetParent(self.listContainer)
+	self.trackDetailPanel:SetParent(self)
 	self.trackDetailPanel.onTrackSelected = function(listIndex)
 		self:SelectTrack(listIndex)
 	end
@@ -1065,19 +1030,13 @@ end
 
 	
 	
-function SongbookWindow:CreateSeparator(left, top, width, height)
-	local separator = Turbine.UI.Control();
-	separator:SetParent(self.listContainer);
-	separator:SetZOrder(300);
-	separator:SetBackColor(Turbine.UI.Color(1, 0.15, 0.15, 0.15));
-	separator:SetPosition( left, top );
-	separator:SetSize(width,height);
-	separator:SetVisible( false );
-	return separator;
-end
-
-function SongbookWindow:CreateMainSeparator(top)
-	return self:CreateSeparator(0, top, self.listContainer:GetWidth(), 13);
+function SongbookWindow:CreateSeparator()
+	local separator = Turbine.UI.Control()
+	separator:SetParent(self)
+	separator:SetZOrder(SEPARATOR_ZORDER)
+	separator:SetBackColor(Turbine.UI.Color(1, 0.15, 0.15, 0.15))
+	separator:SetVisible(false)
+	return separator
 end
 
 function SongbookWindow:CreateSeparatorHeading(parent, sText)
@@ -1100,29 +1059,6 @@ function SongbookWindow:CreateSeparatorArrows(parent)
 	arrows:SetPosition(parent:GetWidth( ) / 2 - 10, 1);
 	arrows:SetMouseVisible( false );
 	return arrows;
-end
-
-function SongbookWindow:CreateMainShortcut(left)
-	local slot = Turbine.UI.Lotro.Quickslot();
-	slot:SetParent(self);
-	slot:SetPosition(left, 50 + ShiftTop);
-	slot:SetSize(32, 30);
-	slot:SetZOrder(100);
-	slot:SetAllowDrop(false);
-	slot:SetVisible( true );
-	return slot;
-end
-
-function SongbookWindow:CreateMainIcon(left,sImageName)
-	local icon = Turbine.UI.Control();
-	icon:SetParent( self );
-	icon:SetPosition(left, 50 + ShiftTop);
-	icon:SetSize(35, 35);
-	icon:SetZOrder(110);
-	icon:SetMouseVisible(false);
-	icon:SetBlendMode( Turbine.UI.BlendMode.AlphaBlend );
-	icon:SetBackground(gDir .. sImageName .. ".tga" );
-	return icon;
 end
 
 function SongbookWindow:AddScrollbar(parent,listbox,xPos,yPos)
